@@ -148,7 +148,6 @@ class MyProfile {
     // returns string if true, otherwise false
     function is_local($webid) {
         $webid = (isset($webid)) ? $webid : $this->webid;
-        
         if (strstr($webid, $_SERVER['SERVER_NAME']))
             return true;
         else
@@ -158,7 +157,7 @@ class MyProfile {
     // get local path for user (if local)
     // returns the user's local path (e.g. people/username), otherwise false
     function get_local_path($webid) {
-        // verify if it's local or not
+        // verify if it's a local user or not
         if ($this->is_local($webid)) {
             $location = strstr($webid, $_SERVER['SERVER_NAME']);
             $path = explode('/', $location);
@@ -181,13 +180,13 @@ class MyProfile {
         $me = $graph->resource($this->webid);
         $me->add('foaf:knows', trim($uri));
         
-        // write profile to file
+        // reserialize graph
         $data = $graph->serialise($format);
         if (!is_scalar($data))
             $data = var_export($data, true);
         else
             $data = print_r($data, true);
-
+        // write profile to file
         $pf = fopen($path . '/foaf.rdf', 'w') or $this->error('Cannot open profile RDF file!');
         fwrite($pf, $data);
         fclose($pf);    
@@ -268,6 +267,7 @@ class MyProfile {
         if (!$result) {
             return $this->error('Unable to connect to the database!');
         } else {
+            mysql_free_result($result);
             return $this->success('You have successfully subscribed to local services.');
         }
     }
@@ -384,7 +384,7 @@ class MyProfile {
     // display a form for managing the user's profile data
     // returns html
     function form($action) {
-        // preload form fields with user's data
+        // preload form fields with user's data (also reload data into the graph)
         if (($action == 'edit') && ($this->load())) {
             $graph = $this->graph;
             $profile = $this->profile;
