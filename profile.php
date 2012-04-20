@@ -262,7 +262,11 @@ if (isset($_REQUEST['doit']))  {
 } else {
     include_once 'include.php';
     include 'header.php';
-    $ret = '';
+
+    // Display an error message if we got here from the IdP
+    if (isset($_REQUEST['error_message']))
+        echo error(urldecode($_REQUEST['error_message']));
+
     // Display form view
     if (!isset($_REQUEST['action']))
         $_REQUEST['action'] = 'new';
