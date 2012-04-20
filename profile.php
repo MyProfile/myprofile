@@ -58,17 +58,17 @@ if (isset($_REQUEST['doit']))  {
         $me->set('foaf:name', $_REQUEST['foaf:name']);
         
         // first name
-        if ((isset($_REQUEST['foaf:givenname'])) && (strlen($_REQUEST['foaf:givenname']) > 0))
-            $me->set('foaf:givenname', trim($_REQUEST['foaf:givenname']));
+        if ((isset($_REQUEST['foaf:givenName'])) && (strlen($_REQUEST['foaf:givenName']) > 0))
+            $me->set('foaf:givenName', trim($_REQUEST['foaf:givenName']));
         // last name
-        if ((isset($_REQUEST['foaf:family_name'])) && (strlen($_REQUEST['foaf:family_name']) > 0))
-            $me->set('foaf:family_name', trim($_REQUEST['foaf:family_name']));
+        if ((isset($_REQUEST['foaf:familyName'])) && (strlen($_REQUEST['foaf:familyName']) > 0))
+            $me->set('foaf:familyName', trim($_REQUEST['foaf:familyName']));
         // title
         if ((isset($_REQUEST['foaf:title'])) && (strlen($_REQUEST['foaf:title']) > 0))
             $me->set('foaf:title', trim($_REQUEST['foaf:title']));
         // depiction
-        if ((isset($_REQUEST['foaf:depiction'])) && (strlen($_REQUEST['foaf:depiction']) > 0))
-            $me->set('foaf:depiction', trim($_REQUEST['foaf:depiction']));
+        if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0))
+            $me->set('foaf:img', trim($_REQUEST['foaf:img']));
         // logo
         if ((isset($_REQUEST['foaf:logo'])) && (strlen($_REQUEST['foaf:logo']) > 0)) {
             $me->set('foaf:logo', trim($_REQUEST['foaf:logo']));
@@ -206,7 +206,7 @@ if (isset($_REQUEST['doit']))  {
             
             // create dirs
             if (!mkdir($user_dir, 0775))
-                die('Failed to create user profile directory!');
+                die('Failed to create user profile directory! Check permissions.');
     
             // write Rewrite .htaccess file
             $htaccess = fopen($user_dir . '/.htaccess', 'w') or die('Cannot create .htaccess file!');
