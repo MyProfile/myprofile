@@ -72,7 +72,12 @@ class MyProfile {
         return true;
     }
     
-    // get the user's profile object
+    // get the user's raw graph object
+    function get_graph() {
+        return $this->graph;
+    }
+    
+    // get the user's raw profile object
     function get_profile() {
         return $this->profile;
     }

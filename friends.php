@@ -39,25 +39,17 @@ $ret .= $confirmation;
 
 // load a specific webid instead of the logged user
 if (isset($_REQUEST['webid'])) {
-    $graph = new Graphite();
-    $graph->load($_REQUEST['webid']);
-    $graph->cacheDir("cache/");
-    
-    // try to get primary topic, else go with default uri
-    if ($primary = getPrimaryTopic($graph)) 
-        $profile = $graph->resource($primary);
-    else
-        $profile = $graph->resource($webid);
-
-    $webid = $profile;
+    $person = new MyProfile(urldecode($_REQUEST['webid']), $base_uri);
+    $person->load();
+    $profile = $person->get_profile();
 } else {
     // verify if we're logged in or not, so we get the user's list of contacts
     check_auth($idp, $page_uri);
-    $webid = $_SESSION['myprofile']->get_profile();
+    $profile = $_SESSION['myprofile']->get_profile();
 }
 
 // call ajax script here to load each friend's data
-$friends = $webid->all('foaf:knows')->join(',');
+$friends = $profile->all('foaf:knows')->join(',');
 
 // show something if there are friends for this webid
 if (strlen($friends) > 0) {

@@ -168,7 +168,7 @@
    				    echo "<table><tr><td style=\"float: left; display: inline; padding: 5px 10px 5px 10px; background-color: " . $pbg . "\">" . $private_msg . "</td><td style=\"float: left; padding: 5px 0px 0px 5px;\">Notifications</td></tr></table></a></li>\n";
    				echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">";
    				    echo "<table><tr><td style=\"float: left; display: inline; padding: 5px 10px 5px 10px; background-color: " . $wbg . "\">" . $wall_msg . "</td><td style=\"float: left; padding: 5px 0px 0px 5px;\">Wall messages</td></tr></table></a></li>\n";
-   				echo "<li><a href=\"send_notification.php\">Send Notification</a></li>\n";
+   				echo "<li><a href=\"notification.php\">Send Notification</a></li>\n";
    				echo "</ul></li>\n";
             } else {
                 echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";

@@ -35,13 +35,12 @@ if (isset($_REQUEST['to'])) {
     $to = trim($_REQUEST['to']);
 
     // fetch the user's profile
-    $fg = new Graphite();
-    $fg->load($to);
-    $fg->cacheDir("cache/");
-    $fr = $fg->resource($to);
+    $person = new MyProfile($to, $base_dir);
+    $person->load();
+    $profile = $person->get_profile();
     
-    $to_name = $fr->get("foaf:name");
-    $pingback_service = $fr->get("http://purl.org/net/pingback/to");
+    $to_name = $person->get_name();
+    $pingback_service = $profile->get("http://purl.org/net/pingback/to");
     
     // set form data
     $source = $_SESSION['webid'];
