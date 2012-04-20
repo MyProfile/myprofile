@@ -319,8 +319,7 @@ class MyProfile {
                 // Get picture
                 $pic = $row['pic'];
 
-                $text = htmlentities($row["msg"]);
-                $text = put_links($text);
+                $text = htmlspecialchars($row["msg"]);
 
                 // add horizontal line to separate messages
                 $ret .= "<tr><td colspan=\"2\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/><br/><br/></td></tr>\n";
@@ -339,7 +338,7 @@ class MyProfile {
                 $ret .= "           </td>\n";
                 $ret .= "       </tr>\n";
                 $ret .= "       <tr>\n";
-                $ret .= "           <td><p><div id=\"post\"><pre id=\"post_val\">" . $text . "</pre></div></p></td>\n";
+                $ret .= "           <td><p><div id=\"post\"><pre id=\"post_val\">" . put_links($text) . "</pre></div></p></td>\n";
                 $ret .= "       </tr>\n";
                 $ret .= "       <tr>\n";
                 $ret .= "           <td><small>";
