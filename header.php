@@ -125,17 +125,16 @@
         <?php
             if (isset($_SESSION['user_hash']))
                 echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">My wall</a></li>\n";
-
         ?>
         <li><a href="friends.php">Friends</a></li>
         <li><a href="lookup.php">Lookup</a></li>
         <li><a href="#">Additional Features</a>
             <ul>
-            <li><a href="profile.php">Create WebID</a></li>
+            <?php
+                if (isset($_SESSION['webid']))
+                    echo "<li><a href=\"profile.php\">Create a new WebID</a></li>\n";
+            ?>
             <li><a href="certgen.php">Issue certificate</a></li>
-            <li><a href="export.php">Convert/Export</a></li>
-            <li>&nbsp;</li>
-            <li><a href="http://myprofile-project.org/" target="_blank">About</a></li>
             </ul>
         </li>
         <?php 
