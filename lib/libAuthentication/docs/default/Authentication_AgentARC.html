@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class Authentication_AgentARC</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class Authentication_AgentARC</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-vars">Vars</a>
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+					</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">author:</span> <p>Akbar Hossain  Foaf parser leveraging ARC functionality  It takes URI of an user/agent and looks up properties (e.g. public key)  of the corresponding Foaf profile.</p><p>This class relies on the ARC RDF triple store.</p></li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_Authentication_AgentARC.php.html">/Authentication_AgentARC.php</a> (line <span class="field">40</span>)
+		</p>
+		
+				
+		<pre><a href="../default/Authentication_AgentAbstract.html">Authentication_AgentAbstract</a>
+   |
+   --Authentication_AgentARC</pre>
+	
+			</div>
+</div>
+
+
+
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+																		<a href="#sec-vars">Vars</a>
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																																																																																																				
+												<div class="method-definition">
+											<span class="method-result">Authentication_AgentARC</span>
+										<a href="#__construct" title="details" class="method-name">__construct</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$ARCConfig</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$agentURI</span> = <span class="var-default">NULL</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$ARCStore</span> = <span class="var-default">NULL</span>])
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getAgentId" title="details" class="method-name">getAgentId</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getAgentNyms" title="details" class="method-name">getAgentNyms</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getAgentProperties" title="details" class="method-name">getAgentProperties</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getAllFriends" title="details" class="method-name">getAllFriends</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getFoafRSAKey" title="details" class="method-name">getFoafRSAKey</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getNameParts" title="details" class="method-name">getNameParts</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getOpenID" title="details" class="method-name">getOpenID</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#getPrimaryProfile" title="details" class="method-name">getPrimaryProfile</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#loadAgent" title="details" class="method-name">loadAgent</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#loadErrors" title="details" class="method-name">loadErrors</a>
+										()
+									</div>
+																<div class="method-definition">
+											<span class="method-result">void</span>
+										<a href="#webid" title="details" class="method-name">webid</a>
+											(<span class="var-type"></span>&nbsp;<span class="var-name">$seeAlso</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$about</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$homepage</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$mbox</span>)
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../default/Authentication_AgentAbstract.html">Authentication_AgentAbstract</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_AgentAbstract.html#var$agentId">Authentication_AgentAbstract::$agentId</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_AgentAbstract.html#var$agentURI">Authentication_AgentAbstract::$agentURI</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_AgentAbstract.html#var$errors">Authentication_AgentAbstract::$errors</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-vars">Vars</a>
+																	<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+
+<a name="method__construct" id="__construct"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">Constructor __construct</span> (line <span class="line-number">45</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">Authentication_AgentARC</span>
+		<span class="method-name">
+			__construct
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$ARCConfig</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$agentURI</span> = <span class="var-default">NULL</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$ARCStore</span> = <span class="var-default">NULL</span>])
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$ARCConfig</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$agentURI</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$ARCStore</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../default/Authentication_AgentAbstract.html#method__construct">Authentication_AgentAbstract::__construct()</a></dt>
+					</dl>
+			
+	</div>
+<a name="methodgetAgentId" id="getAgentId"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getAgentId</span> (line <span class="line-number">94</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getAgentId
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../default/Authentication_AgentAbstract.html#methodgetAgentId">Authentication_AgentAbstract::getAgentId()</a></dt>
+					</dl>
+			
+	</div>
+<a name="methodgetAgentNyms" id="getAgentNyms"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getAgentNyms</span> (line <span class="line-number">353</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getAgentNyms
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodgetAgentProperties" id="getAgentProperties"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getAgentProperties</span> (line <span class="line-number">66</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getAgentProperties
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../default/Authentication_AgentAbstract.html#methodgetAgentProperties">Authentication_AgentAbstract::getAgentProperties()</a></dt>
+					</dl>
+			
+	</div>
+<a name="methodgetAllFriends" id="getAllFriends"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getAllFriends</span> (line <span class="line-number">256</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getAllFriends
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodgetFoafRSAKey" id="getFoafRSAKey"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getFoafRSAKey</span> (line <span class="line-number">124</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getFoafRSAKey
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodgetNameParts" id="getNameParts"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getNameParts</span> (line <span class="line-number">178</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getNameParts
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodgetOpenID" id="getOpenID"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">getOpenID</span> (line <span class="line-number">430</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getOpenID
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodgetPrimaryProfile" id="getPrimaryProfile"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">getPrimaryProfile</span> (line <span class="line-number">465</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			getPrimaryProfile
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodloadAgent" id="loadAgent"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">loadAgent</span> (line <span class="line-number">53</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			loadAgent
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../default/Authentication_AgentAbstract.html#methodloadAgent">Authentication_AgentAbstract::loadAgent()</a></dt>
+					</dl>
+			
+	</div>
+<a name="methodloadErrors" id="loadErrors"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">loadErrors</span> (line <span class="line-number">59</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			loadErrors
+		</span>
+				()
+			</div>
+	
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../default/Authentication_AgentAbstract.html#methodloadErrors">Authentication_AgentAbstract::loadErrors()</a></dt>
+					</dl>
+			
+	</div>
+<a name="methodwebid" id="webid"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">webid</span> (line <span class="line-number">243</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+	<ul class="tags">
+				<li><span class="field">access:</span> protected</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			webid
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$seeAlso</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$about</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$homepage</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$mbox</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$seeAlso</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$about</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$homepage</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$mbox</span>			</li>
+				</ul>
+		
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../default/Authentication_AgentAbstract.html">Authentication_AgentAbstract</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../default/Authentication_AgentAbstract.html#method__construct">Authentication_AgentAbstract::__construct()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_AgentAbstract.html#methodgetAgent">Authentication_AgentAbstract::getAgent()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_AgentAbstract.html#methodgetAgentId">Authentication_AgentAbstract::getAgentId()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_AgentAbstract.html#methodgetAgentProperties">Authentication_AgentAbstract::getAgentProperties()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_AgentAbstract.html#methodloadAgent">Authentication_AgentAbstract::loadAgent()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_AgentAbstract.html#methodloadErrors">Authentication_AgentAbstract::loadErrors()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_AgentAbstract.html#methodsetAgent">Authentication_AgentAbstract::setAgent()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+
+	<p class="notes" id="credit">
+		Documentation generated on Tue, 13 Apr 2010 23:04:13 +0200 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.3</a>
+	</p>
+	</div></body>
+</html>

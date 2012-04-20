@@ -1,0 +1,2 @@
+1. Make sure PhpDocumentor is installed on your system (http://manual.phpdoc.org/HTMLSmartyConverter/HandS/ric_INSTALL.html)
+2. Run makedoc.sh to generate the API documentatino in HTML format

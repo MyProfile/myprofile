@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs For Class Authentication_SignedURL</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="class-name">Class Authentication_SignedURL</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+													<a href="#sec-vars">Vars</a>
+						|											<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+						
+					</div>
+	<div class="info-box-body">
+        		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Represents a special &quot;signed&quot; URL used in authentication scenarios</p>
+	<ul class="tags">
+				<li><span class="field">author:</span> László Török</li>
+			</ul>
+		<p class="notes">
+			Located in <a class="field" href="_Authentication_URL.php.html">/Authentication_URL.php</a> (line <span class="field">107</span>)
+		</p>
+		
+				
+		<pre><a href="../default/Authentication_URL.html">Authentication_URL</a>
+   |
+   --Authentication_SignedURL</pre>
+	
+			</div>
+</div>
+
+
+
+
+	<a name="sec-method-summary"></a>
+	<div class="info-box">
+		<div class="info-box-title">Method Summary</span></div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+																		<a href="#sec-vars">Vars</a>
+				 
+				|
+						<span class="disabled">Methods</span> (<a href="#sec-methods">details</a>)
+		</div>
+		<div class="info-box-body">			
+			<div class="method-summary">
+																				<div class="method-definition">
+					static 						<span class="method-result"><a href="../default/Authentication_SignedURL.html">Authentication_SignedURL</a></span>
+										<a href="#parse" title="details" class="method-name">parse</a>
+											(<span class="var-type">string</span>&nbsp;<span class="var-name">$URL_string</span>)
+									</div>
+																
+												<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#digitalSignature" title="details" class="method-name">digitalSignature</a>
+										()
+									</div>
+																								<div class="method-definition">
+											<span class="method-result">string</span>
+										<a href="#URLWithoutSignature" title="details" class="method-name">URLWithoutSignature</a>
+										()
+									</div>
+								</div>
+		</div>
+	</div>		
+
+	<a name="sec-vars"></a>
+	<div class="info-box">
+		<div class="info-box-title">Variables</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-var-summary">Vars</a> (<span class="disabled">details</span>)
+						
+			
+										| 
+									<a href="#sec-method-summary">Methods</a> (<a href="#sec-methods">details</a>)
+							
+					</div>
+		<div class="info-box-body">
+										<h4>Inherited Variables</h4>
+				<A NAME='inherited_vars'><!-- --></A>
+									<p>Inherited from <span class="classname"><a href="../default/Authentication_URL.html">Authentication_URL</a></span></p>
+					<blockquote>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_URL.html#var$host">Authentication_URL::$host</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_URL.html#var$parsedURL">Authentication_URL::$parsedURL</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_URL.html#var$path">Authentication_URL::$path</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_URL.html#var$port">Authentication_URL::$port</a></span><br>
+							</span>
+													<span class="var-title">
+								<span class="var-name"><a href="../default/Authentication_URL.html#var$scheme">Authentication_URL::$scheme</a></span><br>
+							</span>
+											</blockquote> 
+										
+		</div>
+	</div>
+	
+	<a name="sec-methods"></a>
+	<div class="info-box">
+		<div class="info-box-title">Methods</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+															<a href="#sec-vars">Vars</a>
+																	<a href="#sec-method-summary">Methods</a> (<span class="disabled">details</span>)
+						
+		</div>
+		<div class="info-box-body">
+			<A NAME='method_detail'></A>
+<a name="methodparse" id="parse"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">static method parse</span> (line <span class="line-number">132</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Parses the given URL string into a Authentication_SignedURL</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+	    static
+		<span class="method-result"><a href="../default/Authentication_SignedURL.html">Authentication_SignedURL</a></span>
+		<span class="method-name">
+			parse
+		</span>
+					(<span class="var-type">string</span>&nbsp;<span class="var-name">$URL_string</span>)
+			</div>
+	
+			<ul class="parameters">
+					<li>
+				<span class="var-type">string</span>
+				<span class="var-name">$URL_string</span>			</li>
+				</ul>
+		
+			<hr class="separator" />
+		<div class="notes">Redefinition of:</div>
+		<dl>
+			<dt><a href="../default/Authentication_URL.html#methodparse">Authentication_URL::parse()</a></dt>
+					</dl>
+			
+	</div>
+
+<a name="methoddigitalSignature" id="digitalSignature"><!-- --></a>
+<div class="evenrow">
+	
+	<div class="method-header">
+		<span class="method-title">digitalSignature</span> (line <span class="line-number">113</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns the digital signature string extracted from the signed URL</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			digitalSignature
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+<a name="methodURLWithoutSignature" id="URLWithoutSignature"><!-- --></a>
+<div class="oddrow">
+	
+	<div class="method-header">
+		<span class="method-title">URLWithoutSignature</span> (line <span class="line-number">121</span>)
+	</div> 
+	
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns the original parsed URL without the digital signature</p>
+	<ul class="tags">
+				<li><span class="field">access:</span> public</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">string</span>
+		<span class="method-name">
+			URLWithoutSignature
+		</span>
+				()
+			</div>
+	
+		
+			
+	</div>
+							<h4>Inherited Methods</h4>
+				<a name='inherited_methods'><!-- --></a>	
+									<!-- =========== Summary =========== -->
+					<p>Inherited From <span class="classname"><a href="../default/Authentication_URL.html">Authentication_URL</a></span></p>
+					<blockquote>
+													<span class="method-name"><a href="../default/Authentication_URL.html#methodgetQueryParameter">Authentication_URL::getQueryParameter()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_URL.html#methodparse">Authentication_URL::parse()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_URL.html#methodparseInternal">Authentication_URL::parseInternal()</a></span><br>
+													<span class="method-name"><a href="../default/Authentication_URL.html#method__toString">Authentication_URL::__toString()</a></span><br>
+											</blockquote>
+										
+		</div>
+	</div>
+
+
+	<p class="notes" id="credit">
+		Documentation generated on Tue, 13 Apr 2010 23:04:16 +0200 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.3</a>
+	</p>
+	</div></body>
+</html>

@@ -1,0 +1,286 @@
+<?php
+
+/* ARC2 static class inclusion */ 
+include_once('/home/foaf/www/arc/ARC2.php');
+
+
+/*
+homepage: http://arc.semsol.org/
+license:  http://arc.semsol.org/license
+
+class:    ARC2 Data Wiki Plugin
+author:   Benjamin Nowack
+version:  2008-01-14
+*/
+
+ARC2::inc('Class');
+
+class ARC2_DataWikiPlugin extends ARC2_Class {
+
+  function __construct($a = '', &$caller) {
+    parent::__construct($a, $caller);
+  }
+  
+  function ARC2_DataWikiPlugin($a = '', &$caller) {
+    $this->__construct($a, $caller);
+  }
+
+  function __init() {
+    parent::__init();
+    $this->headers = array('http' => 'HTTP/1.1 200 OK');
+  }
+
+  /*  */
+
+  function handleRequest($webid) {
+	  	$this->writeLog('handleRequest');
+/*
+    $rel_path = $this->getRequestPath();
+    if (!$rel_path) {
+			  	$this->writeLog('handleRootRequest');
+
+      $this->handleRootRequest();
+    }
+    else
+	*/
+	if (preg_match('/^post$/i', $_SERVER['REQUEST_METHOD'])) {
+			  	$this->writeLog('handleUpdateRequest');
+	  $ret = $this->handleUpdateRequest($webid);
+    }
+    elseif (!file_exists($rel_path)) {
+			  	$this->writeLog('handle404Request');
+      $this->handle404Request();
+    }
+    else {
+					  	$this->writeLog('handlePassThroughRequest');
+      $this->handlePassThroughRequest();
+    }
+
+	return $ret;
+  }
+
+  function setHeader($k, $v) {
+    $this->headers[$k] = $v;
+  }
+  
+  function sendHeaders() {
+    foreach ($this->headers as $k => $v) {
+      header($v);
+//print "$v<br>";
+    }
+  }
+  
+  function getResult() {
+	return $this->result;
+  }
+  
+  function go($webid) {
+    $ret = $this->handleRequest($webid);
+    $this->sendHeaders();
+	echo $this->getResult();
+	return $ret;
+  }
+
+  /*  */
+  
+  function getAbsBase() {
+    return preg_replace('/index\.php$/', '', ARC2::getScriptURI());
+  }
+
+  function getRelBase() {
+    return preg_replace('/index\.php$/', '', $_SERVER["SCRIPT_NAME"]);
+  }
+    
+  function getRequestPath() {
+    $r = $_SERVER['REQUEST_URI'];
+    $r = preg_match('/^[^\/][a-z0-9]+\:[\/]+[^\/]+(.*)$/i', $r, $m) ? $m[1] : $r;
+    $r = substr($r, strlen($this->getRelBase()));
+    if (!$r || ($r == 'index.php')) return '';
+    $r = preg_replace('/\.[^\.]+$/', '', $r) . '.rdf';
+	$r = '/home/foaf/www/datawiki/'.$r;
+    return $r;
+  }
+  
+  function getRequestURI(){
+    return $this->getAbsBase() . $this->getRequestPath();
+  }
+  
+  function getTargetGraph() {
+    $r = preg_replace('/[\#\?].*$/', '', $this->getRequestURI());
+    $r = preg_replace('/\.rdf$/', '', $r);
+    return $r;
+  }
+  
+  /*  */
+  
+  function handleRootRequest() {
+    $this->setHeader('content-type', 'Content-type: text/html; charset=utf-8');
+    $this->result = $this->getWelcomeDoc();
+  }
+  
+  function handle404Request() {
+	$this->setHeader('content-type', 'Content-type: application/rdf+xml; charset=utf-8');
+//	$this->setHeader('content-type', 'Content-type: application/rdf+xml');
+    $this->setHeader('author-via', 'MS-Author-Via: SPARQL');
+	$this->result = '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"></rdf:RDF>';
+}
+  
+  function handlePassThroughRequest() {
+    $rel_path = $this->getRequestPath();
+	$this->setHeader('content-type', 'Content-type: application/rdf+xml; charset=utf-8');
+    $this->setHeader('author-via', 'MS-Author-Via: SPARQL');
+	$page = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    $this->result = file_get_contents($page);
+  }
+  
+  function handleUpdateRequest($webid) {
+	$this->writeLog('handleUpdateRequest');
+    $this->result = '';
+    $this->setHeader('http', 'HTTP/1.1 403 Forbidden');
+    $rel_path = $this->getRequestPath();
+	$page = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    if ($q = @file_get_contents('php://input')) {
+		$this->writeLog2($webid, $q, $page);
+	  $triples = array();
+//      if (file_exists($rel_path)) {
+        $parser = ARC2::getRDFParser($this->a);
+//        $parser->parse($rel_path);
+        $parser->parse($page);
+        $triples = $parser->getTriples();
+//      }
+      $index = ARC2::getSimpleIndex($triples, 0);
+      /* split combined INSERT/DELETE query */
+      if (preg_match('/^\s*(DELETE.*)\s*(INSERT.*)$/is', $q, $m)) {
+        $qs = array($m[1], $m[2]);
+      }
+      else {
+        $qs = array($q);
+      }
+//      $this->writeLog(print_r($qs, 1));
+	  $tmpfname = tempnam("/home/foaf/www/datawiki", "rdf_");
+	  foreach ($qs as $q) {
+        $index = $this->getUpdatedIndex($index, $q);
+//        $this->writeLog(print_r($index, 1));
+        if (!$this->getErrors()) {
+          $this->setHeader('http', 'HTTP/1.1 200 OK');
+          if ($index) {
+            /* todo: create dirs, if necessary */
+			$fp = fopen($tmpfname, 'w');
+			$doc = $parser->toRDFXML($index);
+            fwrite($fp, $doc);
+			fclose($fp);
+          }
+          else {
+            unlink($tmpfname);
+          }
+        }
+      }
+//        $this->writeLog3($tmpfname, $_SERVER['REQUEST_URI']);
+		return $tmpfname;
+	}
+  }
+  
+  function getUpdatedIndex($old_index, $q) {
+    if (!preg_match('/^\s*(INSERT|DELETE)\s*(INTO|FROM)?\s*(.*)$/is', $q, $m)) {
+      return 0;
+    }
+    $qt = strtolower($m[1]);
+    $g = $this->getTargetGraph();
+    /* inject a target graph, if necessary */
+    if (!$m[2]) {
+      $q = strtoupper($qt) . (($qt == 'insert') ? ' INTO ' : ' FROM') . ' <' . $g . '> ' . $m[3];
+    }
+    /* parse the query */
+    $this->writeLog($q);
+    ARC2::inc('SPARQLPlusParser');
+    $p = & new ARC2_SPARQLPlusParser($this->a, $this);
+    $p->parse($q);
+    $infos = $p->getQueryInfos();
+    /* errors? */
+    if ($errors = $this->getErrors()) {
+      $this->setHeader('http', 'HTTP/1.1 400 Bad Request');
+      $this->setHeader('content-type', 'Content-type: text/plain; charset=utf-8');
+      $this->result = join("\n", $errors);
+      return 0;
+    }
+    $q_index = ARC2::getSimpleIndex($infos['query']['construct_triples'], 0);
+    if ($qt == 'insert') {
+      return ARC2::getMergedIndex($old_index, $q_index);
+    }
+    elseif ($qt == 'delete') {
+      return ARC2::getCleanedIndex($old_index, $q_index);
+    }
+  }
+  
+  /*  */
+
+  function getWelcomeDoc() {
+    if (file_exists('welcome.htm')) {
+      return file_get_contents('welcome.htm');
+    }
+    else {
+      return '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+        	<head>
+        		<title>ARC Data Wiki</title>
+        		<style type="text/css">
+              body {
+                font-size: 14px;
+              	font-family: Trebuchet MS, Verdana, Geneva, sans-serif;
+                background-color: #fcfcfc;
+                padding: 20px 20% 20px 20%;
+                color: #666;
+              }
+              h1 { font-size: 1.6em; font-weight: normal; }
+              a { color: #c00000; }
+        		</style>
+        	</head>
+        	<body>
+            <h1>ARC Data Wiki (v' . ARC2::getVersion() . ')</h1>
+            <p>
+              This Web space allows the manipulation of RDF documents via 
+              <a href="http://arc.semsol.org/docs/v2/sparql+">SPARQL+</a> 
+              (or, more precisely, a slightly tweaked version of it which 
+              accepts INSERT and DELETE queries without an explicitly specified target graph).
+            </p>
+            <p>
+              <a href="http://arc.semsol.org/download/plugins/data_wiki">Plugin Documentation</a>
+            </p>
+          </body>
+        </html>
+      ';
+    }
+  }
+
+  /*  */
+
+  function writeLog($v) {
+ //   return 1;
+    $fp = fopen('/home/foaf/www/datawiki/log.txt', 'a');
+    $now = time();
+    fwrite($fp, date('Y-m-d\TH:i:s\Z', $now) . ' : ' . $v . '' . "\r\n");
+    fclose($fp);
+  }
+
+  function writeLog2($webid, $v, $page) {
+ //   return 1;
+    $fp = fopen('/home/foaf/www/datawiki/log2.txt', 'a');
+    $now = time();
+    fwrite($fp, date('Y-m-d\TH:i:s\Z', $now) . ' : ' . $webid . ' : ' . $page . ' : ' . $v . '' . "\r\n");
+    fclose($fp);
+  }
+
+/*
+  function writeLog3($file, $nickname) {
+ //   return 1;
+    $fp = fopen('/home/foaf/www/datawiki/log3.txt', 'a');
+    $now = time();
+    fwrite($fp, date('Y-m-d\TH:i:s\Z', $now) . ' : upload : ' . $file . ' : nickname : ' . $nickname . "\r\n");
+    fclose($fp);
+  }
+*/
+
+  /*  */
+
+}
+?>
