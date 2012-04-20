@@ -46,12 +46,12 @@ DROP TABLE IF EXISTS `pingback_messages`;
 CREATE TABLE IF NOT EXISTS `pingback_messages` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `date` bigint(20) NOT NULL,
-  `from_uri` varchar(256) NOT NULL,
+  `from_uri` varchar(512) NOT NULL,
   `to_hash` varchar(8) DEFAULT NULL,
-  `to_uri` varchar(256) NOT NULL,
+  `to_uri` varchar(512) NOT NULL,
   `name` varchar(256) DEFAULT NULL,
-  `pic` varchar(512) DEFAULT NULL,
-  `msg` varchar(256) NOT NULL,
+  `pic` varchar(1024) DEFAULT NULL,
+  `msg` varchar(10000) NOT NULL,
   `wall` tinyint(1) NOT NULL DEFAULT '0',
   `new` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
