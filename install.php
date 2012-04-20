@@ -254,6 +254,12 @@ if (isset($_REQUEST['submit'])) {
             $cache_status = "<p><font color=\"green\"><strong>Success!</strong></font> Cache dir has been created.</p>\n";
         }
         
+        // create dir where we store profiles
+        if (!mkdir('people/', 0775)) {
+            die('Failed to create people/ dir...');
+        } else {
+            $people_status = "<p><font color=\"green\"><strong>Success!</strong></font> Profile root dir has been created.</p>\n";
+        }
         
         // display success
         $ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">MyProfile Installation</font></p>\n";
@@ -263,6 +269,7 @@ if (isset($_REQUEST['submit'])) {
         $ret .= $sql_status;
         $ret .= $cf_status;
         $ret .= $cache_status;
+        $ret .= $people_status;
         $ret .= "<br/><p><input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Take me to the main page! \"></p>\n";
         $ret .= "</form></div>\n";
         
