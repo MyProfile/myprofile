@@ -409,19 +409,19 @@ class MyProfile {
             $this->name = ($profile->get('foaf:name') != '[NULL]') ? $profile->get('foaf:name') : '';
 
             // First name
-            $this->firstname = ($profile->get('foaf:givenname') != '[NULL]') ? $profile->get('foaf:givenname') : '';
+            $this->firstname = ($profile->get('foaf:givenName') != '[NULL]') ? $profile->get('foaf:givenName') : '';
 
             // Lastname
-            $this->familyname = ($profile->get('foaf:family_name')  != '[NULL]') ? $profile->get('foaf:family_name') : '';
+            $this->familyname = ($profile->get('foaf:familyName')  != '[NULL]') ? $profile->get('foaf:familyName') : '';
 
             // Title
             $this->title = ($profile->get('foaf:title') != '[NULL]') ? $profile->get('foaf:title') : '';
 
             // Picture
-            if ($profile->get('foaf:depiction') != '[NULL]')
-                $this->pic = $profile->get('foaf:depiction');
-            else if ($profile->get('foaf:img') != '[NULL]')
+            if ($profile->get('foaf:img') != '[NULL]')
                 $this->pic = $profile->get('foaf:img');
+            else if ($profile->get('foaf:depiction') != '[NULL]')
+                $this->pic = $profile->get('foaf:depiction');
             else
                 $this->pic = '';
 
@@ -647,22 +647,22 @@ class MyProfile {
     /* ----- Firstname ------ */
         $ret .= "<tr>\n";
         $ret .= "<td>Firstname: </td>\n";
-        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->firstname . "\" name=\"foaf:givenname\"></td><td> (foaf:givenname)</td>\n";
+        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->firstname . "\" name=\"foaf:givenName\"></td><td> (foaf:givenName)</td>\n";
         $ret .= "</tr>\n";
     /* ----- Lastname ------ */
         $ret .= "<tr>\n";
         $ret .= "<td>Lastname: </td>\n";
-        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->familyname . "\" name=\"foaf:family_name\"></td>\n";
-        $ret .= "<td> (foaf:family_name)</td>\n";
+        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->familyname . "\" name=\"foaf:familyName\"></td>\n";
+        $ret .= "<td> (foaf:familyName)</td>\n";
         $ret .= "</tr>\n";
 
 /* ----- PERSONAL ------ */
 
     /* ----- Picture ------ */
         $ret .= "<tr>\n";
-        $ret .= "<td>Photo URL: </td>\n";
-        $ret .= "<td><input type=\"text\" placeholder=\"http://...\" size=\"50\" maxlength=\"64\" value=\"" . $this->pic . "\" name=\"foaf:depiction\"></td>\n";
-        $ret .= "<td> (foaf:depiction)</td>\n";
+        $ret .= "<td>Photo location: </td>\n";
+        $ret .= "<td><input type=\"text\" placeholder=\"http://...\" size=\"50\" maxlength=\"64\" value=\"" . $this->pic . "\" name=\"foaf:img\"></td>\n";
+        $ret .= "<td> (foaf:img)</td>\n";
         $ret .= "</tr>\n";
 
         // Add more personal info

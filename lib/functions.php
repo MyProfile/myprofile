@@ -392,12 +392,24 @@ function dumpHTML($graph, $me, $webid) {
 
     // name    
     $ret .= "<tr valign=\"top\">";
-    $ret .= "<td><h3 class=\"demoHeaders\">Title and name: </h3>";
+    $ret .= "<td><h3 class=\"demoHeaders\">Full name: </h3>";
     $ret .= "";
-    if ($me->get("foaf:title") != '[NULL]')
-        $ret .= $me->get("foaf:title") . " ";
-    if ($me->get("foaf:name") != '[NULL]')
+    if ($me->get("foaf:name") != '[NULL]') {
         $ret .= $me->get("foaf:name");
+    } else {
+        $first = $me->get('foaf:givenName');
+        $last = $me->get('foaf:familyName');
+
+        $name = ''; 
+        if ($first != '[NULL]')
+            $name .= $first . ' ';
+        if ($last != '[NULL]')
+            $name .= $last;
+        if (strlen($name) == 0)
+            $ret .= $name;
+        else
+            $ret .= 'Anonymous';
+    }
     $ret .= "";
     $ret .= "</td>";
     $ret .= "</tr>\n";
