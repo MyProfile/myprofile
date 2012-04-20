@@ -55,21 +55,15 @@ $Feed->setChannelElement('updated', date(DATE_ATOM , time()));
 $Feed->setChannelElement('author', array('name'=>'WebID Test Suite'));
 
 // fetch notifications for the selected webid
-$query = "SELECT * FROM pingback_messages WHERE to_uri='" . mysql_real_escape_string($webid) . "' ORDER BY date DESC LIMIT 10";
+$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($_REQUEST['id']) . "' ORDER BY date DESC LIMIT 10";
 $result = mysql_query($query);
 
 while ($row = mysql_fetch_assoc($result)) {
     //Create an empty FeedItem
     $newItem = $Feed->createNewItem();
-
-    // fetch each user's profile
-    $fg = new Graphite();
-    $fg->load($row['from_uri']);
-    $fg->cacheDir("cache/");
-    $fr = $fg->resource($row['from_uri']);
-    $name = $fr->get("foaf:name");
-    if ($name == '[NULL]')
-        $name = $row['from_uri'];
+ 
+    // The message sender's name
+    $name = $row['name'];
 
     //Add elements to the feed item
     //Use wrapper functions to add common feed elements
