@@ -79,47 +79,6 @@
 
 <body>
 <!--scripts-->
-<!-- Piwik --> 
-<script type="text/javascript">
-var pkBaseURL = (("https:" == document.location.protocol) ? "https://fcns.eu/piwik/" : "http://fcns.eu/piwik/");
-document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
-</script><script type="text/javascript">
-try {
-var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 4);
-piwikTracker.trackPageView();
-piwikTracker.enableLinkTracking();
-} catch( err ) {}
-</script><noscript><p><img src="http://fcns.eu/piwik/piwik.php?idsite=4" style="border:0" alt="" /></p></noscript>
-<!-- End Piwik Tracking Code -->
-<!-- Analytics -->
-<script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-2605982-10']);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-</script>
-
-<!-- Get satisfaction widget -->
-<script type="text/javascript" charset="utf-8">
-    var is_ssl = ("https:" == document.location.protocol);
-    var asset_host = is_ssl ? "https://d3rdqalhjaisuu.cloudfront.net/" : "http://d3rdqalhjaisuu.cloudfront.net/";
-    document.write(unescape("%3Cscript src='" + asset_host + "javascripts/feedback-v2.js' type='text/javascript'%3E%3C/script%3E"));
- </script>
- <script type="text/javascript" charset="utf-8">
-    var feedback_widget_options = {};
-
-    feedback_widget_options.display = "overlay";  
-    feedback_widget_options.company = "myprofile";
-    feedback_widget_options.placement = "right";
-    feedback_widget_options.color = "#222";
-    feedback_widget_options.style = "idea";
-    var feedback_widget = new GSFN.feedback_widget(feedback_widget_options);
-</script>
 
 <!-- Local scripts -->
 <script type="text/javascript" src="js/form.js"></script>
