@@ -79,12 +79,6 @@ if ($_POST['doit'] == 1) {
 	if (strlen($_POST['countryName']) < 1)
 		$_POST['countryName'] = 'FR';
 
-	// Check that script is called using the HTTPS protocol
-	if ($_SERVER['HTTPS'] == NULL) {
-		$error .= 'Please use the following secure uri to download the Identity P12 certificate. ';
-		$error .= "<a href='" . $base_uri . "/certgen.php?" . $_SERVER[QUERY_STRING] . "'>" . $base_uri . "/certgen.php?" . $_SERVER[QUERY_STRING] . "</a><br>";
-	}
-
 	// Get the rest of the script parameters
 	$countryName		    = $_POST['countryName'];
 	$stateOrProvinceName	= $_POST['stateOrProvinceName'];

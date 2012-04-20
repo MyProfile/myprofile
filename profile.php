@@ -163,13 +163,7 @@ if (isset($_REQUEST['doit']))  {
         	
         	if (strlen($_REQUEST['countryName']) < 1)
     	    	$countryName = 'EU';
-
-    	    // Check that script is called using the HTTPS protocol
-    	    if ($_SERVER['HTTPS'] == NULL) {
-    	    	echo "Please use HTTPS to install your certificate.";
-    	    	exit();
-    	    }
-
+            
     	    // Get the rest of the script parameters
     	    $countryName		    = $_REQUEST['countryName'];
     	    $stateOrProvinceName	= $_REQUEST['stateOrProvinceName'];
