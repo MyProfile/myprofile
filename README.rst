@@ -41,8 +41,11 @@ Internal Dependencies
 These dependencies come bundled with MyProfile. You can update them on your own, but I will try to keep them up to date as much as I can.
 
 ARC2 - https://github.com/semsol/arc2
+
 EasyRdf - https://github.com/njh/easyrdf
+
 Graphite - http://graphite.ecs.soton.ac.uk/
+
 libAuthentication https://github.com/melvincarvalho/libAuthentication
 
 

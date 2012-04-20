@@ -213,7 +213,8 @@ if (isset($_REQUEST['submit'])) {
         foreach($sql_query as $sql){
             mysql_query($sql) or die('error in query');
         }
-
+        $sql_status = "<p><font color=\"green\"><strong>Success!</strong></font> " . mysql_num_rows(mysql_query("SHOW TABLES FROM " . $db_database)) . " database tables have been created.</p>\n";
+    
         // write configuration to config.php
         $cf = fopen('config.php', 'w') or die('Cannot create the config.php file!');
 
@@ -244,14 +245,24 @@ if (isset($_REQUEST['submit'])) {
 
         fwrite($cf, $content);
         fclose($cf);
+        $cf_status = "<p><font color=\"green\"><strong>Success!</strong></font> Configuration file has been saved to disk.</p>\n";
+        
+        // create cache dir
+        if (!mkdir('cache/', 0775)) {
+            die('Failed to create cache/ dir...');
+        } else {
+            $cache_status = "<p><font color=\"green\"><strong>Success!</strong></font> Cache dir has been created.</p>\n";
+        }
+        
         
         // display success
         $ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">MyProfile Installation</font></p>\n";
         $ret .= success('Your installation is complete!');
         $ret .= "<br/><div>\n";
         $ret .= "<form action=\"index.php\" method=\"POST\">\n";
-        $ret .= "<p><font color=\"green\"><strong>Success!</strong></font> " . mysql_num_rows(mysql_query("SHOW TABLES FROM " . $db_database)) . " database tables have been created.</p>\n";
-        $ret .= "<p><font color=\"green\"><strong>Success!</strong></font> Configuration file has been saved to disk.</p>\n";
+        $ret .= $sql_status;
+        $ret .= $cf_status;
+        $ret .= $cache_status;
         $ret .= "<br/><p><input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Take me to the main page! \"></p>\n";
         $ret .= "</form></div>\n";
         
