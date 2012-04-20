@@ -82,7 +82,7 @@ if (isset($_REQUEST['uri'])) {
     if ($_REQUEST['html'] == '0') {
   		$ret .= $graph->dump();
     } else {
-        $ret .= dumpHTML($graph, $_REQUEST['uri']);
+        $ret .= dumpHTML($graph, $person->get_profile(), $_REQUEST['uri']);
     }
     $ret .= '</div>';
 }

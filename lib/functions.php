@@ -375,17 +375,7 @@ function getPrimaryTopic ($graph) {
 }
 
 // Print the profile page in a prettier way
-function dumpHTML($graph, $webid) {
-    // fetch primaryTopic of the URI (maybe it's not a webid)
-    $pt = getPrimaryTopic ($graph);
-
-    if ($pt != '[NULL]') {
-        $me = $graph->resource($pt);
-        $webid = $pt;
-    } else {
-        $me = $graph->resource($webid);
-    }
-
+function dumpHTML($graph, $me, $webid) {   
     // main table with one row which holds data in the left cell, and pics in the right cell
     $ret = "";
     $ret .= "<table align=\"center\" border=\"0\">\n";
