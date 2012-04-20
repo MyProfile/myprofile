@@ -51,7 +51,23 @@ class MyProfile {
         // get user's name and picture info for display purposes    
         $this->name = $profile->get('foaf:name');
         if ($this->name == '[NULL]')
-            $this->name = 'Anonymous';
+        // combine firstname and lastname if name is null
+        if ($this->name == '[NULL]') {
+            $first = $profile->get('foaf:givenName');
+            $last = $profile->get('foaf:familyName');
+
+            $name = ''; 
+            if ($first != '[NULL]')
+                $name .= $first . ' ';
+            if ($last != '[NULL]')
+                $name .= $last;
+            if (strlen($name) > 0)
+                $this->name = $name;
+            else
+                $this->name = 'Anonymous';
+        }
+
+        // get the user's picture
         if ($profile->get('foaf:img') != '[NULL]')
             $this->picture = $profile->get('foaf:img'); 
         else if ($profile->get('foaf:depiction') != '[NULL]')
