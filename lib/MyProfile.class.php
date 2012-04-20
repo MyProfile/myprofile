@@ -601,7 +601,7 @@ class MyProfile {
 
         $ret .= "   <div id=\"tabs-1\">\n";
         if ($action == 'new') {
-            $ret .= "<p>Here you can provide personal information about yourself.<br/>A default certificate will also be created for you.";
+            $ret .= "<p>Here you can provide personal information about yourself.<br/>A default certificate will also be created for you. (you must provide both username and full name)";
             $ret .= "<br/>Your WebID profile will be accessible at: <font color=\"#00BBFF\" style=\"font-size: 1.3em;\">" . $this->base_uri . "/people/</font>";
             $ret .= "<b>&lt;username&gt;</b><font color=\"#00BBFF\" style=\"font-size: 1.3em;\"> /card#me</font></p>\n";
         }
@@ -639,22 +639,14 @@ class MyProfile {
         $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->familyname . "\" name=\"foaf:family_name\"></td>\n";
         $ret .= "<td> (foaf:family_name)</td>\n";
         $ret .= "</tr>\n";
-    /* ----- PERSONAL ------ */
-        $ret .= "<tr>\n";
-        $ret .= "<td>Title: </td>\n";
-        $ret .= "<td><input type=\"text\" placeholder=\"Mr., Ms., Mrs.\" size=\"50\" maxlength=\"64\" value=\"" . $this->title . "\" name=\"foaf:title\"></td>\n";
-        $ret .= "<td> (foaf:title)</td>\n";
-        $ret .= "</tr>\n";
+
+/* ----- PERSONAL ------ */
+
     /* ----- Picture ------ */
         $ret .= "<tr>\n";
         $ret .= "<td>Photo URL: </td>\n";
         $ret .= "<td><input type=\"text\" placeholder=\"http://...\" size=\"50\" maxlength=\"64\" value=\"" . $this->pic . "\" name=\"foaf:depiction\"></td>\n";
         $ret .= "<td> (foaf:depiction)</td>\n";
-        $ret .= "</tr>\n";
-    /* ----- Logo ------ */
-        $ret .= "<tr>\n";
-        $ret .= "<td>Logo URL: </td><td><input type=\"text\" placeholder=\"http://...\" size=\"50\" maxlength=\"64\" value=\"" . $this->logo . "\" name=\"foaf:logo\"></td>\n";
-        $ret .= "<td> (foaf:logo)</td>\n";
         $ret .= "</tr>\n";
 
         // Add more personal info
