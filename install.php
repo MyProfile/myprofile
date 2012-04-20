@@ -256,7 +256,7 @@ if (isset($_REQUEST['submit'])) {
         
         // create logs dir
         if (!mkdir('logs/', 0775)) {
-            die('Failed to create cache/ dir...');
+            die('Failed to create logs/ dir...');
         } else {
             $logs_status = "<p><font color=\"green\"><strong>Success!</strong></font> Logs dir has been created.</p>\n";
         }
