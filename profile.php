@@ -30,7 +30,7 @@ if (isset($_REQUEST['doit']))  {
             include_once 'include.php';
         }
 
-        // Create the graph object in which we store data
+        // Create the graph object in which we will store data
         $graph = new EasyRdf_Graph();
  
         if ($_REQUEST['action'] == 'edit') {
@@ -73,7 +73,6 @@ if (isset($_REQUEST['doit']))  {
         if ((isset($_REQUEST['foaf:logo'])) && (strlen($_REQUEST['foaf:logo']) > 0)) {
             $me->set('foaf:logo', trim($_REQUEST['foaf:logo']));
         }
-        
         // email
         if ((isset($_REQUEST['foaf:mbox'])) && (strlen($_REQUEST['foaf:mbox'][0]) > 0)) {
             foreach ($_REQUEST['foaf:mbox'] as $val)
@@ -130,7 +129,7 @@ if (isset($_REQUEST['doit']))  {
         $me->set('pingback:to', $base_uri . '/notification.php');
 
         // certificates
-        // write the modulus (if we have more than one)
+        // write certificates' public keys (if we have more than one)
         foreach($_REQUEST['modulus'] as $key => $val) {
             if (strlen($val) > 0) {
                 $modulus = preg_replace('/\s+/', '', $val);
@@ -151,7 +150,7 @@ if (isset($_REQUEST['doit']))  {
         }
         
 // ----- GENERATE CERTIFICATE ----- //
-
+        // Do not generate a certificate if we're just editing the profile
         if (($_REQUEST["action"] == 'new') || ($_REQUEST["action"] == 'import')) {
             // append other webids after the local one
         	$foafLocation = array();
@@ -165,6 +164,7 @@ if (isset($_REQUEST['doit']))  {
     	    	$countryName = 'EU';
             
     	    // Get the rest of the script parameters
+    	    // Not useful for now, might use them later in an advanced config
     	    $countryName		    = $_REQUEST['countryName'];
     	    $stateOrProvinceName	= $_REQUEST['stateOrProvinceName'];
        	    $localityName		    = $_REQUEST['localityName'];
@@ -178,7 +178,7 @@ if (isset($_REQUEST['doit']))  {
             $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
           	$output = explode('=', shell_exec($command));
             
-            // add public key to our new webid profile
+            // add public key elements to our new webid profile
             $modulus = preg_replace('/\s+/', '', strtolower($output[1]));
             $cert = $graph->newBNode('cert:RSAPublicKey');
             $cert->add('cert:modulus', array(
@@ -193,19 +193,24 @@ if (isset($_REQUEST['doit']))  {
                         );
             $me->add('cert:key', $cert);
             
-            // write webid uri to database
+            // autmatically subscribe to local services
             $tiny = substr(md5(uniqid(microtime(true),true)),0,8);
             $user_hash  = substr(md5($webid), 0, 8);
 		    $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
             $result = mysql_query($query);
-       
+            if (!$result) {
+                die('Unable to write to the database!');
+            } else {
+                mysql_free_result($result);
+            }
+            
             // create dirs
             if (!mkdir($user_dir, 0775))
                 die('Failed to create user profile directory!');
     
             // write Rewrite .htaccess file
             $htaccess = fopen($user_dir . '/.htaccess', 'w') or die('Cannot create .htaccess file!');
-        
+            // .htaccess content
             $rw = "Options -MultiViews\n";
             $rw .= "AddType \"application/rdf+xml\" .rdf\n";
             $rw .= "RewriteEngine On\n";
@@ -218,7 +223,7 @@ if (isset($_REQUEST['doit']))  {
             $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
             $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
             $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
-        
+            // finally write content to file
             fwrite($htaccess, $rw);
             fclose($htaccess);
         }
@@ -239,10 +244,11 @@ if (isset($_REQUEST['doit']))  {
         // everything is fine
         $ok = true;
     
+        // Send the X.509 SSL certificate to the script caller (user) as a file transfer
         if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
-            // Send the X.509 SSL certificate to the script caller (user) as a file transfer
             download_identity_x509($x509, $webid);
         } else {
+            // We're just editing, so display form view
             include_once 'header.php';
             // add form view
             echo $_SESSION['myprofile']->get_title($_REQUEST['action']);
@@ -257,11 +263,11 @@ if (isset($_REQUEST['doit']))  {
     include_once 'include.php';
     include 'header.php';
     $ret = '';
-    // add form view
+    // Display form view
     if (!isset($_REQUEST['action']))
         $_REQUEST['action'] = 'new';
         
-    // if needed load a bogus profile to be able to display site wall messages
+    // If needed load a bogus profile to be able to display the form
     $profile = (isset($_SESSION['myprofile'])) ? $_SESSION['myprofile'] : new MyProfile(null, $base_uri);
     
     echo $profile->get_title($_REQUEST['action']);
