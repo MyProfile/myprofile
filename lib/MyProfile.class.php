@@ -128,14 +128,15 @@ class MyProfile {
        
     // check if the given webid is in the user's list of foaf:knows
     function is_friend($webid) {
-        if (isset($this->profile)) {
-            $profile = $this->profile;
-            $friends = explode(',', $profile->all('foaf:knows')->join(','));
-            if (in_array($webid, $myfriends))
-                return true;
-            else
-                return false;
+        if (!isset($this->profile)) {
+            $this->load();
         }
+        $profile = $this->profile;        
+        $friends = explode(',', $profile->all('foaf:knows')->join(','));
+        if (in_array($webid, $friends))
+            return true;
+        else
+            return false;
     }
     
     // Checks if the webid is a local and return the corresponding account name

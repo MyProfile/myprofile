@@ -56,13 +56,14 @@ if (isset($_REQUEST['webid'])) {
         'email' => (string)$profile->get("foaf:mbox"),
         'blog' => (string)$profile->get("foaf:weblog"),
         'pingback' => (string)$profile->get("http://purl.org/net/pingback/to"),
+        'hash' => $person->get_hash(),
         'hasme' => $has_me,
         'new' => $new
     );
 
-    $ret .= "<table style=\"width: 700px;\">\n";
+    $ret .= "<table>\n";
     $ret .= "<tr bgcolor=\"\"><td>\n";
-    $ret .= "<table style=\"width: 700px;\"><tr>\n";
+    $ret .= "<table><tr>\n";
     $ret .= "<td width=\"70\" style=\"padding: 10px;\">\n";
     $ret .= "<div align=\"left\"><a href=\"lookup.php?uri=" . urlencode($friend['webid']) . "\" target=\"_blank\"><img title=\"Click to see more information about " . $friend['name'] . "\" alt=\"" . $friend['name'] . ".\" width=\"64\" src=\"" . $friend['img'] . "\" /></a></div>\n";
     $ret .= "</td>\n";
@@ -128,7 +129,7 @@ if (isset($_REQUEST['webid'])) {
         $ret .= "</form></td>\n";
         // Post on the user's wall
         $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
-        $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $user_hash . "\">\n";
+        $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $friend['hash'] . "\">\n";
         $ret .= "<input class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></td>\n";
     }

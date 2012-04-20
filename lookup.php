@@ -47,7 +47,7 @@ if (isset($_REQUEST['uri'])) {
 
     // display controls for adding/removing friend
     if (webid_is_local($_SESSION['webid'])) {
-        if (is_friend($_REQUEST['uri'])) {
+        if (is_friend(urldecode($_REQUEST['uri']))) {
         // remove friend
             $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\">\n";
