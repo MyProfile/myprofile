@@ -69,7 +69,7 @@ if (isset($_REQUEST['id'])) {
             $ret .= 'Query: ' . $query;
         }
     } else if (isset($_REQUEST['reply'])) {
-        header("Location: send_notification.php?to=" . urlencode($_REQUEST['to']));
+        header("Location: notification.php?to=" . urlencode($_REQUEST['to']));
     }
     
     $messages = get_msg_count($_SESSION['webid']);

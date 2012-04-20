@@ -58,12 +58,9 @@ if (!is_subscribed($_SESSION['webid'])) {
     $ret .= "</form>\n";
 }
 // prompt the user
-else {
-    // get information on the user
-    $row = get_sub_by_webid($_SESSION['webid']);
-    
-    $ret .= "<br/><p><font style=\"font-size: 1.3em;\">The URI for your personal feed is <a href=\"" . $base_uri . "/atom.php?id=" . $row['feed_hash'] . "\">" . $base_uri . "/atom.php?id=" . $row['feed_hash'] . "</a></font></p>\n";
-    $ret .= "<p><font style=\"font-size: 1.3em;\">The URI for your Wall is <a href=\"" . $base_uri . "/wall.php?user=" . $row['user_hash'] . "\">" . $base_uri . "/wall.php?user=" . $row['user_hash'] . "</a></font></p>\n";
+else {   
+    $ret .= "<br/><p><font style=\"font-size: 1.3em;\">The URI for your personal feed is <a href=\"" . $base_uri . "/atom.php?id=" . $_SESSION['feed_hash'] . "\">" . $base_uri . "/atom.php?id=" . $_SESSION['feed_hash'] . "</a></font></p>\n";
+    $ret .= "<p><font style=\"font-size: 1.3em;\">The URI for your Wall is <a href=\"" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "\">" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "</a></font></p>\n";
 
     $ret .= "<form name=\"manage\" method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"unsubscribe\" value=\"1\">\n";

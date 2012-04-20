@@ -40,11 +40,9 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
         $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
     }
     // fetch owner's profile
-    $fg = new Graphite();
-    $fg->load($owner_webid);
-    $fg->cacheDir("cache/");
-    $fr = $fg->resource($owner_webid);
-    $owner_name = $fr->get('foaf:name');
+    $profile = new MyProfile($owner_webid, $base_uri);
+    $profile->load();
+    $owner_name = $profile->get_name();
 }  else {
     // generic wall
     $feed_hash = 'local';
@@ -81,6 +79,12 @@ if (isset($_REQUEST['del'])) {
         $ok = 0;
         $ok_text = 'The message has NOT been deleted. [unknown cause]';
     }
+    
+    // display visual confirmation
+    if ($ok == 1)
+        $confirmation = $_SESSION['myprofile']->success($ok_text);
+    else if ($ok == 0)
+        $confirmation = $_SESSION['myprofile']->error($ok_text);
 }
 
 // ADD a post
@@ -110,8 +114,7 @@ if (isset($_REQUEST['comment'])) {
 
     $result = mysql_query($query);
     if (!$result) {
-        $ret  = 'Invalid query: ' . mysql_error() . "\n";
-        $ret .= 'Query: ' . $query;
+        $ret  .= error('Database error while trying to insert new message!');
     } else {
         mysql_free_result($result);
     }
@@ -127,8 +130,7 @@ if (isset($_REQUEST['comment'])) {
 
         $result = mysql_query($query);
         if (!$result) {
-            $ret  = 'Invalid query: ' . mysql_error() . "\n";
-            $ret .= 'Query: ' . $query;
+            $ret  .= error('Database error while updating post!');
         } else {
             mysql_free_result($result);
         }
@@ -143,8 +145,7 @@ if (isset($_REQUEST['comment'])) {
     
     $result = mysql_query($query);
     if (!$result) {
-        $ret  = 'Invalid query: ' . mysql_error() . "\n";
-        $ret .= 'Query: ' . $query;
+        $ret  .= error('Database error while updating user info!');
     } else {
         mysql_free_result($result);
     }
@@ -181,24 +182,16 @@ if (isset($_SESSION['webid'])) {
     $form_area = "<p><font style=\"font-size: 1.3em;\"><a href=\"" . $idp . "" . $page_uri . "\">Login</a> with your WebID to post messages.</font></p>\n";
 }
 
-// display visual confirmation
-if (isset($_REQUEST['del'])) {
-    if ($ok == 1)
-        $confirmation .= $_SESSION['myprofile']->success($ok_text);
-    else if ($ok == 0)
-        $confirmation .= $_SESSION['myprofile']->error($ok_text);
-}
-
 // Page title (User's Wall)
 $ret .= "<div>";
 $ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . $title . " Wall</font>\n";
-$ret .= "<p>Subscribe now using this <a href=\"" . $base_uri . "/atom.php?id=" . $feed_hash . "\">Atom feed</a>.</p>\n";
+$ret .= "<p>Subscribe now using this <a href=\"" . $base_uri . "/atom.php?id=" . $owner_hash . "\">Atom feed</a>.</p>\n";
 $ret .= "</div>";
 
 // main page
 $ret .= "<div class=\"container\">\n";
 
-// Add confirmation space
+// Add confirmation message
 if (isset($confirmation))
     $ret .= $confirmation;
 

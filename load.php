@@ -123,7 +123,7 @@ if (isset($_REQUEST['webid'])) {
     // more functions if the user has previously subscribed to the local services
     if ($is_subscribed) {
         // Allow user to send notification if target is subscribed
-        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"send_notification.php\" method=\"GET\">\n";
+        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"notification.php\" method=\"GET\">\n";
         $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
         $ret .= "<input class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></td>\n";
