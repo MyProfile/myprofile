@@ -254,6 +254,13 @@ if (isset($_REQUEST['submit'])) {
             $cache_status = "<p><font color=\"green\"><strong>Success!</strong></font> Cache dir has been created.</p>\n";
         }
         
+        // create logs dir
+        if (!mkdir('logs/', 0775)) {
+            die('Failed to create cache/ dir...');
+        } else {
+            $logs_status = "<p><font color=\"green\"><strong>Success!</strong></font> Logs dir has been created.</p>\n";
+        }
+        
         // create dir where we store profiles
         if (!mkdir('people/', 0775)) {
             die('Failed to create people/ dir...');
@@ -269,6 +276,7 @@ if (isset($_REQUEST['submit'])) {
         $ret .= $sql_status;
         $ret .= $cf_status;
         $ret .= $cache_status;
+        $ret .= $logs_status;
         $ret .= $people_status;
         $ret .= "<br/><p><input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Take me to the main page! \"></p>\n";
         $ret .= "</form></div>\n";
