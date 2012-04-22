@@ -66,12 +66,12 @@ if (isset($_REQUEST['doit']))  {
         // title
         if ((isset($_REQUEST['foaf:title'])) && (strlen($_REQUEST['foaf:title']) > 0))
             $me->set('foaf:title', trim($_REQUEST['foaf:title']));
-        // depiction
+        // picture
         if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0))
             $me->set('foaf:img', trim($_REQUEST['foaf:img']));
-        // logo
-        if ((isset($_REQUEST['foaf:logo'])) && (strlen($_REQUEST['foaf:logo']) > 0)) {
-            $me->set('foaf:logo', trim($_REQUEST['foaf:logo']));
+        // nickname
+        if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
+            $me->set('foaf:nick', trim($_REQUEST['foaf:nick']));
         }
         // email
         if ((isset($_REQUEST['foaf:mbox'])) && (strlen($_REQUEST['foaf:mbox'][0]) > 0)) {
