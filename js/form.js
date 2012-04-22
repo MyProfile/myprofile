@@ -2,50 +2,55 @@ String.prototype.capitalize = function(){
    return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );
   };
   
-  
-function validateWebid (serverURI, input, submit) {
+// validate requirements (profile uri and full name of user)
+function validateReq (serverURI, uri, fullname, submit) {
         
-        uri = input.value.toLowerCase();
+    var uri = document.getElementById(uri);
+    var uri_val = uri.value.toLowerCase();
+    
+    var fullname = document.getElementById(fullname);
+    var fullname_val = fullname.value;
 
-        var regex = /^[\w\-\s\dÀÈÌÒÙàèìòùÁÉÍÓÚÝáéíóúýÂÊÎÔÛâêîôûÃÑÕãñõÄËÏÖÜäëïöüçÇßØøÅåÆæÞþÐð]+$/;
-        
-        if (uri.length < 1) {
-            //input.setAttribute('style', 'background-color: red !important;');
-            submit.disabled = true;
-        	return false;
-		} else if (!regex.test(uri)) {
-            //input.setAttribute('style', 'background-color: red !important;');
-            submit.disabled = true;
-        	return false;
-        }
-        var submit = document.getElementById(submit)
-        // testif 
-        if (UrlExists(serverURI + escape(uri)) == 200) {
-            //input.setAttribute('style', 'background-color: red !important;');
-            submit.disabled = true;
-        	return false;
-        } else {
-            //input.setAttibute('style', 'background-color: rgba(82, 168, 236, 0.8) !important;');
-            submit.enabled = true;
-            submit.disabled = false;
-            submit.className = "button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only";
-        }
-        return true;
-}
+    var submit = document.getElementById(submit);
 
-function validateName (input, submit) {
-        
-        fullname = input.value;
-        var submit = document.getElementById(submit)
-//        var regex = /^([a-zA-Z0-9_\.\-\ \#]+$)/;
-        
-        if (fullname.length < 2) {
-            input.className = "bad";
-            submit.disabled = true;
-        } else {
-            input.className = "white";
-            submit.disabled = false;
+    var okURI = false;
+    var okUser = false;
+    /* --- Test the uri (username) --- */
+
+    // do not allow accented chars
+    //var regex = /^[\w\-\s\dÀÈÌÒÙàèìòùÁÉÍÓÚÝáéíóúýÂÊÎÔÛâêîôûÃÑÕãñõÄËÏÖÜäëïöüçÇßØøÅåÆæÞþÐð]+$/;
+	var regex = /^[a-z0-9_\.-]+$/;
+	
+	if (!regex.test(uri_val)) {
+        uri.setAttribute('style', 'border-color: red !important;');
+    } else if (uri_val.length > 2) {
+        // check username URI exists or not (through http return status)
+        if (UrlExists(serverURI + escape(uri_val)) == 404) {
+            uri.setAttribute('style', 'border-color: blue !important;');
+            okURI = true;
         }
+    } else {
+        uri.setAttribute('style', 'border-color: red !important;');
+    }
+
+    /* --- Test the uri (username) --- */
+    if (fullname_val.length < 2) {
+        fullname.setAttribute('style', 'border-color: red !important;');
+    } else {
+        fullname.setAttribute('style', 'border-color: blue !important;');
+        okUser = true;
+    }
+
+    /* --- Finally decide whether to allow submit or not --- */
+    if ((okURI) && (okUser)) {
+        submit.enabled = true;
+        submit.disabled = false;
+        submit.className = "button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only";
+    } else {
+        submit.enabled = false;
+        submit.disabled = true;
+        submit.className = "button";
+    }
 }
 
 function setKeygen (checkbox, pubkey) {
@@ -80,21 +85,42 @@ function UrlExists(url)
   }
 }
 
-function addForm (base, child, action, text) {
+// Update a wall post
+function updateWall (base, action, postId) {
+    // fetch text content
+    var text = $('#' + base).text();
+    
+    // build the form
+    var form = '<div id="form_' + postId + '">';
+    form = form + '<form action="' + action + '&#post_' + postId + '" method="post">';
+    form = form + '<input type="hidden" name="edit" value="' + postId + '">';
+    form = form + '<p><textarea ';
+    // display a larger textarea if we have a lot of text
+    if (text.length > 150)
+        form = form +  'class="bigtext" ';
+    form = form + 'name="comment">' + text + '</textarea></p>';
+    form = form + '<br/><br/><p>';
+    form = form + '<input class="button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="submit" name="update" value="Update"> ';
+    form = form + '<a onClick="cancelUpdateWall(\'' + base + '\', \'' + postId + '\')">';
+    form = form + '<input class="button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="button" name="cancel" value="Cancel"></a>';
+    form = form + '</p></form><div>';
 
-    var newdiv = document.createElement("div");
-    var form = '<br/><form action="' + action + '" method="post"><textarea name="comment">' + text + '</textarea>';
-    form = form + '<br/><br/><p><input class="button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="submit" name="update" value="Update"></p></form>';
-    newdiv.innerHTML = form;
-    //newdiv.innerHTML = '<form action="" method="post"><textarea>' + text + '</textarea><input class="button ui-button-primary" type="submit" name="edit" value="Update"></form>';
-
-    document.getElementById(base).removeChild(document.getElementById(child));
-
-    // append the form 
-    document.getElementById(base).appendChild(newdiv);
-    //$(base).replaceWith('TEST');
+    // hide the previous text (we may reuse it in case the user cancels the form)
+    $('#' + base).hide();
+    // display form instead of text
+    $('#' + base).parent().append(form);
 }
 
+// Remove the form used for updating a wall post
+function cancelUpdateWall (base, postId) {
+    // remove the form
+    $('#form_' + postId).remove();
+    // display previous text
+    $('#' + base).show();
+    //$('#' + base).html('<pre id="message_val_' + postId + '">' + text + '</pre>');
+}
+
+// Add fields on the profile information tab (profile form)
 function addInfo (type, table) {
     // create table row
     var row = document.createElement("tr");
