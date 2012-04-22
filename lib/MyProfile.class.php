@@ -338,42 +338,46 @@ class MyProfile {
                 $text = htmlspecialchars($row["msg"]);
 
                 // add horizontal line to separate messages
-                $ret .= "<tr><td colspan=\"2\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/><br/><br/></td></tr>\n";
+                $ret .= "<tr><td colspan=\"2\">\n";
+                $ret .= "<p><a name=\"post_" . $row['id'] . "\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/></a></p>\n";
+                $ret .= "<br/></td></tr>\n";
 
                 $ret .= "<tr valign=\"top\" property=\"sioc:Post\">\n";
-                $ret .= "   <td width=\"80\" align=\"center\">\n";
-                $ret .= "       <a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
-                $ret .= "   </td>\n";
-                $ret .= "   <td>";
-                $ret .= "       <table style=\"width: 700px;\" border=\"0\">\n";
-                $ret .= "       <tr valign=\"top\">\n";
-                $ret .= "           <td><b><a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
-                $ret .=                 $name;
-                $ret .= "               </a></b>";
-                $ret .= "               <font color=\"grey\"> wrote on " . date('Y-m-d H:i:s', $row['date']) . "</font>";
-                $ret .= "           </td>\n";
-                $ret .= "       </tr>\n";
-                $ret .= "       <tr>\n";
-                $ret .= "           <td><p><div id=\"post\"><pre id=\"post_val\">" . put_links($text) . "</pre></div></p></td>\n";
-                $ret .= "       </tr>\n";
-                $ret .= "       <tr>\n";
-                $ret .= "           <td><small>";
+                $ret .= "<td width=\"80\" align=\"center\">\n";
+                // image
+                $ret .= "<a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
+                $ret .= "</td>\n";
+                $ret .= "<td>";
+                $ret .= "<table style=\"width: 700px;\" border=\"0\">\n";
+                $ret .= "<tr valign=\"top\">\n";
+                $ret .= "<td>\n";
+                // author's name
+                $ret .= "<b><a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b>";
+                // time of post
+                $ret .= "<font color=\"grey\"> wrote <span id=\"date_" . $row['id'] . "\">";
+                $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(moment('" . date("Y-m-dTH:m:s", $row['date']) . "')).from());</script>";
+                $ret .= "</span></font>\n";
+                $ret .= "</td>\n";
+                $ret .= "</tr>\n";
+                $ret .= "<tr>\n";
+                // message
+                $ret .= "<td><p><pre id=\"message_" . $row['id'] . "\"><span id=\"message_text_" . $row['id'] . "\">" . put_links($text) . "</span></pre></p></td>\n";
+                $ret .= "</tr>\n";
+                $ret .= "<tr>\n";
+                $ret .= "<td><small>";
                 // show options only if we are the source of the post
-                if (($_SESSION['webid'] == $row['from_uri']) || (($_SESSION['webid'] == $row['to_uri']) && (isset($_REQUEST['user'])) && ($_REQUEST['user'] != 'local'))) {
-                    if ((isset($_REQUEST['user'])) && (strlen($_REQUEST['user']) > 0))
-                        $add = "?user=" . $user_hash;
-                    else
-                        $add = '?';
+                if (($_SESSION['webid'] == $row['from_uri']) || (($_SESSION['webid'] == $row['to_uri']) && (isset($_REQUEST['user'])) && ($_REQUEST['user'] != 'local'))) {                    
+                    $add = '?user=' . $user_hash;
                     // add option to edit post
-                    $ret .= "<a href=\"#\" onClick=\"addForm('post', 'post_val', 'wall.php" . $add . "&edit=" . $row['id'] . "', '" . $text . "')\">Edit</a>";
+                    $ret .= "<a onClick=\"updateWall('message_text_" . $row['id'] . "', 'wall.php" . $add . "', '" . $row['id'] . "')\">Edit</a>";
                     // add option to delete post
                     $ret .= " <a href=\"wall.php" . $add . "&del=" . $row['id'] . "\">Delete</a>\n";
                 }
-                $ret .= "           </small></td>\n";
-                $ret .= "       </tr>\n";
-                $ret .= "       <tr><td>&nbsp;</td></tr>\n";
-                $ret .= "       </table>\n";
-                $ret .= "   </td>\n";
+                $ret .= "</small></td>\n";
+                $ret .= "</tr>\n";
+                $ret .= "<tr><td>&nbsp;</td></tr>\n";
+                $ret .= "</table>\n";
+                $ret .= "</td>\n";
                 $ret .= "</tr>\n";
             $i++; 
             }
@@ -592,14 +596,6 @@ class MyProfile {
                         "11" => "November",
                         "12" => "December",
                     );
-
-        // configuration specific options
-        if (($action == 'new') || ($action == 'import')) {
-            $color = 'red';
-        } else {
-            $color = '';
-        }
-
         $ret = '';
         $ret .= "<div class=\"container\"><br/>\n";
         if ($action != 'edit')
@@ -627,13 +623,13 @@ class MyProfile {
         if (($action == 'new') || ($action == 'import')) {
             $ret .= "<tr valign=\"middle\">\n";
             $ret .= "<td>Username: </td>\n";
-            $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" id=\"uri\" value=\"\" name=\"uri\" maxlength=\"32\" onblur=\"validateWebid('" . $this->base_uri . "/people/', this, 'submit')\" style=\"border-color: " . $color . ";\"></td>\n";
+            $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" value=\"\" id=\"uri\" name=\"uri\" maxlength=\"32\" onBlur=\"validateReq('" . $this->base_uri . "/people/', 'uri', 'fullname', 'submit')\"></td>\n";
             $ret .= "<td><font color=\"" . $color . "\"> (accepted: a-z 0-9 _ . -)</font></td>\n";
             $ret .= "</tr>\n";
         }
     /* ----- Full name ------ */
         $ret .= "<tr><td>Full name: </td>\n";
-        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->name . "\" name=\"foaf:name\"  onkeyup=\"validateName(this, 'submit')\" onblur=\"validateName(this, 'submit')\" style=\"border-color: " . $color . ";\"></td>\n";
+        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->name . "\" id=\"fullname\" name=\"foaf:name\" onBlur=\"validateReq('" . $this->base_uri . "/people/', 'uri', 'fullname', 'submit')\"></td>\n";
         $ret .= "<td><font color=\"" . $color . "\"> (foaf:name)</font></td>\n";
         $ret .= "</tr>\n";
     /* ----- KEYGEN ------ */
