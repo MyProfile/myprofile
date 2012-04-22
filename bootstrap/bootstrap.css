@@ -685,8 +685,15 @@ select[multiple] {
   background-color: #ffffff;
 }
 textarea {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   height: auto;
 }
+
+textarea.bigtext {
+    height: 200px;
+    width: 600px;
+}
+
 .uneditable-input {
   background-color: #ffffff;
   display: block;

@@ -205,16 +205,6 @@ if (isset($_REQUEST['submit'])) {
 
     // proceed only if we have an empty database
     if (mysql_num_rows(mysql_query("SHOW TABLES FROM " . $db_database)) == 0) {
-        // create tables
-        $sql_query = @fread(@fopen($db_schema, 'r'), @filesize($db_schema)) or die('problem ');
-        $sql_query = remove_remarks($sql_query);
-        $sql_query = split_sql_file($sql_query, ';');
-
-        foreach($sql_query as $sql){
-            mysql_query($sql) or die('error in query');
-        }
-        $sql_status = "<p><font color=\"green\"><strong>Success!</strong></font> " . mysql_num_rows(mysql_query("SHOW TABLES FROM " . $db_database)) . " database tables have been created.</p>\n";
-    
         // write configuration to config.php
         $cf = fopen('config.php', 'w') or die('Cannot create the config.php file!');
 
@@ -247,26 +237,42 @@ if (isset($_REQUEST['submit'])) {
         fclose($cf);
         $cf_status = "<p><font color=\"green\"><strong>Success!</strong></font> Configuration file has been saved to disk.</p>\n";
         
-        // create cache dir
-        if (!mkdir('cache/', 0775)) {
-            die('Failed to create cache/ dir...');
-        } else {
+        // create cache dir if it doesn't exist
+        if (!is_dir('cache/')) {
+            if (!mkdir('cache/', 0775))
+                die('Failed to create cache/ dir...');
             $cache_status = "<p><font color=\"green\"><strong>Success!</strong></font> Cache dir has been created.</p>\n";
+        } else {
+            $cache_status = "<p><strong>Skipped.</strong> Cache dir already exists.</p>\n";
         }
         
-        // create logs dir
-        if (!mkdir('logs/', 0775)) {
-            die('Failed to create logs/ dir...');
-        } else {
+        // create logs dir if it doesn't exist
+        if (!is_dir('logs/')) {
+            if (!mkdir('logs/', 0775))
+                die('Failed to create logs/ dir...');
             $logs_status = "<p><font color=\"green\"><strong>Success!</strong></font> Logs dir has been created.</p>\n";
+        } else {
+            $logs_status = "<p><strong>Skipped.</strong> Logs dir already exists.</p>\n";
         }
         
-        // create dir where we store profiles
-        if (!mkdir('people/', 0775)) {
-            die('Failed to create people/ dir...');
-        } else {
+        // create dir where we store profiles if it doesn't exist
+        if (!is_dir('people/')) {
+            if (!mkdir('people/', 0775))
+                die('Failed to create people/ dir...');
             $people_status = "<p><font color=\"green\"><strong>Success!</strong></font> Profile root dir has been created.</p>\n";
+        } else {
+            $people_status = "<p><strong>Skipped.</strong> Profile root dir already exists.</p>\n";
         }
+
+        // create database tables
+        $sql_query = @fread(@fopen($db_schema, 'r'), @filesize($db_schema)) or die('problem ');
+        $sql_query = remove_remarks($sql_query);
+        $sql_query = split_sql_file($sql_query, ';');
+
+        foreach($sql_query as $sql){
+            mysql_query($sql) or die('error in query');
+        }
+        $sql_status = "<p><font color=\"green\"><strong>Success!</strong></font> " . mysql_num_rows(mysql_query("SHOW TABLES FROM " . $db_database)) . " database tables have been created.</p>\n";
         
         // display success
         $ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">MyProfile Installation</font></p>\n";

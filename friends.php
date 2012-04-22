@@ -53,7 +53,7 @@ $friends = $profile->all('foaf:knows')->join(',');
 
 // show something if there are friends for this webid
 if (strlen($friends) > 0) {
-	$ret .= '<script>
+	$ret .= '<script type="text/javascript">
         var list = "' . (string)$friends . '";
         var uris = list.split(","); 
         
@@ -64,7 +64,7 @@ if (strlen($friends) > 0) {
         }
         </script>';
         
-	$ret .= '<script>
+	$ret .= '<script type="text/javascript">
         var list = "' . (string)$friends . '";
         var uris = list.split(","); 
         

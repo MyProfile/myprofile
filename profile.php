@@ -271,8 +271,8 @@ if (isset($_REQUEST['doit']))  {
     if (!isset($_REQUEST['action']))
         $_REQUEST['action'] = 'new';
         
-    // If needed load a bogus profile to be able to display the form
-    $profile = (isset($_SESSION['myprofile'])) ? $_SESSION['myprofile'] : new MyProfile(null, $base_uri);
+    // If needed, load a bogus profile to be able to display the form
+    $profile = ((isset($_SESSION['myprofile'])) && ($_REQUEST['action'] == 'edit')) ? $_SESSION['myprofile'] : new MyProfile(null, $base_uri);
     
     echo $profile->get_title($_REQUEST['action']);
     echo $profile->form($_REQUEST['action']);
