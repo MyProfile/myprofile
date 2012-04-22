@@ -1,3 +1,9 @@
+function textAreaResize(o) {
+  o.style.height = "1px";
+  o.style.height = (25+o.scrollHeight)+"px";
+}
+
+
 String.prototype.capitalize = function(){
    return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );
   };
@@ -94,11 +100,7 @@ function updateWall (base, action, postId) {
     var form = '<div id="form_' + postId + '">';
     form = form + '<form action="' + action + '&#post_' + postId + '" method="post">';
     form = form + '<input type="hidden" name="edit" value="' + postId + '">';
-    form = form + '<p><textarea ';
-    // display a larger textarea if we have a lot of text
-    if (text.length > 150)
-        form = form +  'class="bigtext" ';
-    form = form + 'name="comment">' + text + '</textarea></p>';
+    form = form + '<p><textarea name="comment" onfocus="textAreaResize(this)">' + text + '</textarea></p>';
     form = form + '<br/><br/><p>';
     form = form + '<input class="button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="submit" name="update" value="Update"> ';
     form = form + '<a onClick="cancelUpdateWall(\'' + base + '\', \'' + postId + '\')">';
