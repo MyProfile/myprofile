@@ -21,10 +21,12 @@
  */
  
 include 'include.php';
-	
+
+$user_hash = trim($_REQUEST['id']);
+
 // Get the corresponding webid for the hash
 if ($_REQUEST['id'] != 'local') {
-	$webid = get_webid_by_hash($_REQUEST['id']);
+	$webid = get_webid_by_hash($user_hash);
 
 	// complain if the feed ID is not valid
 	if (!$webid) {
@@ -32,7 +34,7 @@ if ($_REQUEST['id'] != 'local') {
 	    exit;
 	}
 } else {
-	$webid = $_REQUEST['id'];
+	$webid = $user_hash;
 }
 
 // IMPORTANT : No need to add id for feed or channel. It will be automatically created from link.
@@ -42,20 +44,20 @@ if ($_REQUEST['id'] != 'local') {
 $Feed = new FeedWriter(ATOM);
 
 //Setting the channel elements
-//Use wrapper functions for common elements
-if ($_REQUEST['id'] != 'local')
+if ($user_hash != 'local')
 	$Feed->setTitle('MyProfile Pingbacks/Notifications Feed');
 else
 	$Feed->setTitle('MyProfile Wall Feed');
 
-$Feed->setLink($base_uri . '/feed.php?id=' . $_REQUEST['id']);
+$Feed->setLink($base_uri . '/feed.php?id=' . $user_hash);
 	
 //For other channel elements, use setChannelElement() function
 $Feed->setChannelElement('updated', date(DATE_ATOM , time()));
 $Feed->setChannelElement('author', array('name'=>'WebID Test Suite'));
 
 // fetch notifications for the selected webid
-$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($_REQUEST['id']) . "' ORDER BY date DESC LIMIT 10";
+// Limited to Wall posts until we can secure the private messages better
+$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($user_hash) . "' AND wall='1' ORDER BY date DESC LIMIT 10";
 $result = mysql_query($query);
 
 while ($row = mysql_fetch_assoc($result)) {
@@ -67,15 +69,23 @@ while ($row = mysql_fetch_assoc($result)) {
 
     //Add elements to the feed item
     //Use wrapper functions to add common feed elements
-    if ($row['wall'] == 0)
-        $newItem->setTitle('Personal notification message.');
-    else
+    if ($row['wall'] == 1) {
         $newItem->setTitle('Wall message.');
-    $newItem->setLink($base_uri . '/my_notifications.php');
+
+        // Display wall if it's not a personal notification
+        if ($user_hash != 'local')
+            $newItem->setLink($base_uri . '/wall.php?user=' . $user_hash);
+        else
+            $newItem->setLink($base_uri . '/wall.php');
+    } else {
+        $newItem->setTitle('Personal message.');
+        $newItem->setLink($base_uri . '/my_notifications.php');
+    }
+
     $newItem->setDate($row['date']);
     //Internally changed to "summary" tag for ATOM feed
     
-    $newItem->setDescription("From: <a href\"" . $row['from_uri'] . "\">" . $name . "</a><br/><br/>\n" . $row['msg']);
+    $newItem->setDescription("<p>From: <a href=\"" . $base_uri . "/lookup.php?uri=" . urlencode($row['from_uri']) . "\">" . $name . "</a></p><br/>\n<pre>" . $row['msg'] . "</pre>");
 
     //Now add the feed item	
     $Feed->addItem($newItem);
