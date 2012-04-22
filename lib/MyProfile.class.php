@@ -429,8 +429,8 @@ class MyProfile {
             else
                 $this->pic = '';
 
-            // Logo
-            $this->logo = ($profile->get('foaf:logo') != '[NULL]') ? $profile->get('foaf:logo') : '';
+            // Nickname
+            $this->nick = ($profile->get('foaf:nick') != '[NULL]') ? $profile->get('foaf:nick') : '';
 
             // Pingback endpoint
             $this->pingback = ($profile->get('pingback:to') != '[NULL]') ? $profile->get('pingback:to') : '';
@@ -650,6 +650,12 @@ class MyProfile {
         $ret .= "<td>Lastname: </td>\n";
         $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->familyname . "\" name=\"foaf:familyName\"></td>\n";
         $ret .= "<td> (foaf:familyName)</td>\n";
+        $ret .= "</tr>\n";
+    /* ----- Nickname ------ */
+        $ret .= "<tr>\n";
+        $ret .= "<td>Nickname: </td>\n";
+        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->nick . "\" name=\"foaf:nick\"></td>\n";
+        $ret .= "<td> (foaf:nick)</td>\n";
         $ret .= "</tr>\n";
 
 /* ----- PERSONAL ------ */

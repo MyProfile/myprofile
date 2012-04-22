@@ -414,6 +414,15 @@ function dumpHTML($graph, $me, $webid) {
     $ret .= "</td>";
     $ret .= "</tr>\n";
     
+    // nickname
+    if ($me->get("foaf:nick") != '[NULL]') {
+        $ret .= "<tr valign=\"top\">";
+        $ret .= "<td><h3 class=\"demoHeaders\">Nickname: </h3>";
+        $ret .= "<dd>" . $me->get("foaf:nick") . "</dd>";
+        $ret .= "</td>";
+        $ret .= "</tr>\n";
+    }    
+
     // b-day    
     if ($me->get("foaf:birthday") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
