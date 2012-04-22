@@ -85,6 +85,7 @@
 <script type="text/javascript" src="js/form-add.js"></script>
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="js/moment.min.js"></script>
  
 <!--daterangepicker-->
 <script type="text/javascript" src="third-party/jQuery-UI-Date-Range-Picker/js/date.js"></script>
