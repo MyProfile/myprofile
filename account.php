@@ -59,13 +59,13 @@ if (webid_is_local($_SESSION['webid'])) {
     if (!isset($_REQUEST['action'])) {
         $ret .= "<form action=\"profile.php\" method=\"get\">\n";
         $ret .= "<input type=\"hidden\" name=\"action\" value=\"edit\" />\n";
-        $ret .= "<p><input class=\"button\" type=\"submit\" name=\"submit\" value=\"Edit profile\">\n";
+        $ret .= "<p><input class=\"btn\" type=\"submit\" name=\"submit\" value=\"Edit profile\">\n";
         $ret .= "</p>\n";
         $ret .= "</form>\n";
 
         $ret .= "<form action=\"account.php\" method=\"get\">\n";
         $ret .= "<input type=\"hidden\" name=\"action\" value=\"deleteacc\" />\n";
-        $ret .= "<p><input class=\"button ui-button-error\" type=\"submit\" name=\"submit\" value=\"Delete profile\">\n";
+        $ret .= "<p><input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\"Delete profile\">\n";
         $ret .= " Deleting your local profile is an action that cannot be reversed.</p>\n";
         $ret .= "</form>\n";
     }

@@ -25,7 +25,7 @@ include 'header.php';
 
 $ret = "<div><form action=\"lookup.php\" method=\"GET\">\n";
 $ret .= "Try someone else's WebID? <input type=\"text\" name=\"uri\" placeholder=\"http://fcns.eu/people/andrei/card#me\" value=\"\" style=\"width: 400px;\">\n";
-$ret .= "<input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
+$ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
 $ret .= "</form></div>\n";
 
 // Display any alerts here
@@ -54,28 +54,29 @@ if (isset($_REQUEST['uri'])) {
             $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\">\n";
             $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $_REQUEST['uri'] . "\">\n";
-            $ret .= "<input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Remove from friends \">\n";
+            $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Remove from friends \">\n";
             $ret .= "</form></div>\n";
         } else {
         // add friend
             $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"addfriend\">\n";
             $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $_REQUEST['uri'] . "\">\n";
-            $ret .= "<input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Add to friends \">\n";
+            $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Add to friends \">\n";
             $ret .= "</form></div>\n";
         }
     }   
     // more functions if the user has previously subscribed to the local services
     if ($is_subscribed) {
         // Allow user to send notification if target is subscribed
-        $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"notification.php\" method=\"GET\">\n";
+        $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
+        $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
         $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $_REQUEST['uri'] . "\">\n";
-        $ret .= "<input class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></div>\n";
         // Post on the user's wall
         $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
         $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $person->get_hash() . "\">\n";
-        $ret .= "<input class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></div>\n";
     }
 

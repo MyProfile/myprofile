@@ -28,14 +28,14 @@ check_auth($idp, $page_uri);
 
 $ret = "";
 $ret .= "<font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">Send a WebID Pingback</font>\n";
-$ret .= "<div class=\"clear\"><br/><br/></div>\n";
-
 
 if (isset($_REQUEST['to'])) {
+    $ret .= "<br/>\n";
+    
     $to = trim($_REQUEST['to']);
 
     // fetch the user's profile
-    $person = new MyProfile($to, $base_dir);
+    $person = new MyProfile($to, $base_uri);
     $person->load();
     $profile = $person->get_profile();
     
@@ -44,7 +44,7 @@ if (isset($_REQUEST['to'])) {
     
     // set form data
     $source = $_SESSION['webid'];
-    $comment = $_POST['comment'];
+    $comment = $_REQUEST['comment'];
         
     // parse the pingback form
     $config = array('auto_extract' => 0);
@@ -85,9 +85,9 @@ if (isset($_REQUEST['to'])) {
                     curl_close($ch);
 
                     if (($httpCode == '201') || ($httpCode == '202'))
-                        $ret .= "   <font color=\"green\" style=\"font-size: 1.2em;\">The ping was successful! (Return code $httpCode)</font>\n";
+                        $ret .= success('The ping was successful!');
                     else
-                        $ret .= "   <font color=\"red\" style=\"font-size: 1.2em;\">Something happened and the ping was NOT successful!</font>\n";
+                        $ret .= error('Something happened and the ping was NOT successful!' . $success);
                     break;    
                 }
             }
@@ -107,13 +107,14 @@ if (isset($_REQUEST['to'])) {
     }
 
 } else {
-    // show lookup form 
+    // show pingback form 
+    $ret .= "   <div class=\"clear\"><br/><br/></div>\n";
     $ret .= "   <p>Attempt to 'ping' someone using the pingback service found in their profile.</p>\n"; 
     $ret .= "   <p>The destination WebID must contain a relation of type pingback:to (http://purl.org/net/pingback/to), pointing to pingback service.</p>\n";
     $ret .= "   <form name=\"lookup_pingback\" method=\"POST\" action=\"\"><br/>\n";
     $ret .= "       Destination WebID: <input size=\"50\" type=\"text\" name=\"to\" value=\"" . $_REQUEST['uri'] . "\"><br/><br/>\n";
     $ret .= "       Optional comment: <input size=\"50\" maxlength=\"256\" type=\"text\" name=\"comment\" value=\"\" style=\"background-color:#fff; border:dashed 1px grey;\"> <small>(max 256 characters)</small><br/><br/>\n";
-    $ret .= "       <input type=\"submit\" name=\"submit\" value=\" Ping! \" class=\"ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\">\n";
+    $ret .= "       <input type=\"submit\" name=\"submit\" value=\" Ping! \" class=\"btn btn-primary\">\n";
     $ret .= "   </form>\n";
 }
 

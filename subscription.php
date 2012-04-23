@@ -53,7 +53,7 @@ if (!is_subscribed($_SESSION['webid'])) {
     $ret .= "<input type=\"hidden\" name=\"subscribe\" value=\"1\">\n";
     $ret .= "<table border=\"0\">\n";
     $ret .= "<tr><td>Your WebID <font color=\"#00BBFF\">" . $_SESSION['webid'] . "</font> will be registered in order to receive pingbacks.</td></tr>\n";
-    $ret .= "<tr><td><br/><input class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"submit\" value=\"Register\"></td></tr>\n";
+    $ret .= "<tr><td><br/><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\"Register\"></td></tr>\n";
     $ret .= "</table>\n";
     $ret .= "</form>\n";
 }
@@ -67,7 +67,7 @@ else {
     $ret .= "<table border=\"0\">\n";
     $ret .= "<tr><td>Note: in order to receive pingbacks, please add a <i>pingback:to</i> relation to your profile, poiting to <i>" . $base_uri . "/notification.php</i> More information can be found on the <a href=\"http://www.w3.org/wiki/Pingback\">pingback wiki page</a>.<br/><br/></td></tr>\n";
     $ret .= "<tr><td><br />Would you like to unregister your WebID <strong>" . $_SESSION['webid'] . "</strong>? You will no longer be able to receive pingbacks and <font color=\"red\">all exisiting messages and wall posts will be lost</font>!</td></tr>\n";
-    $ret .= "<tr><td><br/><input class=\"button ui-button-error ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"submit\" value=\" Unregister \"></td></tr>\n";
+    $ret .= "<tr><td><br/><input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\" Unregister \"></td></tr>\n";
     $ret .= "</table>\n";
     $ret .= "</form>\n";
 }
