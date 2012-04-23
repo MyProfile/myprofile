@@ -284,7 +284,7 @@ if (isset($_REQUEST['submit'])) {
         $ret .= $cache_status;
         $ret .= $logs_status;
         $ret .= $people_status;
-        $ret .= "<br/><p><input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Take me to the main page! \"></p>\n";
+        $ret .= "<br/><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Take me to the main page! \"></p>\n";
         $ret .= "</form></div>\n";
         
     } else {
@@ -314,7 +314,7 @@ if (isset($_REQUEST['submit'])) {
     $ret .= "<tr><td>Database user: </td><td><input type=\"text\" name=\"user\" value=\"\"></td></tr>\n";
     $ret .= "<tr><td>Database pass: </td><td><input type=\"password\" name=\"pass\" value=\"\"></td></tr>\n";
 
-    $ret .= "<tr><td colspan=\"2\"><p><input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Proceed to install \"></p></td></tr>\n";
+    $ret .= "<tr><td colspan=\"2\"><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Proceed to install \"></p></td></tr>\n";
     $ret .= "</table>\n";
     $ret .= "</form></div>\n";
 }

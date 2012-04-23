@@ -171,7 +171,7 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "       <table border=\"0\">\n"; 
     $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"lookup.php?uri=" . $_SESSION["webid"] . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
     $form_area .= "       <tr><td><textarea name=\"comment\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
-    $form_area .= "       <tr><td><p><input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" Post \"> <font color=\"grey\">";
+    $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \"> <font color=\"grey\">";
     $form_area .= "       <small>[Note: you can always delete your message after]</small></font></p></td></tr>\n";
     $form_area .= "       </table>\n";
     $form_area .= "   </td>\n";

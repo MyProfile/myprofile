@@ -26,7 +26,7 @@ $form = "";
 $form .= "<div>\n";
 $form .= "<form action=\"friends.php\" method=\"GET\">\n";
 $form .= "Try someone else's WebID? <input type=\"text\" name=\"webid\" value=\"\" placeholder=\"http://fcns.eu/people/andrei/card#me\" style=\"width: 400px;\">\n";
-$form .= "<input class=\"button ui-button-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
+$form .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
 $form .= "</form></div>\n";
 
 $ret = '';

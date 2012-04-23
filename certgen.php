@@ -35,9 +35,9 @@ $form .= "<div class=\"clear\"></div>\n";
 $form .= "</div>\n";
 	
 $form .= "<div class=\"container\">\n";
-$form .= "<form name=\"input\" action=\"https://my-profile.eu/certgen.php\" method=\"post\">\n";
+$form .= "<br/><form name=\"input\" action=\"certgen.php\" method=\"post\">\n";
 $form .= "<input type=\"hidden\" name=\"doit\" value=\"1\">\n";
-$form .= "<br/><table>\n";
+$form .= "<table>\n";
 $form .= "	<tr><td colspan=\"2\"><font style=\"font-size: 1em;\">If you already have a FOAF card, this form allows you to create a client certificate for it.</font><br/><br/></td></tr>\n";
 $form .= "	<tr><td><h3>FOAF URI 1</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\" placeholder=\"An URI like http://fcns.eu/people/andrei/card#me\" style=\"border-color: red;\"></td></tr>\n";
 $form .= "	<tr><td><h3>FOAF URI 2</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
@@ -51,7 +51,7 @@ $form .= "	<tr><td><h3>stateOrProvinceName</h3></td><td><input type=\"text\" nam
 $form .= "	<tr><td><h3>countryName</h3></td><td><input type=\"text\" name=\"countryName\"></td></tr>\n";
 $form .= "	<tr><td><h3>KEYGEN Key Length</h3></td><td><keygen name=\"pubkey\" challenge=\"randomchars\"></td></tr>\n";
 $form .= "	<tr><td colspan=\"3\">&nbsp;</td></tr>\n";
-$form .= "	<tr><td></td><td><input type=\"submit\" class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\"  value=\"Install certificate\"></td></tr>\n";
+$form .= "	<tr><td></td><td><input type=\"submit\" class=\"btn btn-primary\"  value=\"Install certificate\"></td></tr>\n";
 $form .= "</table>\n";
 $form .= "</form>\n";
 $form .= "<div class=\"clear\"></div>\n";

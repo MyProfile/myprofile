@@ -30,7 +30,7 @@ if (!file_exists('config.php')) {
     include 'lib/functions.php';
     echo error('Your MyProfile installation is not complete. Please complete the installation process.');
     echo "<p>Click here to start the installation process.";
-    echo "<form action=\"install.php\"><input class=\"button ui-button-primary\" type=\"submit\" value=\" MyProfile installation \"></form></p>\n";
+    echo "<form action=\"install.php\"><input class=\"btn btn-primary\" type=\"submit\" value=\" MyProfile installation \"></form></p>\n";
     
     include 'footer.php';    
 }

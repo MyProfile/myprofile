@@ -97,7 +97,7 @@ foreach (EasyRdf_Format::getFormats() as $format) {
     }
 }
 $ret .= "      </select>\n";
-$ret .= "      <input class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"convert\" value=\" Convert \"></p>\n";
+$ret .= "      <input class=\"btn btn-primary\" type=\"submit\" name=\"convert\" value=\" Convert \"></p>\n";
 $ret .= "       </form>\n";
 $ret .= "     <div class=\"clear\"></div>\n";
 
@@ -117,7 +117,7 @@ if ((isset($_REQUEST['uri'])) && (isset($_REQUEST['doit']))) {
     $ret .= "      <form name=\"convert\" action=\"\" method=\"GET\">\n";
     $ret .= "       <input type=\"hidden\" name=\"uri\" value=\"" . $_REQUEST['uri'] . "\">\n";
     $ret .= "       <input type=\"hidden\" name=\"format\" value=\"" . $_REQUEST['format'] . "\">\n";
-    $ret .= "       <input class=\"button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only\" type=\"submit\" name=\"download\" value=\" Download \">";
+    $ret .= "       <input class=\"btn btn-primary\" type=\"submit\" name=\"download\" value=\" Download \">";
     $ret .= "       </form>\n";
     $ret .= "      <div class=\"clear\"></div>\n";
     $ret .= "     </div>\n";

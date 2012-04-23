@@ -19,9 +19,9 @@
   
     <!-- Styles --> 
     <link type="text/css" href="css/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
-    <link href="bootstrap/bootstrap.css" rel="stylesheet">
-    <link href="css/demo.css" rel="stylesheet">
-    <link href="third-party/wijmo/jquery.wijmo-open.1.5.0.css" rel="stylesheet" type="text/css" />
+    <link type="text/css" href="css/bootstrap.css" rel="stylesheet">
+    <link type="text/css" href="css/bootstrap-responsive.css" rel="stylesheet">
+    <link type="text/css" href="css/demo.css" rel="stylesheet">
     <style type="text/css">
       /* Override some defaults */
       html, body {
@@ -83,54 +83,27 @@
 <!-- Local scripts -->
 <script type="text/javascript" src="js/form.js"></script>
 <script type="text/javascript" src="js/form-add.js"></script>
-<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
-<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
+<script type="text/javascript" src="js/bootstrap-tab.js"></script>
 <script type="text/javascript" src="js/moment.min.js"></script>
- 
-<!--daterangepicker-->
-<script type="text/javascript" src="third-party/jQuery-UI-Date-Range-Picker/js/date.js"></script>
-<script type="text/javascript" src="third-party/jQuery-UI-Date-Range-Picker/js/daterangepicker.jQuery.js"></script>
+<script type="text/javascript" src="js/prettify.js"></script>
 
-<!--wijmo-->
-<script type="text/javascript" src="third-party/wijmo/jquery.mousewheel.min.js"></script>
-<script type="text/javascript" src="third-party/wijmo/jquery.bgiframe-2.1.3-pre.js"></script>
-<script type="text/javascript" src="third-party/wijmo/jquery.wijmo-open.1.5.0.min.js"></script>
-
-<!-- FileInput -->
-<script type="text/javascript" src="third-party/jQuery-UI-FileInput/js/enhance.min.js"></script>
-<script type="text/javascript" src="third-party/jQuery-UI-FileInput/js/fileinput.jquery.js"></script>
-         
-<!--init for this page-->
-<script type="text/javascript" src="js/demo.js"></script>
-  
-<!--begin wijmo menu-->
-  <style>
-    .wijmo-container
-    {
-        display: block;
-        clear: both;
-        width: 900px;
-        padding: 0px;
-    }
-  </style>
-  <div align="center">
-    <input type="hidden" id="rangeA" />     
-    <input type="hidden" id="rangeBa" />
-    <input type="hidden" id="rangeBb" />      
-
-    <div class="wijmo-container">
-    <ul id="menu1">
-        <li>
-            <h3><a href="wall.php"><img alt="MyProfile" height="22" src="img/myprofile-logo.png" style="float:left; display:inline; margin-right:10px;" /> MyProfile</a></h3>
-        </li>
+<div class="navbar navbar-classic" id="navbar-example" align="center">
+  <div class="navbar-inner" style="height: 40px; width: 900px;">
+    <div class="container">
+    <h3><a class="brand" href="wall.php"><img alt="MyProfile Wall" title="MyProfile Wall" height="22" src="img/myprofile-logo.png" style="height: 22px; float:left; display:inline; margin-right:10px;" />MyProfile</a></h3>
+    <ul class="nav">
         <?php
             if (isset($_SESSION['user_hash']))
                 echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">My wall</a></li>\n";
+            else
+                echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";
         ?>
         <li><a href="friends.php">Friends</a></li>
         <li><a href="lookup.php">Lookup</a></li>
-        <li><a href="#">Additional Features</a>
-            <ul>
+        <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">Additional Features <b class="caret"></b></a>
+            <ul class="dropdown-menu">
             <?php
                 if (isset($_SESSION['webid']))
                     echo "<li><a href=\"profile.php\">Create a new WebID</a></li>\n";
@@ -138,47 +111,55 @@
             <li><a href="certgen.php">Issue certificate</a></li>
             </ul>
         </li>
-        <?php 
-            if (isset($_SESSION['webid'])) {
-                // User info
-                $username = (strlen($_SESSION['usr']) > 30) ? substr($_SESSION['usr'], 0, 30) . '...' : $_SESSION['usr'];
-                echo "<li style=\"float: right; position: relative;\"><a href=\"#\"><img alt=\"" . $_SESSION['usr'] . "\" height=\"24\" src=\"" . $_SESSION['img'] . "\" style=\"float:left; display:inline; margin: 0px 10px 0px 10px;\" /> " . $username . "</a>";
-                echo "<ul>\n";
-                echo "<li><a href=\"lookup.php?uri=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
-                if (webid_is_local($_SESSION['webid'])) {
-                    echo "<li><a href=\"profile.php?action=edit\">Edit profile</a></li>\n";
-                    echo "<li><a href=\"account.php\">Manage account</a></li>";
-                    echo "<li><a href=\"export.php\">Export profile</a></li>\n";
-                }
-                echo "<li><a href=\"subscription.php\">Subscriptions</a></li>\n";
-                echo "<li><a href=\"index.php?logoff\">Log out?</a></li>";
-                echo "</ul>\n";
-                echo "</li>\n";
-                
-                // Notifications (wall & private)
-                $bg = ($messages > 0) ? '#dc4212;' : 'grey';
-                // Wall message
-                $wbg = ($wall_msg > 0) ? '#dc4212;' : 'grey';
-                // Wall message
-                $pbg = ($private_msg > 0) ? '#dc4212;' : 'grey';
-                    
-   				echo "<li style=\"float: right; position: relative;\"><a href=\"#\" style=\"color: white;\"><table><tr><td style=\"width: 10px; margin-top: 10px; padding: 5px 10px 5px 10px; background-color: " . $bg . "\">" . $messages . "</td></tr></table></a>";
-   				echo "<ul>\n";
-   				echo "<li><a href=\"my_notifications.php\">";
-   				    echo "<table><tr><td style=\"float: left; display: inline; padding: 5px 10px 5px 10px; background-color: " . $pbg . "\">" . $private_msg . "</td><td style=\"float: left; padding: 5px 0px 0px 5px;\">Notifications</td></tr></table></a></li>\n";
-   				echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">";
-   				    echo "<table><tr><td style=\"float: left; display: inline; padding: 5px 10px 5px 10px; background-color: " . $wbg . "\">" . $wall_msg . "</td><td style=\"float: left; padding: 5px 0px 0px 5px;\">Wall messages</td></tr></table></a></li>\n";
-   				echo "<li><a href=\"notification.php\">Send Notification</a></li>\n";
-   				echo "</ul></li>\n";
-            } else {
-                echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";
-                echo "<li style=\"float: right; position: relative;\"><a href=\"" . $idp . "" . $_SESSION['page_uri'] . "\">\n";
-                echo "<img alt=\"WebID Login\" title=\"WebID Login\" height=\"22\" src=\"img/webid.png\" style=\"float:left; display:inline;\" /></a></li>\n";
-            }
-        ?>
-
     </ul>
-    </div>
+    <ul class="nav pull-right">
+    <?php 
+    if (isset($_SESSION['webid'])) {
+        // Notifications (wall & private)
+        $bg = ($messages > 0) ? '#dc4212;' : 'grey';
+        // Wall message
+        $wbg = ($wall_msg > 0) ? '#dc4212;' : 'grey';
+        // Wall message
+        $pbg = ($private_msg > 0) ? '#dc4212;' : 'grey';
+            
+		echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu2\"><table><tr><td style=\"padding: 2px 9px 2px 9px; color: white; background-color: " . $bg . "\">" . $messages . "</td><td> <b class=\"caret\"></b></td></tr></table></a>";
+		echo "<ul class=\"dropdown-menu\">\n";
+		echo "<li><a href=\"messages.php\">";
+		echo "<div style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $pbg . "\">" . $private_msg . "</div><div align=\"left\">Notifications</div>\n";
+		echo "</a></li>\n";
+		echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">";
+		echo "<div style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</div><div align=\"left\">Wall messages</div>\n";
+//		echo " <table><tr><td style=\"float: left; padding: 2px 9px 2px 9px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</td><td style=\"float: left; padding: 5px 0px 0px 5px;\">Wall messages</td></tr></table>\n";
+		echo "</a></li>\n";
+		echo "<li class=\"divider\"></li>\n";
+		echo "<li><a href=\"messages.php?new=true\">Send Notification</a></li>\n";
+		echo "</ul>\n";
+		echo "</li>\n";
+
+        // User info
+        $username = (strlen($_SESSION['usr']) > 30) ? substr($_SESSION['usr'], 0, 30) . '...' : $_SESSION['usr'];
+        echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu3\"><img alt=\"" . $_SESSION['usr'] . "\" src=\"" . $_SESSION['img'] . "\" style=\"height: 22px; float:left; display:inline; margin: 0px 10px 0px 10px;\" /> " . $username . " <b class=\"caret\"></b></a>";
+        echo "<ul class=\"dropdown-menu\">\n";
+        echo "<li><a href=\"lookup.php?uri=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
+        if (webid_is_local($_SESSION['webid'])) {
+            echo "<li><a href=\"profile.php?action=edit\">Edit profile</a></li>\n";
+            echo "<li><a href=\"account.php\">Manage account</a></li>";
+            echo "<li><a href=\"export.php\">Export profile</a></li>\n";
+        }
+        echo "<li><a href=\"subscription.php\">Subscriptions</a></li>\n";
+        echo "<li class=\"divider\"></li>\n";
+        echo "<li><a href=\"index.php?logoff\">Log out?</a></li>";
+        echo "</ul>\n";
+        echo "</li>\n";
+    } else {
+        echo "<li><a href=\"" . $idp . "" . $_SESSION['page_uri'] . "\">\n";
+        echo "  <img alt=\"WebID Login\" title=\"WebID Login\" src=\"img/webid.png\" style=\"height: 22px; \" />";
+        echo "</a></li>\n";
+    }
+    ?>
+    </ul>
+   </div>
+  </div>
   </div>
   <div class="container">
     <div class="content">

@@ -51,11 +51,11 @@ function validateReq (serverURI, uri, fullname, submit) {
     if ((okURI) && (okUser)) {
         submit.enabled = true;
         submit.disabled = false;
-        submit.className = "button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only";
+        submit.className = "btn btn-primary";
     } else {
         submit.enabled = false;
         submit.disabled = true;
-        submit.className = "button";
+        submit.className = "btn";
     }
 }
 
@@ -102,9 +102,9 @@ function updateWall (base, action, postId) {
     form = form + '<input type="hidden" name="edit" value="' + postId + '">';
     form = form + '<p><textarea name="comment" onfocus="textAreaResize(this)">' + text + '</textarea></p>';
     form = form + '<br/><br/><p>';
-    form = form + '<input class="button ui-button-primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="submit" name="update" value="Update"> ';
+    form = form + '<input class="btn btn-primary" type="submit" name="update" value="Update"> ';
     form = form + '<a onClick="cancelUpdateWall(\'' + base + '\', \'' + postId + '\')">';
-    form = form + '<input class="button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" type="button" name="cancel" value="Cancel"></a>';
+    form = form + '<input class="btn" type="button" name="cancel" value="Cancel"></a>';
     form = form + '</p></form><div>';
 
     // hide the previous text (we may reuse it in case the user cancels the form)
