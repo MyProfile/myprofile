@@ -172,7 +172,8 @@
    				echo "</ul></li>\n";
             } else {
                 echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";
-                echo "<li style=\"float: right; position: relative;\"><a href=\"https://auth.my-profile.eu/auth/index.php?authreqissuer=" . $_SESSION['page_uri'] . "\">WebID Login</a></li>\n";
+                echo "<li style=\"float: right; position: relative;\"><a href=\"" . $idp . "" . $_SESSION['page_uri'] . "\">\n";
+                echo "<img alt=\"WebID Login\" title=\"WebID Login\" height=\"22\" src=\"img/webid.png\" style=\"float:left; display:inline;\" /></a></li>\n";
             }
         ?>
 
