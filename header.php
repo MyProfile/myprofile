@@ -74,7 +74,7 @@
       }
     </style>
 
-<link rel="SHORTCUT ICON" href="favicon.ico" />
+<link rel="SHORTCUT ICON" href="favicon.png" />
 </head>
 
 <body>
