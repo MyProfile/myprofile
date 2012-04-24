@@ -31,7 +31,7 @@ OpenSSL: MyProfile relies on OpenSSL to generate certificates. This means that y
     san = $ENV::SAN
     
   
-MySQL: All notifications and wall messages are stored in a MySQL database, which means you need to have access to a MySQL server.
+MySQL: All personal messages and wall messages are stored in a MySQL database, which means you need to have access to a MySQL server.
 
 php-curl: MyProfile uses php-curl for the semantic pingback protocol. Please not that you may also have to install the curl application itself (on debian systems: apt-get install curl).
     

@@ -65,7 +65,7 @@ else {
     $ret .= "<form name=\"manage\" method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"unsubscribe\" value=\"1\">\n";
     $ret .= "<table border=\"0\">\n";
-    $ret .= "<tr><td>Note: in order to receive pingbacks, please add a <i>pingback:to</i> relation to your profile, poiting to <i>" . $base_uri . "/notification.php</i> More information can be found on the <a href=\"http://www.w3.org/wiki/Pingback\">pingback wiki page</a>.<br/><br/></td></tr>\n";
+    $ret .= "<tr><td>Note: in order to receive messages, please add a <i>pingback:to</i> relation to your profile, poiting to <i>" . $base_uri . "/pingback.php</i> More information can be found on the <a href=\"http://www.w3.org/wiki/Pingback\">pingback wiki page</a>.<br/><br/></td></tr>\n";
     $ret .= "<tr><td><br />Would you like to unregister your WebID <strong>" . $_SESSION['webid'] . "</strong>? You will no longer be able to receive pingbacks and <font color=\"red\">all exisiting messages and wall posts will be lost</font>!</td></tr>\n";
     $ret .= "<tr><td><br/><input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\" Unregister \"></td></tr>\n";
     $ret .= "</table>\n";

@@ -20,27 +20,22 @@
 //
 // See <http://www.gnu.org/licenses/> for a description of this license.
 
-define('INCLUDE_CHECK',true);
-require 'lib/graphite.php';
-require 'lib/arc/ARC2.php';
-require 'config.php';
+require 'include.php';
 
 $ret = "";
 
 // Process request and deliver pingback
 if (isset($_POST['source'])) {
+    // fetch the user's profile
+    $profile = new MyProfile(trim($_POST['source']), $base_uri);
+    $profile->load();
+    
     // Prepare data to be inserted into the database
     $from   = mysql_real_escape_string(trim($_REQUEST['source']));
     $to     = mysql_real_escape_string(trim($_REQUEST['target']));
-    $msg    = mysql_real_escape_string($_REQUEST['comment']);
-
-    // fetch the user's profile
-    $graph = new Graphite();
-    $graph->load($from);
-    $profile = $graph->resource($from);
-    
-    $name = mysql_real_escape_string(trim($profile->get('foaf:name')));
-    $pic = mysql_real_escape_string(trim($profile->get('foaf:img')));
+    $msg    = mysql_real_escape_string(trim($_REQUEST['comment']));
+    $name   = mysql_real_escape_string(trim($profile->get_name()));
+    $pic    = mysql_real_escape_string(trim($profile->get_picture()));
 
     // Return HTTP 400 (bad request)
     if (!isset($_POST['target'])) {
@@ -60,9 +55,10 @@ if (isset($_POST['source'])) {
     } else {
         // write webid uri to database
         $query = "INSERT INTO pingback_messages SET date='" . time() . "', ";
-        $query .= "from_uri = '" . $from . "', to_uri = '" . $to . "', ";
-        $query .= "name = '', ";
-        $query .= "pic = '', ";
+        $query .= "from_uri = '" . $from . "', ";
+        $query .= "to_uri = '" . $to . "', ";
+        $query .= "name = '" . $name . "', ";
+        $query .= "pic = '" . $pic . "', ";
         $query .= "msg = ' " . $msg . "'";
         
         $result = mysql_query($query);
@@ -75,11 +71,12 @@ if (isset($_POST['source'])) {
             $ret .= "Internal error: could not deliver the ping (database error).\n";
             $ret .= "</body></html>\n";
         } else {
+            mysql_free_result($result);
             // Everything is OK, return a proper HTTP response success code
             $ret .= header("HTTP/1.1 201 Created");
             $ret .= header("Status: 201 Created");
             $ret .= "<html><body>\n";
-            $ret .= "Your notification has been successfully delivered!\n";
+            $ret .= "Your message has been successfully delivered!\n";
             $ret .= "</body></html>\n";
         }
     }
