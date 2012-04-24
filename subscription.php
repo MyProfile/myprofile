@@ -28,7 +28,6 @@ check_auth($idp, $page_uri);
 $ret = "";
 $ret .= "<div class=\"container\">\n";
 $ret .= "<font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">Manage your local subscription</font>\n";
-$ret .= "<div class=\"clear\"></div>\n";
 $ret .= "</div>\n";
     
 $ret .= "<div class=\"container\">\n";
@@ -44,10 +43,9 @@ if (isset($_REQUEST['subscribe'])) {
     $ret .= $_SESSION['myprofile']->unsubscribe();
 }
 
-// verify if we are already registered
-
 // display form if we are not registered
 if (!is_subscribed($_SESSION['webid'])) {
+    $ret .= "<div class=\"clear\"><p></p></div>\n";
     $ret .= "<p><font color=\"black\">Register your WebID to receive pingbacks.</font></p>\n";
     $ret .= "<form name=\"manage\" method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"subscribe\" value=\"1\">\n";
@@ -59,20 +57,21 @@ if (!is_subscribed($_SESSION['webid'])) {
 }
 // prompt the user
 else {   
-    $ret .= "<br/><p><font style=\"font-size: 1.3em;\">The URI for your personal feed is <a href=\"" . $base_uri . "/atom.php?id=" . $_SESSION['feed_hash'] . "\">" . $base_uri . "/atom.php?id=" . $_SESSION['feed_hash'] . "</a></font></p>\n";
+    $ret .= "<div class=\"clear\"><p></p></div>\n";
     $ret .= "<p><font style=\"font-size: 1.3em;\">The URI for your Wall is <a href=\"" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "\">" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "</a></font></p>\n";
 
     $ret .= "<form name=\"manage\" method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"unsubscribe\" value=\"1\">\n";
     $ret .= "<table border=\"0\">\n";
-    $ret .= "<tr><td>Note: in order to receive messages, please add a <i>pingback:to</i> relation to your profile, poiting to <i>" . $base_uri . "/pingback.php</i> More information can be found on the <a href=\"http://www.w3.org/wiki/Pingback\">pingback wiki page</a>.<br/><br/></td></tr>\n";
+    $ret .= "<tr><td><p><strong>Note:</strong> If you do not have a local profile and you want to be able to receive messages, please add the following line to your profile, inside the foaf:Person resource describing you:</p>";
+    $ret .= "<p>In RDF/XML: <code>&lt;pingback:to xmlns:pingback=\"http://purl.org/net/pingback/\" rdf:resource=\"" . $base_uri . "/pingback.php\"/&gt;</code></p>";
+    $ret .= "</td></tr>\n";
     $ret .= "<tr><td><br />Would you like to unregister your WebID <strong>" . $_SESSION['webid'] . "</strong>? You will no longer be able to receive pingbacks and <font color=\"red\">all exisiting messages and wall posts will be lost</font>!</td></tr>\n";
     $ret .= "<tr><td><br/><input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\" Unregister \"></td></tr>\n";
     $ret .= "</table>\n";
     $ret .= "</form>\n";
 }
    
-$ret .= "<div class=\"clear\"></div>\n";
 $ret .= "</div>\n";
 
 include 'header.php';
