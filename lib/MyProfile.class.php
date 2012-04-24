@@ -604,14 +604,15 @@ class MyProfile {
         $ret .= "   <input type=\"hidden\" name=\"action\" value=\"" . $action . "\">\n";
         $ret .= "   <input type=\"hidden\" name=\"doit\" value=\"1\">\n";
         $ret .= "   <div id=\"tabs\">\n";
-        $ret .= "       <ul>\n";
-        $ret .= "           <li><a href=\"#tabs-1\">Personal information</a></li>\n";
+        $ret .= "       <ul class=\"nav nav-tabs\">\n";
+        $ret .= "           <li class=\"active\"><a data-toggle=\"tab\" href=\"#tabs-1\">Personal information</a></li>\n";
         //$ret .= "             <li><a href=\"#tabs-2\">Interests</a></li>\n";
-        $ret .= "           <li><a href=\"#tabs-3\">Friends</a></li>\n";
-        $ret .= "           <li><a href=\"#tabs-5\">Keys</a></li>\n";
+        $ret .= "           <li><a data-toggle=\"tab\" href=\"#tabs-3\">Friends</a></li>\n";
+        $ret .= "           <li><a data-toggle=\"tab\" href=\"#tabs-5\">Keys</a></li>\n";
         $ret .= "       </ul>\n";
 
-        $ret .= "   <div id=\"tabs-1\">\n";
+        $ret .= "<div class=\"tab-content\" style=\"padding-left: 2em;\">\n";
+        $ret .= "   <div class=\"tab-pane active\" id=\"tabs-1\">\n";
         if ($action == 'new') {
             $ret .= "<p>Here you can provide personal information about yourself.<br/>A default certificate will also be created for you. (you must provide both username and full name)";
             $ret .= "<br/>Your WebID profile will be accessible at: <font color=\"#00BBFF\" style=\"font-size: 1.3em;\">" . $this->base_uri . "/people/</font>";
@@ -683,11 +684,11 @@ class MyProfile {
         foreach($values_person as $key => $value)
             $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
         $ret .= "</select>\n";
-        $ret .= "<input type=\"button\" class=\"button\" value=\"Add extra info\" onclick=\"addInfo(document.form_build.element_tab1.value, 'tab1')\"/></p>\n";
+        $ret .= "<input type=\"button\" class=\"btn\" value=\"Add extra info\" onclick=\"addInfo(document.form_build.element_tab1.value, 'tab1')\"/></p>\n";
         $ret .= "</div>\n";
         
     /* ----- KNOWS ------ */  
-        $ret .= "<div id=\"tabs-3\">\n";
+        $ret .= "<div class=\"tab-pane\" id=\"tabs-3\">\n";
         $ret .= "<p>Here you can add links to your friends profiles. <font color=\"grey\"><small>[click the button to add more]</small></font><br/>\n";
         $ret .= "<small><font color=\"grey\">If you don't have any friends yet, try adding Andrei: <strong>http://fcns.eu/people/andrei/card#me</strong></font></small></p>\n";
         $ret .= "<table id=\"tab3\" border=\"0\">\n";
@@ -697,10 +698,10 @@ class MyProfile {
         foreach($values_friends as $key => $value)
             $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
         $ret .= "</select>\n";
-        $ret .= " <input type=\"button\" class=\"button\" value=\"Add element\" onclick=\"addFriends(document.form_build.element_tab3.value, 'tab3')\"/></p>\n";
+        $ret .= " <input type=\"button\" class=\"btn\" value=\"Add element\" onclick=\"addFriends(document.form_build.element_tab3.value, 'tab3')\"/></p>\n";
         $ret .= "</div>\n";
     /* ----- Public keys ------ */
-        $ret .= "<div id=\"tabs-5\">\n";
+        $ret .= "<div class=\"tab-pane\" id=\"tabs-5\">\n";
         $ret .= "<p>Here you can provide your public keys and certificate information. <font color=\"grey\"><small>[click the button to add more]</small></font><br/>\n";
         $ret .= "<font color=\"grey\"><small>[for certificates: Modulus (hexa):<i>95 be 46 ff ...  61 d2 8a</i> Exponent (decimal):<i>65537</i></small></font></p>\n";
         $ret .= "<table id=\"tab5\" border=\"0\" valign=\"top\">\n";
@@ -710,9 +711,10 @@ class MyProfile {
         foreach($values_security as $key => $value)
             $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
         $ret .= "</select>\n";
-        $ret .= "<input type=\"button\" class=\"button\" value=\"Add element\" onclick=\"addSecurity(document.form_build.element_tab5.value, 'tab5')\"/></p>\n";
+        $ret .= "<input type=\"button\" class=\"btn\" value=\"Add element\" onclick=\"addSecurity(document.form_build.element_tab5.value, 'tab5')\"/></p>\n";
         $ret .= "</div>\n";
  
+        $ret .= "</div>\n"; // end of <div class="tab-content">
         $ret .= "</div>\n";
         $ret .= "<br/><br/>\n";
         $ret .= "<p><input class=\"\" type=\"submit\" id=\"submit\" name=\"submit\" value=\"" . ucwords($action) . " profile\"";
