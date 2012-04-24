@@ -21,7 +21,7 @@
  */
 
 /*
- * display the user's notifications
+ * display the user's messages
  */ 
 
 require_once 'include.php'; 
@@ -38,7 +38,7 @@ $ret .= "<div class=\"container\">\n";
 
 // verify if we are already registered
 if (!is_subscribed($_SESSION['webid'])) {
-    $ret .= "<br/><p><font style=\"font-size: 1.3em;\">You have not registered to receive notifications! You can register <a href=\"subscription.php\">here</a>.</font></p>\n";
+    $ret .= "<br/><p><font style=\"font-size: 1.3em;\">You have not registered to receive messages! You can register <a href=\"subscription.php\">here</a>.</font></p>\n";
 }
 
 // manage received messages/pingbacks
@@ -81,25 +81,81 @@ if (isset($_REQUEST['id'])) {
     $private_msg = get_msg_count($_SESSION['webid'], 1, 0);
 }
 
-// send a new message
+// send a new message using the pingback protocol
 if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
-    $from   = mysql_real_escape_string($_SESSION['webid']);
-    $to     = mysql_real_escape_string($_REQUEST['to']);
-    $msg    = mysql_real_escape_string($_REQUEST['message']);
-    $hash   = mysql_real_escape_string($_SESSION['user_hash']);
-    $name   = mysql_real_escape_string($_SESSION['usr']);
-    $pic    = mysql_real_escape_string($_SESSION['img']);
+    $ret .= "<br/>\n";
+    
+    $to = trim($_REQUEST['to']);
 
-    // write message to database
-    $query = "INSERT INTO pingback_messages SET date='" . time() . "', from_uri='" . $from . "', to_hash='" . $hash . "', to_uri='" . $to . "', name='" . $name . "', pic='" . $pic . "'";
-    if (isset($_REQUEST['message']))
-        $query .= ", msg = ' " . $msg . "'";
+    // fetch the user's profile
+    $person = new MyProfile($to, $base_uri);
+    $person->load();
+    $profile = $person->get_profile();
+    
+    $to_name = $person->get_name();
+    $pingback_service = $profile->get("http://purl.org/net/pingback/to");
+    
+    // set form data
+    $source = $_SESSION['webid'];
+    $comment = $_REQUEST['message'];
         
-    $result = mysql_query($query);
-    if (!$result) {
-        $ret .= error('SQL Error!');
+    // parse the pingback form
+    $config = array('auto_extract' => 0);
+    $parser = ARC2::getSemHTMLParser($config);
+    $parser->parse($pingback_service);
+    $parser->extractRDF('rdfa');
+    // load triples
+    $triples = $parser->getTriples();
+
+    // proceed only if the user has defined a pingback:to relation    
+    if ($pingback_service != '[NULL]') {
+        if (sizeof($triples) > 0) {
+            //echo "<pre>" . print_r($triples, true) . "</pre>\n";
+            foreach ($triples as $triple) {
+                // proceed only if we have a valid pingback resource
+                if ($triple['o'] == 'http://purl.org/net/pingback/Container') {
+
+                    $fields = array ('source' => $source,
+                                    'target' => $to,
+                                    'comment' => $comment
+                                );
+                    
+                    // Should really replace curl with an ajax call
+                    //open connection to pingback service
+                    $ch = curl_init();
+
+                    //set the url, number of POST vars, POST data
+                    curl_setopt($ch,CURLOPT_URL,$pingback_service);
+                    curl_setopt($ch,CURLOPT_POST,count($fields));
+                    curl_setopt($ch,CURLOPT_POSTFIELDS,$fields);
+                    curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
+
+                    //execute post
+                    $success = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); 
+                    //close connection
+                    curl_close($ch);
+
+                    if (($httpCode == '201') || ($httpCode == '202'))
+                        $ret .= success('The ping was successful!');
+                    else
+                        $ret .= error('Something happened and the ping was NOT successful!' . $success);
+                    break;    
+                }
+            }
+        } else {
+            $ret .= "   <p>$pingback_service does not comply with semantic pingback standards! Showing the pingback service page instead.</p>\n";
+            // show frame
+            $ret .= "   <iframe src=\"$pingback_service\" width=\"100%\" height=\"300\">\n";
+            $ret .= "   <p>Your browser does not support iframes.</p>\n";
+            $ret .= "   </iframe>\n";
+        }
     } else {
-        $ret .= success('Your message has been successfully delivered!');
+        // no valid pingback service found, fallback to AKSW 
+        $ret .= "   <p>Could not find a pingback service for the given WebID. Here is a generic pingback service provided by http://pingback.aksw.org/.</p>\n";
+        $ret .= "   <iframe src=\"http://pingback.aksw.org/\" width=\"100%\" height=\"300\">\n";
+        $ret .= "   <p>Your browser does not support iframes.</p>\n";
+        $ret .= "   </iframe>\n";
     }
 }
 
@@ -112,7 +168,7 @@ if (isset($_REQUEST['new'])) {
     $ret .= "<tr valign=\"top\"><td>From WebID: <br/>&nbsp;</td><td><strong>You</strong> <font color=\"grey\"><small>(" . $_SESSION['webid'] . ")</small></font></td></tr>\n";
     $ret .= "<tr valign=\"top\"><td>Target WebID: <br/>&nbsp;</td><td><input size=\"30\" type=\"text\" name=\"to\" value=\"" . $_REQUEST['to'] . "\"></td></tr>\n";
     $ret .= "<tr valign=\"top\"><td>Short message (256): <br/>(optional)</td><td> <textarea style=\"height: 130px;\" name=\"message\"></textarea></td></tr>\n";
-    $ret .= "<tr><td><br/><input type=\"submit\" class=\"btn btn-primary\" name=\"submit\" value=\" Send notification! \"></td><td></td></tr>\n";
+    $ret .= "<tr><td><br/><input type=\"submit\" class=\"btn btn-primary\" name=\"submit\" value=\" Send message! \"></td><td></td></tr>\n";
     $ret .= "</table>\n";
     $ret .= "</form>\n";
 

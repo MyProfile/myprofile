@@ -55,7 +55,7 @@ $Feed->setLink($base_uri . '/feed.php?id=' . $user_hash);
 $Feed->setChannelElement('updated', date(DATE_ATOM , time()));
 $Feed->setChannelElement('author', array('name'=>'WebID Test Suite'));
 
-// fetch notifications for the selected webid
+// fetch messages for the selected webid
 // Limited to Wall posts until we can secure the private messages better
 $query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($user_hash) . "' AND wall='1' ORDER BY date DESC LIMIT 10";
 $result = mysql_query($query);
@@ -72,7 +72,7 @@ while ($row = mysql_fetch_assoc($result)) {
     if ($row['wall'] == 1) {
         $newItem->setTitle('Wall message.');
 
-        // Display wall if it's not a personal notification
+        // Display wall if it's not a personal message 
         if ($user_hash != 'local')
             $newItem->setLink($base_uri . '/wall.php?user=' . $user_hash);
         else

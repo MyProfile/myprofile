@@ -128,7 +128,7 @@ if (strlen($auth->webid) > 0) {
     }
 }
 
-// Get the number of notifications
+// Get the number of messages
 if ($_SESSION['webid']) {
     $messages = get_msg_count($_SESSION['webid']);
     $private_msg = get_msg_count($_SESSION['webid'], 1, 0);

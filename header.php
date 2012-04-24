@@ -115,7 +115,7 @@
     <ul class="nav pull-right">
     <?php 
     if (isset($_SESSION['webid'])) {
-        // Notifications (wall & private)
+        // Messages (wall & private)
         $bg = ($messages > 0) ? '#dc4212;' : 'grey';
         // Wall message
         $wbg = ($wall_msg > 0) ? '#dc4212;' : 'grey';
@@ -125,14 +125,17 @@
 		echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu2\"><table><tr><td style=\"padding: 2px 9px 2px 9px; color: white; background-color: " . $bg . "\">" . $messages . "</td><td> <b class=\"caret\"></b></td></tr></table></a>";
 		echo "<ul class=\"dropdown-menu\">\n";
 		echo "<li><a href=\"messages.php\">";
-		echo "<div style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $pbg . "\">" . $private_msg . "</div><div align=\"left\">Notifications</div>\n";
+		echo "<div style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $pbg . "\">" . $private_msg . "</div><div align=\"left\">Message";
+        // add plural if more than 1 message or less than one message (0 messages)
+        echo ($private_msg != 1) ? 's' : '';
+		echo "</div>\n";
 		echo "</a></li>\n";
 		echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">";
 		echo "<div style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</div><div align=\"left\">Wall messages</div>\n";
 //		echo " <table><tr><td style=\"float: left; padding: 2px 9px 2px 9px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</td><td style=\"float: left; padding: 5px 0px 0px 5px;\">Wall messages</td></tr></table>\n";
 		echo "</a></li>\n";
 		echo "<li class=\"divider\"></li>\n";
-		echo "<li><a href=\"messages.php?new=true\">Send Notification</a></li>\n";
+		echo "<li><a href=\"messages.php?new=true\">Send message</a></li>\n";
 		echo "</ul>\n";
 		echo "</li>\n";
 

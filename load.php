@@ -44,7 +44,7 @@ if (isset($_REQUEST['webid'])) {
     if (in_array($me, $array))
         $has_me = 'true';
       
-    // check if the user has subscribed to local notifications
+    // check if the user has subscribed to local messages
     $is_subscribed = (strlen($person->get_hash()) > 0) ? true : false;
 
     // start populating array
@@ -92,12 +92,12 @@ if (isset($_REQUEST['webid'])) {
     
     $ret .= "<br/><table>\n";
     $ret .= "<tr>\n";
-    $ret .= "<td style=\"padding-right: 10px; float: left;\">\n";
-    $ret .= "<form action=\"ping.php\" method=\"GET\">\n";
-    $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
-    $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Ping \" onclick=\"this.form.target='_blank';return true;\">\n";
-    $ret .= "</form>\n";
-    $ret .= "</td>\n";
+    // send messages using the pingback protocol
+    $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
+    $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
+    $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
+    $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
+    $ret .= "</form></td>\n";
     
     // add or remove friends if we have them in our list
     if (webid_is_local($_SESSION['webid'])) {
@@ -120,12 +120,6 @@ if (isset($_REQUEST['webid'])) {
 
     // more functions if the user has previously subscribed to the local services
     if ($is_subscribed) {
-        // Allow user to send messages if target is subscribed
-        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
-        $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
-        $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
-        $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
-        $ret .= "</form></td>\n";
         // Post on the user's wall
         $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
         $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $friend['hash'] . "\">\n";
