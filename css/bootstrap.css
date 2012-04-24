@@ -554,7 +554,6 @@ pre {
   border-radius: 4px;
   white-space: pre;
   white-space: pre-wrap;
-  word-break: break-all;
   word-wrap: break-word;
 }
 pre.prettyprint {
