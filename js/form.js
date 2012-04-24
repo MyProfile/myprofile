@@ -21,27 +21,26 @@ function validateReq (serverURI, uri, fullname, submit) {
 
     var okURI = false;
     var okUser = false;
-    /* --- Test the uri (username) --- */
-
 	var regex = /^[a-z0-9_\.-]+$/;
 	
+    /* --- Test the uri (username) --- */
 	if (!regex.test(uri_val)) {
         uri.setAttribute('style', 'border-color: red !important;');
     } else if (uri_val.length > 2) {
-        // check username URI exists or not (through http return status)
+        // check whether username URI exists or not (through http return status)
         if (UrlExists(serverURI + escape(uri_val)) == 404) {
-            uri.setAttribute('style', 'border-color: green !important;');
+            uri.setAttribute('style', 'border-color: blue !important;');
             okURI = true;
         }
     } else {
         uri.setAttribute('style', 'border-color: red !important;');
     }
 
-    /* --- Test the uri (username) --- */
+    /* --- Test the full name --- */
     if (fullname_val.length < 2) {
         fullname.setAttribute('style', 'border-color: red !important;');
     } else {
-        fullname.setAttribute('style', 'border-color: green !important;');
+        fullname.setAttribute('style', 'border-color: blue !important;');
         okUser = true;
     }
 
@@ -55,6 +54,62 @@ function validateReq (serverURI, uri, fullname, submit) {
         submit.disabled = true;
         submit.className = "btn";
     }
+}
+
+function validateCert (field1, field2, submit, len) {
+    var field1 = document.getElementById(field1);
+    var field2 = document.getElementById(field2);
+    var field1_val = field1.value;
+    var field2_val = field2.value;
+
+    var submit = document.getElementById(submit);
+    var ok1 = false;
+    var ok2 = false;
+
+    /* --- Test the first field --- */
+    if (field1_val.length < len) {
+        field1.setAttribute('style', 'border-color: red !important;');
+    } else {
+        field1.setAttribute('style', 'border-color: blue !important;');
+        ok1 = true;
+    } 
+    
+    /* --- Test the first field --- */
+    if (field2_val.length < len) {
+        field2.setAttribute('style', 'border-color: red !important;');
+    } else {
+        field2.setAttribute('style', 'border-color: blue !important;');
+        ok2 = true;
+    } 
+
+    /* --- Finally decide whether to allow submit or not --- */
+    if ((ok1) && (ok2)) {
+        submit.enabled = true;
+        submit.disabled = false;
+        submit.className = "btn btn-primary";
+    } else {
+        submit.enabled = false;
+        submit.disabled = true;
+        submit.className = "btn btn-primary";
+    }   
+}
+
+// validate requirements for the full name field
+function validateLength (field, submit, len) {
+    var name = document.getElementById(field);
+    var name_val = name.value;
+    var submit = document.getElementById(submit);
+    
+    /* --- Test the full name --- */
+    if (name_val.length < len) {
+        name.setAttribute('style', 'border-color: red !important;');
+        submit.enabled = false;
+        submit.disabled = true;
+    } else {
+        name.setAttribute('style', 'border-color: blue !important;');
+        submit.enabled = true;
+        submit.disabled = false;
+    } 
 }
 
 function setKeygen (checkbox, pubkey) {
