@@ -131,16 +131,19 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
                     curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
 
                     //execute post
-                    $success = curl_exec($ch);
+                    $return = curl_exec($ch);
                     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); 
                     //close connection
                     curl_close($ch);
 
-                    if (($httpCode == '201') || ($httpCode == '202'))
-                        $ret .= success('The ping was successful!');
-                    else
-                        $ret .= error('Something happened and the ping was NOT successful!' . $success);
-                    break;    
+                    if (($httpCode == '201') || ($httpCode == '202')) {
+                        $ret .= success('Message delivered!');
+                    } else {
+                        $ret .= error('Something happened and I couldn\'t deliver the message!');
+                        $ret .= "<p>Details:</p>\n";
+                        $ret .= "</p>" . $return . "</p>\n";
+                    }
+                    break;
                 }
             }
         } else {
