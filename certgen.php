@@ -25,6 +25,8 @@
  *
  *
  */
+    
+require_once 'include.php';
 
 // form in html
 $form = '';
@@ -39,26 +41,20 @@ $form .= "<br/><form name=\"input\" action=\"certgen.php\" method=\"post\">\n";
 $form .= "<input type=\"hidden\" name=\"doit\" value=\"1\">\n";
 $form .= "<table>\n";
 $form .= "	<tr><td colspan=\"2\"><font style=\"font-size: 1em;\">If you already have a FOAF card, this form allows you to create a client certificate for it.</font><br/><br/></td></tr>\n";
-$form .= "	<tr><td><h3>FOAF URI 1</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\" placeholder=\"An URI like http://fcns.eu/people/andrei/card#me\" style=\"border-color: red;\"></td></tr>\n";
-$form .= "	<tr><td><h3>FOAF URI 2</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
-$form .= "	<tr><td><h3>FOAF URI 3</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
-$form .= "	<tr><td><h3>commonName</h3></td><td><input type=\"text\" name=\"commonName\" placeholder=\"Your name\" style=\"border-color: red;\"></font></td></tr>\n";
-$form .= "	<tr><td><h3>emailAddress</h3></td><td><input type=\"text\" name=\"emailAddress\"></td></tr>\n";
-$form .= "	<tr><td><h3>organizationName</h3></td><td><input type=\"text\" name=\"organizationName\"></td></tr>\n";
-$form .= "	<tr><td><h3>organizationalUnitName</h3></td><td><input type=\"text\" name=\"organizationalUnitName\"></td></tr>\n";
-$form .= "	<tr><td><h3>localityName</h3></td><td><input type=\"text\" name=\"localityName\"></td><td></td></tr>\n";
-$form .= "	<tr><td><h3>stateOrProvinceName</h3></td><td><input type=\"text\" name=\"stateOrProvinceName\"></td></tr>\n";
-$form .= "	<tr><td><h3>countryName</h3></td><td><input type=\"text\" name=\"countryName\"></td></tr>\n";
+$form .= "	<tr><td><h3>FOAF address 1</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\" id=\"foaf1\" onKeyup=\"validateCert('foaf1', 'commonName', 'submit', 2)\"> (min 2 characters)</td></tr>\n";
+$form .= "	<tr><td><h3>FOAF address 2</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
+$form .= "	<tr><td><h3>FOAF address 3</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
+$form .= "	<tr><td><h3>Full name</h3></td><td><input type=\"text\" id=\"commonName\" name=\"commonName\" onKeyup=\"validateCert('foaf1', 'commonName', 'submit', 2)\"></font> (min 2 characters)</td></tr>\n";
+$form .= "	<tr><td><h3>Email address</h3></td><td><input type=\"text\" name=\"emailAddress\"></td></tr>\n";
 $form .= "	<tr><td><h3>KEYGEN Key Length</h3></td><td><keygen name=\"pubkey\" challenge=\"randomchars\"></td></tr>\n";
 $form .= "	<tr><td colspan=\"3\">&nbsp;</td></tr>\n";
-$form .= "	<tr><td></td><td><input type=\"submit\" class=\"btn btn-primary\"  value=\"Install certificate\"></td></tr>\n";
+$form .= "	<tr><td></td><td><input type=\"submit\" class=\"btn btn-primary\" id=\"submit\" value=\"Install certificate\" disabled></td></tr>\n";
 $form .= "</table>\n";
 $form .= "</form>\n";
 $form .= "<div class=\"clear\"></div>\n";
 $form .= "</div>\n";
 
 if ($_POST['doit'] == 1) {
-    include_once 'include.php';
 
 	//
 	// Main
@@ -110,9 +106,8 @@ if ($_POST['doit'] == 1) {
 	    }
     }
 } else {
-    require_once 'include.php';
-    require 'header.php'; 
+    include_once 'header.php'; 
     echo $form;
-	include 'footer.php';
+	include_once 'footer.php';
 }
 ?>
