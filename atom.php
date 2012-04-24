@@ -79,13 +79,16 @@ while ($row = mysql_fetch_assoc($result)) {
             $newItem->setLink($base_uri . '/wall.php');
     } else {
         $newItem->setTitle('Personal message.');
-        $newItem->setLink($base_uri . '/my_notifications.php');
+        $newItem->setLink($base_uri . '/messages.php');
     }
 
     $newItem->setDate($row['date']);
     //Internally changed to "summary" tag for ATOM feed
     
-    $newItem->setDescription("<p>From: <a href=\"" . $base_uri . "/lookup.php?uri=" . urlencode($row['from_uri']) . "\">" . $name . "</a></p><br/>\n<pre>" . $row['msg'] . "</pre>");
+    $description = "<div><p>From: <a href=\"" . $base_uri . "/view.php?uri=" . urlencode($row['from_uri']) . "\">" . $name . "</a></p></div>\n";
+    $description .= "<div><pre width=\"100\">" . $row['msg'] . "</pre></div>\n";
+    $description .= "</table>\n";
+    $newItem->setDescription($description);
 
     //Now add the feed item	
     $Feed->addItem($newItem);
