@@ -717,7 +717,7 @@ class MyProfile {
         $ret .= "</div>\n"; // end of <div class="tab-content">
         $ret .= "</div>\n";
         $ret .= "<br/><br/>\n";
-        $ret .= "<p><input class=\"\" type=\"submit\" id=\"submit\" name=\"submit\" value=\"" . ucwords($action) . " profile\"";
+        $ret .= "<p><input class=\"btn btn-primary\" type=\"submit\" id=\"submit\" name=\"submit\" value=\"" . ucwords($action) . " profile\"";
         // Disable the submit button if we need to check if user already exists
         if (($action == 'new') || ($action == 'import')) {
             $ret .= " disabled>\n";
