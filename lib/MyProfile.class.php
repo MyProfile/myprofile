@@ -369,7 +369,7 @@ class MyProfile {
                 if (($_SESSION['webid'] == $row['from_uri']) || (($_SESSION['webid'] == $row['to_uri']) && (isset($_REQUEST['user'])) && ($_REQUEST['user'] != 'local'))) {                    
                     $add = '?user=' . $user_hash;
                     // add option to edit post
-                    $ret .= "<a onClick=\"updateWall('message_text_" . $row['id'] . "', 'wall.php" . $add . "', '" . $row['id'] . "')\">Edit</a>";
+                    $ret .= "<a onClick=\"updateWall('message_text_" . $row['id'] . "', 'wall.php" . $add . "', '" . $row['id'] . "')\" style=\"cursor: pointer;\">Edit</a>";
                     // add option to delete post
                     $ret .= " <a href=\"wall.php" . $add . "&del=" . $row['id'] . "\">Delete</a>\n";
                 }
