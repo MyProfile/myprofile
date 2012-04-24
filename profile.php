@@ -126,7 +126,7 @@ if (isset($_REQUEST['doit']))  {
         }
    
 // ----- pingback:to relation ----- //
-        $me->set('pingback:to', $base_uri . '/notification.php');
+        $me->set('pingback:to', $base_uri . '/pingback.php');
 
         // certificates
         // write certificates' public keys (if we have more than one)

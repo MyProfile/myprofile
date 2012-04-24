@@ -560,7 +560,7 @@ function dumpHTML($graph, $me, $webid) {
         $ret .= "<td><h3 class=\"demoHeaders\">Knows: </h3>";
 
         foreach ($me->all('foaf:knows') as $friend)
-            $ret .= "<dd><a href=\"lookup.php?uri=" . urlencode($friend) . "\">" . $friend . "</a></dd>";
+            $ret .= "<dd><a href=\"view.php?uri=" . urlencode($friend) . "\">" . $friend . "</a></dd>";
 
         $ret .= "</td>";
         $ret .= "</tr>\n";

@@ -1,123 +1,108 @@
 <?php
-/*
- *  Copyright (C) 2012 MyProfile Project
- *  
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the "Software"), to deal 
- *  in the Software without restriction, including without limitation the rights 
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
- *  copies of the Software, and to permit persons to whom the Software is furnished 
- *  to do so, subject to the following conditions:
+//-----------------------------------------------------------------------------------------------------------------------------------
+//
+// Filename   : pingback.php
+// Date       : 21st Apr 2011
+//
+// Project name: SemPB - Semantical Pingback
+// Copyright 2011 fcns.eu
+// Author: Andrei Sambra - andrei@fcns.eu
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// See <http://www.gnu.org/licenses/> for a description of this license.
 
- *  The above copyright notice and this permission notice shall be included in all 
- *  copies or substantial portions of the Software.
-
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
- *  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
- *  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
- *  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
- *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
- *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
- 
-require_once 'include.php';
-include 'header.php'; 
-
-// only allow to send pingbacks if the sender is logged in
-check_auth($idp, $page_uri);
+define('INCLUDE_CHECK',true);
+require 'lib/graphite.php';
+require 'lib/arc/ARC2.php';
+require 'config.php';
 
 $ret = "";
-$ret .= "<font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">Send a WebID Pingback</font>\n";
 
-if (isset($_REQUEST['to'])) {
-    $ret .= "<br/>\n";
-    
-    $to = trim($_REQUEST['to']);
+// Process request and deliver pingback
+if (isset($_POST['source'])) {
+    // Prepare data to be inserted into the database
+    $from   = mysql_real_escape_string(trim($_REQUEST['source']));
+    $to     = mysql_real_escape_string(trim($_REQUEST['target']));
+    $msg    = mysql_real_escape_string($_REQUEST['comment']);
 
     // fetch the user's profile
-    $person = new MyProfile($to, $base_uri);
-    $person->load();
-    $profile = $person->get_profile();
+    $graph = new Graphite();
+    $graph->load($from);
+    $profile = $graph->resource($from);
     
-    $to_name = $person->get_name();
-    $pingback_service = $profile->get("http://purl.org/net/pingback/to");
-    
-    // set form data
-    $source = $_SESSION['webid'];
-    $comment = $_REQUEST['comment'];
-        
-    // parse the pingback form
-    $config = array('auto_extract' => 0);
-    $parser = ARC2::getSemHTMLParser($config);
-    $parser->parse($pingback_service);
-    $parser->extractRDF('rdfa');
+    $name = mysql_real_escape_string(trim($profile->get('foaf:name')));
+    $pic = mysql_real_escape_string(trim($profile->get('foaf:img')));
 
-    $triples = $parser->getTriples();
-
-    //debug
-    //echo "<pre>" . print_r($triples, true) . "</pre>\n";
-    
-    if ($pingback_service != '[NULL]') {
-        if (sizeof($triples) > 0) {
-            //echo "<pre>" . print_r($triples, true) . "</pre>\n";
-            foreach ($triples as $triple) {
-                // proceed only if we have a valid pingback resource
-                if ($triple['o'] == 'http://purl.org/net/pingback/Container') {
-
-                    $fields = array ('source' => $source,
-                                    'target' => $to,
-                                    'comment' => $comment
-                                );
-                    
-                    //open connection to pingback service
-                    $ch = curl_init();
-
-                    //set the url, number of POST vars, POST data
-                    curl_setopt($ch,CURLOPT_URL,$pingback_service);
-                    curl_setopt($ch,CURLOPT_POST,count($fields));
-                    curl_setopt($ch,CURLOPT_POSTFIELDS,$fields);
-                    curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
-
-                    //execute post
-                    $success = curl_exec($ch);
-                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); 
-                    //close connection
-                    curl_close($ch);
-
-                    if (($httpCode == '201') || ($httpCode == '202'))
-                        $ret .= success('The ping was successful!');
-                    else
-                        $ret .= error('Something happened and the ping was NOT successful!' . $success);
-                    break;    
-                }
-            }
-        } else {
-            $ret .= "   <p>$pingback_service does not comply with semantic pingback standards! Showing the pingback service page instead.</p>\n";
-            // show frame
-            $ret .= "   <iframe src=\"$pingback_service\" width=\"100%\" height=\"300\">\n";
-            $ret .= "   <p>Your browser does not support iframes.</p>\n";
-            $ret .= "   </iframe>\n";
-        }
+    // Return HTTP 400 (bad request)
+    if (!isset($_POST['target'])) {
+        // No destination user, return a proper HTTP response code with error
+        $ret .= header("HTTP/1.1 400 Bad request");
+        $ret .= header("Status: 400 Bad request");
+        $ret .= "<html><body>\n";
+        $ret .= "Bad request: you did not specify the destination user.\n";
+        $ret .= "</body></html>\n";
+    } else if (!isset($_POST['comment'])) {
+        // No message, return a proper HTTP response code with error
+        $ret .= header("HTTP/1.1 400 Bad request");
+        $ret .= header("Status: 400 Bad request");
+        $ret .= "<html><body>\n";
+        $ret .= "Bad request: you did not provide a message.\n";
+        $ret .= "</body></html>\n";
     } else {
-        $ret .= "   <p>Could not find a pingback service for the given WebID. Here is a generic pingback service provided by http://pingback.aksw.org/.</p>\n";
-        // show frame
-        $ret .= "   <iframe src=\"http://pingback.aksw.org/\" width=\"100%\" height=\"300\">\n";
-        $ret .= "   <p>Your browser does not support iframes.</p>\n";
-        $ret .= "   </iframe>\n";
+        // write webid uri to database
+        $query = "INSERT INTO pingback_messages SET date='" . time() . "', ";
+        $query .= "from_uri = '" . $from . "', to_uri = '" . $to . "', ";
+        $query .= "name = '', ";
+        $query .= "pic = '', ";
+        $query .= "msg = ' " . $msg . "'";
+        
+        $result = mysql_query($query);
+        
+        if (!$result) {
+            // Database error, return a proper HTTP response code with error
+            $ret .= header("HTTP/1.1 500 Internal Error");
+            $ret .= header("Status: 500 Internal Error");
+            $ret .= "<html><body>\n";
+            $ret .= "Internal error: could not deliver the ping (database error).\n";
+            $ret .= "</body></html>\n";
+        } else {
+            // Everything is OK, return a proper HTTP response success code
+            $ret .= header("HTTP/1.1 201 Created");
+            $ret .= header("Status: 201 Created");
+            $ret .= "<html><body>\n";
+            $ret .= "Your notification has been successfully delivered!\n";
+            $ret .= "</body></html>\n";
+        }
     }
-
 } else {
-    // show pingback form 
-    $ret .= "   <div class=\"clear\"><br/><br/></div>\n";
-    $ret .= "   <p>Attempt to 'ping' someone using the pingback service found in their profile.</p>\n"; 
-    $ret .= "   <p>The destination WebID must contain a relation of type pingback:to (http://purl.org/net/pingback/to), pointing to pingback service.</p>\n";
-    $ret .= "   <form name=\"lookup_pingback\" method=\"POST\" action=\"\"><br/>\n";
-    $ret .= "       Destination WebID: <input size=\"50\" type=\"text\" name=\"to\" value=\"" . $_REQUEST['uri'] . "\"><br/><br/>\n";
-    $ret .= "       Optional comment: <input size=\"50\" maxlength=\"256\" type=\"text\" name=\"comment\" value=\"\" style=\"background-color:#fff; border:dashed 1px grey;\"> <small>(max 256 characters)</small><br/><br/>\n";
-    $ret .= "       <input type=\"submit\" name=\"submit\" value=\" Ping! \" class=\"btn btn-primary\">\n";
+    // Show form
+    $ret .= '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">';
+    $ret .= "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"  xmlns:pingback=\"http://purl.org/net/pingback/\">\n";
+    $ret .= "   <head>\n";
+    $ret .= "	<title>Pingback</title>\n";
+    $ret .= "	<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />\n";
+    $ret .= "   </head>\n";
+    $ret .= "   <body typeof=\"pingback:Container\">\n";
+    $ret .= "   <form method=\"post\" action=\"pingback.php\">\n";
+    $ret .= "       <p>Your WebID: <input size=\"30\" property=\"pingback:source\" type=\"text\" name=\"source\" /></p>\n";
+    $ret .= "       <p>Target WebID: <input size=\"30\" property=\"pingback:target\" type=\"text\" name=\"target\" value=\"" . $_GET['target'] . "\" /></p>\n";
+    $ret .= "       <p>Comment (optional): <input size=\"30\" maxlength=\"256\" type=\"text\" name=\"comment\" style=\"background-color:#fff; border:dashed 1px grey;\" /></p>\n";
+    $ret .= "       <p><input type=\"submit\" name=\"submit\" value=\"Ping!\" /></p>\n";
     $ret .= "   </form>\n";
+    $ret .= "   </body>\n";
+    $ret .= "</html>\n";
 }
-
+// Display
 echo $ret;
-include 'footer.php';
+
 ?>		      
+

@@ -152,12 +152,12 @@ if (isset($_REQUEST['new'])) {
 
             $ret .= "<tr valign=\"top\">\n";
             $ret .= "   <td width=\"80\" align=\"center\">\n";
-            $ret .= "       <a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
+            $ret .= "       <a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
             $ret .= "   </td>\n";
             $ret .= "   <td>";
             $ret .= "       <table border=\"0\">\n";
             $ret .= "       <tr valign=\"top\">\n";
-            $ret .= "           <td><b><a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b></td>\n";
+            $ret .= "           <td><b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b></td>\n";
             $ret .= "       </tr>\n";
             $ret .= "       <tr>\n";
             $ret .= "           <td><pre>" . $text . "</pre></td>\n";

@@ -64,7 +64,7 @@ if (isset($_REQUEST['webid'])) {
     $ret .= "<tr bgcolor=\"\"><td>\n";
     $ret .= "<table><tr>\n";
     $ret .= "<td width=\"70\" style=\"vertical-align: top; padding: 10px;\">\n";
-    $ret .= "<div align=\"left\"><a href=\"lookup.php?uri=" . urlencode($friend['webid']) . "\" target=\"_blank\"><img title=\"Click to see more information about " . $friend['name'] . "\" alt=\"" . $friend['name'] . ".\" width=\"64\" src=\"" . $friend['img'] . "\" /></a></div>\n";
+    $ret .= "<div align=\"left\"><a href=\"view.php?uri=" . urlencode($friend['webid']) . "\" target=\"_blank\"><img title=\"Click to see more information about " . $friend['name'] . "\" alt=\"" . $friend['name'] . ".\" width=\"64\" src=\"" . $friend['img'] . "\" /></a></div>\n";
     $ret .= "</td>\n";
 
     $ret .= "<td><table>\n";
@@ -93,7 +93,7 @@ if (isset($_REQUEST['webid'])) {
     $ret .= "<br/><table>\n";
     $ret .= "<tr>\n";
     $ret .= "<td style=\"padding-right: 10px; float: left;\">\n";
-    $ret .= "<form action=\"pingback.php\" method=\"GET\">\n";
+    $ret .= "<form action=\"ping.php\" method=\"GET\">\n";
     $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
     $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Ping \" onclick=\"this.form.target='_blank';return true;\">\n";
     $ret .= "</form>\n";

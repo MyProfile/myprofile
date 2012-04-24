@@ -101,7 +101,7 @@
                 echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";
         ?>
         <li><a href="friends.php">Friends</a></li>
-        <li><a href="lookup.php">Lookup</a></li>
+        <li><a href="view.php">Lookup</a></li>
         <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">Additional Features <b class="caret"></b></a>
             <ul class="dropdown-menu">
             <?php
@@ -140,7 +140,7 @@
         $username = (strlen($_SESSION['usr']) > 30) ? substr($_SESSION['usr'], 0, 30) . '...' : $_SESSION['usr'];
         echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu3\"><img alt=\"" . $_SESSION['usr'] . "\" src=\"" . $_SESSION['img'] . "\" style=\"height: 22px; float:left; display:inline; margin: 0px 10px 0px 10px;\" /> " . $username . " <b class=\"caret\"></b></a>";
         echo "<ul class=\"dropdown-menu\">\n";
-        echo "<li><a href=\"lookup.php?uri=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
+        echo "<li><a href=\"view.php?uri=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
         if (webid_is_local($_SESSION['webid'])) {
             echo "<li><a href=\"profile.php?action=edit\">Edit profile</a></li>\n";
             echo "<li><a href=\"account.php\">Manage account</a></li>";
@@ -152,7 +152,7 @@
         echo "</ul>\n";
         echo "</li>\n";
     } else {
-        echo "<li><a href=\"" . $idp . "" . $_SESSION['page_uri'] . "\">\n";
+        echo "<li><a href=\"" . $idp . "" . $_SESSION['page_uri'] . "\" style=\"\padding-top: 8px;\">\n";
         echo "  <img alt=\"WebID Login\" title=\"WebID Login\" src=\"img/webid.png\" style=\"height: 22px; \" />";
         echo "</a></li>\n";
     }

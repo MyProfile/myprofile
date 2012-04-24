@@ -164,12 +164,12 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
-    $form_area .= "   <td style=\"width: 90px\"><p><a href=\"lookup.php?uri=" . $_SESSION["webid"] . "\" target=\"_blank\">\n";
+    $form_area .= "   <td style=\"width: 90px\"><p><a href=\"view.php?uri=" . $_SESSION["webid"] . "\" target=\"_blank\">\n";
     $form_area .= "       <img title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" style=\"padding: 0px 0px 10px 10px;\" />\n";
     $form_area .= "   </a></p></td>\n";
     $form_area .= "   <td>\n";
     $form_area .= "       <table border=\"0\">\n"; 
-    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"lookup.php?uri=" . $_SESSION["webid"] . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
+    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?uri=" . $_SESSION["webid"] . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
     $form_area .= "       <tr><td><textarea name=\"comment\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
     $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \"> <font color=\"grey\">";
     $form_area .= "       <small>[Note: you can always delete your message after]</small></font></p></td></tr>\n";
