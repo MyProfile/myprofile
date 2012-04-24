@@ -345,14 +345,14 @@ class MyProfile {
                 $ret .= "<tr valign=\"top\" property=\"sioc:Post\">\n";
                 $ret .= "<td width=\"80\" align=\"center\">\n";
                 // image
-                $ret .= "<a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
+                $ret .= "<a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
                 $ret .= "</td>\n";
                 $ret .= "<td>";
                 $ret .= "<table style=\"width: 700px;\" border=\"0\">\n";
                 $ret .= "<tr valign=\"top\">\n";
                 $ret .= "<td>\n";
                 // author's name
-                $ret .= "<b><a href=\"lookup.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b>";
+                $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b>";
                 // time of post
                 $ret .= "<font color=\"grey\"> wrote <span id=\"date_" . $row['id'] . "\">";
                 $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(moment('" . date("Y-m-dTH:m:s", $row['date']) . "')).from());</script>";
