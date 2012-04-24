@@ -339,8 +339,8 @@ class MyProfile {
 
                 // add horizontal line to separate messages
                 $ret .= "<tr><td colspan=\"2\">\n";
-                $ret .= "<p><a name=\"post_" . $row['id'] . "\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/></a></p>\n";
-                $ret .= "<br/></td></tr>\n";
+                $ret .= "<a name=\"post_" . $row['id'] . "\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/></a>\n";
+                $ret .= "</td></tr>\n";
 
                 $ret .= "<tr valign=\"top\" property=\"sioc:Post\">\n";
                 $ret .= "<td width=\"80\" align=\"center\">\n";
@@ -375,7 +375,6 @@ class MyProfile {
                 }
                 $ret .= "</small></td>\n";
                 $ret .= "</tr>\n";
-                $ret .= "<tr><td>&nbsp;</td></tr>\n";
                 $ret .= "</table>\n";
                 $ret .= "</td>\n";
                 $ret .= "</tr>\n";

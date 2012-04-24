@@ -1,8 +1,8 @@
+// resize a textarea element
 function textAreaResize(o) {
   o.style.height = "1px";
   o.style.height = (25+o.scrollHeight)+"px";
 }
-
 
 String.prototype.capitalize = function(){
    return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );
@@ -23,8 +23,6 @@ function validateReq (serverURI, uri, fullname, submit) {
     var okUser = false;
     /* --- Test the uri (username) --- */
 
-    // do not allow accented chars
-    //var regex = /^[\w\-\s\dÀÈÌÒÙàèìòùÁÉÍÓÚÝáéíóúýÂÊÎÔÛâêîôûÃÑÕãñõÄËÏÖÜäëïöüçÇßØøÅåÆæÞþÐð]+$/;
 	var regex = /^[a-z0-9_\.-]+$/;
 	
 	if (!regex.test(uri_val)) {
@@ -32,7 +30,7 @@ function validateReq (serverURI, uri, fullname, submit) {
     } else if (uri_val.length > 2) {
         // check username URI exists or not (through http return status)
         if (UrlExists(serverURI + escape(uri_val)) == 404) {
-            uri.setAttribute('style', 'border-color: blue !important;');
+            uri.setAttribute('style', 'border-color: green !important;');
             okURI = true;
         }
     } else {
@@ -43,7 +41,7 @@ function validateReq (serverURI, uri, fullname, submit) {
     if (fullname_val.length < 2) {
         fullname.setAttribute('style', 'border-color: red !important;');
     } else {
-        fullname.setAttribute('style', 'border-color: blue !important;');
+        fullname.setAttribute('style', 'border-color: green !important;');
         okUser = true;
     }
 
@@ -101,11 +99,11 @@ function updateWall (base, action, postId) {
     form = form + '<form action="' + action + '&#post_' + postId + '" method="post">';
     form = form + '<input type="hidden" name="edit" value="' + postId + '">';
     form = form + '<p><textarea name="comment" onfocus="textAreaResize(this)">' + text + '</textarea></p>';
-    form = form + '<br/><br/><p>';
+    form = form + '<p>';
     form = form + '<input class="btn btn-primary" type="submit" name="update" value="Update"> ';
     form = form + '<a onClick="cancelUpdateWall(\'' + base + '\', \'' + postId + '\')">';
     form = form + '<input class="btn" type="button" name="cancel" value="Cancel"></a>';
-    form = form + '</p></form><div>';
+    form = form + '</p></form></div>';
 
     // hide the previous text (we may reuse it in case the user cancels the form)
     $('#' + base).hide();
