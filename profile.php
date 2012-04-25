@@ -120,7 +120,7 @@ if (isset($_REQUEST['doit']))  {
 
             foreach($_REQUEST['foaf:knows'] as $key => $person_uri) {
                 if (strlen($person_uri) > 0) {
-                    $me->add('foaf:knows', $person_uri);
+                    $graph->addResource($me, 'foaf:knows', $person_uri);
                 }
             }
         }
@@ -153,7 +153,7 @@ if (isset($_REQUEST['doit']))  {
         // Do not generate a certificate if we're just editing the profile
         if (($_REQUEST["action"] == 'new') || ($_REQUEST["action"] == 'import')) {
             // append other webids after the local one
-        	$foafLocation = array();
+ 	       	$foafLocation = array();
         	$foafLocation[] = $webid;
           	foreach ($_REQUEST['webid_uri'] as $val) {
         	    if (strlen($val) > 0) 
@@ -172,7 +172,7 @@ if (isset($_REQUEST['doit']))  {
     	    $organizationalUnitName = $_REQUEST['organizationalUnitName'];
             $emailAddress           = $_REQUEST['emailAddress'];
     	    $pubkey			        = $_REQUEST["pubkey"];
-	
+
     	    // Create a x509 SSL certificate in DER format
         	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, $SSLconf, $CApass);
             $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
@@ -203,7 +203,7 @@ if (isset($_REQUEST['doit']))  {
             } else {
                 mysql_free_result($result);
             }
-            
+         
             // create dirs
             if (!mkdir($user_dir, 0775))
                 die('Failed to create user profile directory! Check permissions.');
@@ -243,7 +243,7 @@ if (isset($_REQUEST['doit']))  {
       
         // everything is fine
         $ok = true;
-    
+
         // Send the X.509 SSL certificate to the script caller (user) as a file transfer
         if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
             download_identity_x509($x509, $webid);
@@ -258,7 +258,7 @@ if (isset($_REQUEST['doit']))  {
                 echo $_SESSION['myprofile']->error('Could not update your profile!');
             }
             echo $_SESSION['myprofile']->form($_REQUEST['action']);
-        }
+       }
 } else {
     include_once 'include.php';
     include 'header.php';
