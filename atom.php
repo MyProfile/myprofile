@@ -86,7 +86,9 @@ while ($row = mysql_fetch_assoc($result)) {
     //Internally changed to "summary" tag for ATOM feed
     
     $description = "<div><p>From: <a href=\"" . $base_uri . "/view.php?uri=" . urlencode($row['from_uri']) . "\">" . $name . "</a></p></div>\n";
-    $description .= "<div><pre width=\"100\">" . $row['msg'] . "</pre></div>\n";
+    $description .= "<div><pre width=\"100\" style=\"width: 700px; font-family: Helvetica, Arial, sans-serif;\">\n";
+    $description .= "   <font face=\"Helvetica, Arial, sans-serif\">" . $row['msg'] . "</font>\n";
+    $description .= "</pre></div>\n";
     $description .= "</table>\n";
     $newItem->setDescription($description);
 
