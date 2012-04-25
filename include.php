@@ -20,6 +20,9 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// set default time zone
+date_default_timezone_set('UTC');
+
 define('INCLUDE_CHECK',true);
 set_include_path(get_include_path() . PATH_SEPARATOR . '../');
 set_include_path(get_include_path() . PATH_SEPARATOR . 'lib/');
@@ -55,7 +58,9 @@ require_once 'lib/graphite.php';
 
 // Get the current document URI
 $page_uri = 'http';
-$page_uri .= $_SERVER["HTTPS"]=='on'?'s':'';
+if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') {
+    $page_uri .= 's';
+}
 $page_uri .= '://' . $_SERVER['SERVER_NAME'];
 // this is the base uri 
 $base_uri = $page_uri;
@@ -129,7 +134,7 @@ if (strlen($auth->webid) > 0) {
 }
 
 // Get the number of messages
-if ($_SESSION['webid']) {
+if (isset($_SESSION['webid']) && $_SESSION['webid']) {
     $messages = get_msg_count($_SESSION['webid']);
     $private_msg = get_msg_count($_SESSION['webid'], 1, 0);
     $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
