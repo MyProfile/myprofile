@@ -363,6 +363,8 @@ class MyProfile {
                     $name = $row['name'];
                 // Get picture
                 $pic = $row['pic'];
+                // Get the date and multiply by 1000 for milliseconds, otherwise moment.js breaks
+                $timestamp = $row['date'] * 1000;
 
                 $text = htmlspecialchars($row["msg"]);
 
@@ -384,7 +386,7 @@ class MyProfile {
                 $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b>";
                 // time of post
                 $ret .= "<font color=\"grey\"> wrote <span id=\"date_" . $row['id'] . "\">";
-                $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(moment('" . date("Y-m-dTH:m:s", $row['date']) . "')).from());</script>";
+                $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(moment(" . $timestamp . ")).from());</script>";
                 $ret .= "</span></font>\n";
                 $ret .= "</td>\n";
                 $ret .= "</tr>\n";
