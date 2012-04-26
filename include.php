@@ -21,6 +21,7 @@
  */
 
 // set default time zone
+// see http://www.php.net/manual/timezones.php for available values
 date_default_timezone_set('UTC');
 
 define('INCLUDE_CHECK',true);
