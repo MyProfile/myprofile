@@ -48,7 +48,7 @@ require_once 'lib/MyProfile.class.php';
 require_once 'lib/logger.php';
 
 // WebID auth
-require_once 'lib/libAuthentication/lib/Authentication.php';
+require_once 'lib/libAuthentication/Authentication.php';
 
 // Feed stuff
 require_once 'lib/feeds/FeedWriter.php';

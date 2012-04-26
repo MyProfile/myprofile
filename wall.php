@@ -35,7 +35,13 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
         $query .= "to_hash='" . mysql_real_escape_string($_SESSION['user_hash']). "' ";
         $query .= "AND wall='1'";
         $result = mysql_query($query);
-        mysql_free_result($result);
+
+        if (!$result) {
+            $ret  .= error('Database error while trying to update message status!');
+        } else if ($result !== true) {
+            mysql_free_result($result);
+        }
+
         $messages = get_msg_count($_SESSION['webid']);
         $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
     }
@@ -64,6 +70,8 @@ if (isset($_REQUEST['del'])) {
     if (!$result) {
         $ok = 0;
         $ok_text = 'The message has NOT been deleted [SQL error 1].';
+    } else if ($result !== true) {
+        mysql_free_result($result);
     } else if (mysql_num_rows($result) > 0){
         $query = "DELETE FROM pingback_messages WHERE id='" . $del . "'";
         $result = mysql_query($query);
@@ -166,12 +174,12 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
-    $form_area .= "   <td style=\"width: 90px\"><p><a href=\"view.php?uri=" . $_SESSION["webid"] . "\" target=\"_blank\">\n";
+    $form_area .= "   <td style=\"width: 90px\"><p><a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
     $form_area .= "       <img title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" style=\"padding: 0px 0px 10px 10px;\" />\n";
     $form_area .= "   </a></p></td>\n";
     $form_area .= "   <td>\n";
     $form_area .= "       <table border=\"0\">\n"; 
-    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?uri=" . $_SESSION["webid"] . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
+    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
     $form_area .= "       <tr><td><textarea name=\"comment\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
     $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \"> <font color=\"grey\">";
     $form_area .= "       <small>[Note: you can always delete your message after]</small></font></p></td></tr>\n";
