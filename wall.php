@@ -35,7 +35,13 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
         $query .= "to_hash='" . mysql_real_escape_string($_SESSION['user_hash']). "' ";
         $query .= "AND wall='1'";
         $result = mysql_query($query);
-        mysql_free_result($result);
+
+        if (!$result) {
+            $ret  .= error('Database error while trying to update message status!');
+        } else if ($result !== true) {
+            mysql_free_result($result);
+        }
+
         $messages = get_msg_count($_SESSION['webid']);
         $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
     }
@@ -64,6 +70,8 @@ if (isset($_REQUEST['del'])) {
     if (!$result) {
         $ok = 0;
         $ok_text = 'The message has NOT been deleted [SQL error 1].';
+    } else if ($result !== true) {
+        mysql_free_result($result);
     } else if (mysql_num_rows($result) > 0){
         $query = "DELETE FROM pingback_messages WHERE id='" . $del . "'";
         $result = mysql_query($query);
