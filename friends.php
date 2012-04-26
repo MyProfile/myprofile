@@ -35,7 +35,9 @@ $ret .= "<p><font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">Frie
 $ret .= "<p><small>This page may take a while to finish loading...<small></p>\n";
 
 // display confirmation message here
-$ret .= $confirmation;
+if (isset($confirmation)) {
+    $ret .= $confirmation;
+}
 
 // load a specific webid instead of the logged user
 if (isset($_REQUEST['webid'])) {
