@@ -74,7 +74,9 @@ if (isset($_REQUEST['del'])) {
             $ok = 1;
             $ok_text = 'The message has been successfully deleted.';
         }
-        mysql_free_result($result);
+        if ($result !== true && $result !== false) {
+            mysql_free_result($result);
+        }
     } else {
         $ok = 0;
         $ok_text = 'The message has NOT been deleted. [unknown cause]';
