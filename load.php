@@ -56,9 +56,11 @@ if (isset($_REQUEST['webid'])) {
         'blog' => (string)$profile->get("foaf:weblog"),
         'pingback' => (string)$profile->get("http://purl.org/net/pingback/to"),
         'hash' => $person->get_hash(),
-        'hasme' => $has_me,
-        'new' => $new
+        'hasme' => $has_me
     );
+    if (isset($new)) {
+        $friend['new'] = $new;
+    }
 
     $ret .= "<table>\n";
     $ret .= "<tr bgcolor=\"\"><td>\n";
