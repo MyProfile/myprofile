@@ -312,7 +312,9 @@ class MyProfile {
         if (!$result) {
             return $this->error('Unable to connect to the database!');
         } else {
-            mysql_free_result($result);
+            if ($result !== true) {
+                mysql_free_result($result);
+            }
             return $this->success('You have successfully subscribed to local services.');
         }
     }
