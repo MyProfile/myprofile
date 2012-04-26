@@ -399,7 +399,17 @@ class MyProfile {
                 $ret .= "<tr>\n";
                 $ret .= "<td><small>";
                 // show options only if we are the source of the post
-                if (($_SESSION['webid'] == $row['from_uri']) || (($_SESSION['webid'] == $row['to_uri']) && (isset($_REQUEST['user'])) && ($_REQUEST['user'] != 'local'))) {                    
+                if (
+                    isset($_SESSION['webid'])
+                    && (
+                        ($_SESSION['webid'] == $row['from_uri'])
+                        || (
+                            ($_SESSION['webid'] == $row['to_uri'])
+                            && (isset($_REQUEST['user']))
+                            && ($_REQUEST['user'] != 'local')
+                        )
+                    )
+                ) {
                     $add = '?user=' . $user_hash;
                     // add option to edit post
                     $ret .= "<a onClick=\"updateWall('message_text_" . $row['id'] . "', 'wall.php" . $add . "', '" . $row['id'] . "')\" style=\"cursor: pointer;\">Edit</a>";
