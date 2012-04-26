@@ -90,16 +90,16 @@ function get_sub_by_webid($webid) {
  * @webid = URI 
  * @new = 0 (viewed) / 1 (new)
 */
-function get_msg_count($webid, $new=1, $wall) {
+function get_msg_count($webid, $new=1, $wall=null) {
     $sql = "SELECT id FROM pingback_messages WHERE ";
     $sql .= "to_uri='" . mysql_real_escape_string($webid) . "' ";
     $sql .= "AND new='" . mysql_real_escape_string($new) . "' ";
-    if (isset($wall))
+    if ($wall !== null)
         $sql .= "AND wall='" . mysql_real_escape_string($wall) . "' ";
 
     $result = mysql_query($sql);
     if (!$result) {
-        return null;       
+        return null;
     } else {
         $messages = mysql_num_rows($result);
         mysql_free_result($result);
