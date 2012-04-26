@@ -25,7 +25,7 @@ $NAMESPACES = "
 // Returns http links for possible URIs found in a text
 // Also adds rel=nofollow attribute to indicate to the search engines that we don't "trust" the link
 function put_links($text) {
-    return ereg_replace("[[:alpha:]]+://[^<>[:space:]]+[[:alnum:]/]","<a href=\"\\0\" rel=\"nofollow\">\\0</a>", $text);
+    return preg_replace('#[[:alpha:]]+://[^<>[:space:]]+[[:alnum:]/]#', '<a href="\0" rel="nofollow">\0</a>', $text);
 }
 
 // verify that an email is valid
