@@ -86,9 +86,12 @@ class Authentication_URL
         $this->host = $URL_map['host'];
         $this->port = isset($URL_map['port']) ? (int)$URL_map['port'] : 80;
         $this->path = isset($URL_map['path']) ? $URL_map['path'] : '';
-        parse_str($URL_map['query'],$this->query);
-        if (!$this->query)
-                $this->query = array();
+        if (isset($URL_map['query'])) {
+            parse_str($URL_map['query'], $this->query);
+        }
+        if (!$this->query) {
+            $this->query = array();
+        }
 
         if ($this->path == '') {
             $this->path = '/';

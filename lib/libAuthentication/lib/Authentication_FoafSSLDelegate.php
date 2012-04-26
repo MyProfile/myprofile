@@ -116,16 +116,39 @@ class Authentication_FoafSSLDelegate {
                     );
         }
 
-        $error = $request->getQueryParameter('error', $_GET["error"]);
-        $sig = $request->getQueryParameter('sig', $_GET["sig"]);
-        $ts = $request->getQueryParameter('ts', $_GET["ts"]);
+        $error = null;
+        $sig = null;
+        $ts = null;
+
+        if (isset($_GET["error"])) {
+            $error = $_GET["error"];
+        }
+        if (isset($_GET["sig"])) {
+            $sig = $_GET["sig"];
+        }
+        if (isset($_GET["ts"])) {
+            $ts = $_GET["ts"];
+        }
+
+        $error = $request->getQueryParameter('error', $error);
+        $sig = $request->getQueryParameter('sig', $sig);
+        $ts = $request->getQueryParameter('ts', $ts);
 
         $this->requestURI        = $request;
-        $this->referer           = NULL != $referer ?
-                                    $referer->parsedURL :
-                                    Authentication_URL::parse($_GET["referer"]);
+        if (NULL != $referer) {
+            $this->referer = $referer->parsedURL;
+        } else if (isset($_GET["referer"])) {
+            $this->referer = Authentication_URL::parse($_GET["referer"]);
+        } else {
+            $this->referer = new Authentication_URL();
+        }
         $this->ts                = $ts;
-        $this->webid             = $request->getQueryParameter('webid', $_GET["webid"]);
+
+        $webid = null;
+        if (isset($_GET["webid"])) {
+            $webid = $_GET["webid"];
+        }
+        $this->webid             = $request->getQueryParameter('webid', $webid);
         $this->allowedTimeWindow = $allowedTimeWindow;
 
         $this->elapsedTime = time() - strtotime($ts);

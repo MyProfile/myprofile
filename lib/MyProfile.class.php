@@ -19,6 +19,35 @@ if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file dire
  * form() - returns html form for managing user profile data
 */ 
 class MyProfile {
+
+    public $webid;
+    public $base_uri;
+    public $cache_dir;
+    public $primarytopic;
+    public $graph;
+    public $profile;
+    public $name;
+    public $picture;
+    public $feed_hash;
+    public $user_hash;
+    public $firstname;
+    public $familyname;
+    public $title;
+    public $pic;
+    public $nick;
+    public $pingback;
+    public $emails;
+    public $sha1sums;
+    public $homepages;
+    public $blogs;
+    public $workHPS;
+    public $schoolHPS;
+    public $curprojs;
+    public $pastprojs;
+    public $knows;
+    public $interests;
+    public $certs;
+
     // Build the selectors for adding more form content
     function __construct($webid, $base_uri) {
         $this->webid = $webid;
