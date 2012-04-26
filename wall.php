@@ -115,7 +115,7 @@ if (isset($_REQUEST['comment'])) {
     $result = mysql_query($query);
     if (!$result) {
         $ret  .= error('Database error while trying to insert new message!');
-    } else {
+    } else if ($result !== true) {
         mysql_free_result($result);
     }
 
@@ -131,7 +131,7 @@ if (isset($_REQUEST['comment'])) {
         $result = mysql_query($query);
         if (!$result) {
             $ret  .= error('Database error while updating post!');
-        } else {
+        } else if ($result !== true) {
             mysql_free_result($result);
         }
     }
@@ -142,11 +142,11 @@ if (isset($_REQUEST['comment'])) {
     $query .= "name = '" . mysql_real_escape_string($_SESSION['usr']) . "', ";
     $query .= "pic = '" . mysql_real_escape_string($_SESSION['img']) . "' ";
     $query .= "WHERE from_uri = '" . mysql_real_escape_string($_SESSION['webid']) . "'";
-    
+
     $result = mysql_query($query);
     if (!$result) {
         $ret  .= error('Database error while updating user info!');
-    } else {
+    } else if ($result !== true) {
         mysql_free_result($result);
     }
 }
