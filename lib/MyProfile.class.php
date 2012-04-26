@@ -20,33 +20,33 @@ if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file dire
 */ 
 class MyProfile {
 
-    public $webid;
-    public $base_uri;
-    public $cache_dir;
-    public $primarytopic;
-    public $graph;
-    public $profile;
-    public $name;
-    public $picture;
-    public $feed_hash;
-    public $user_hash;
-    public $firstname;
-    public $familyname;
-    public $title;
-    public $pic;
-    public $nick;
-    public $pingback;
-    public $emails;
-    public $sha1sums;
-    public $homepages;
-    public $blogs;
-    public $workHPS;
-    public $schoolHPS;
-    public $curprojs;
-    public $pastprojs;
-    public $knows;
-    public $interests;
-    public $certs;
+    private $webid;
+    private $base_uri;
+    private $cache_dir;
+    private $primarytopic;
+    private $graph;
+    private $profile;
+    private $name;
+    private $picture;
+    private $feed_hash;
+    private $user_hash;
+    private $firstname;
+    private $familyname;
+    private $title;
+    private $pic;
+    private $nick;
+    private $pingback;
+    private $emails;
+    private $sha1sums;
+    private $homepages;
+    private $blogs;
+    private $workHPS;
+    private $schoolHPS;
+    private $curprojs;
+    private $pastprojs;
+    private $knows;
+    private $interests;
+    private $certs;
 
     // Build the selectors for adding more form content
     function __construct($webid, $base_uri) {
