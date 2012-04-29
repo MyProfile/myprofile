@@ -14,6 +14,12 @@
 	margin-bottom: 0.5em;
 }
 
+.rounded {
+    -webkit-border-radius: 3px 3px 3px 3px; 
+    -moz-border-radius: 3px 3px 3px 3px; 
+    border-radius: 3px 3px 3px 3px; 
+} 
+
 #dialog_link,#modal_link {
 	padding: .4em 1em .4em 20px;
 	text-decoration: none;
