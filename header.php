@@ -73,17 +73,6 @@
         border: 0;
       }
 
-     #rounded {
-        border-color: #ccc;
-        border-color: rgba(0, 0, 0, 0.2);
-        border-style: solid;
-        border-width: 0px; 
-        -webkit-border-radius: 3px 3px 3px 3px; 
-        -moz-border-radius: 3px 3px 3px 3px; 
-        border-radius: 3px 3px 3px 3px; 
-    }
-
-
     </style>
 
 <link rel="SHORTCUT ICON" href="favicon.png" />
@@ -134,16 +123,16 @@
         // Wall message
         $pbg = ($private_msg > 0) ? '#dc4212;' : 'grey';
             
-		echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu2\"><table><tr><td id=\"rounded\" style=\"padding: 2px 9px 2px 9px; color: white; background-color: " . $bg . "\">" . $messages . "</td><td> <b class=\"caret\"></b></td></tr></table></a>";
+		echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu2\"><table><tr><td class=\"rounded\" style=\"padding: 2px 9px 2px 9px; color: white; background-color: " . $bg . "\">" . $messages . "</td><td> <b class=\"caret\"></b></td></tr></table></a>";
 		echo "<ul class=\"dropdown-menu\">\n";
 		echo "<li><a href=\"messages.php\">";
-		echo "<div id=\"rounded\" style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $pbg . "\">" . $private_msg . "</div><div align=\"left\">Message";
+		echo "<div class=\"rounded\" style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $pbg . "\">" . $private_msg . "</div><div align=\"left\">Message";
         // add plural if more than 1 message or less than one message (0 messages)
         echo ($private_msg != 1) ? 's' : '';
 		echo "</div>\n";
 		echo "</a></li>\n";
 		echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">";
-		echo "<div id=\"rounded\" style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</div><div align=\"left\">Wall messages</div>\n";
+		echo "<div class=\"rounded\" style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</div><div align=\"left\">Wall messages</div>\n";
 		echo "</a></li>\n";
 		echo "<li class=\"divider\"></li>\n";
 		echo "<li><a href=\"messages.php?new=true\">Send message</a></li>\n";
