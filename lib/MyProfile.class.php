@@ -378,7 +378,7 @@ class MyProfile {
                 $ret .= "<tr valign=\"top\" property=\"sioc:Post\">\n";
                 $ret .= "<td width=\"80\" align=\"center\">\n";
                 // image
-                $ret .= "<a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
+                $ret .= "<a class=\"avatar-link\" href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
                 $ret .= "</td>\n";
                 $ret .= "<td>";
                 $ret .= "<table style=\"width: 700px;\" border=\"0\">\n";
