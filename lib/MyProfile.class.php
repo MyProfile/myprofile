@@ -394,7 +394,7 @@ class MyProfile {
                 $ret .= "</tr>\n";
                 $ret .= "<tr>\n";
                 // message
-                $ret .= "<td><p><pre id=\"message_" . $row['id'] . "\"><span id=\"message_text_" . $row['id'] . "\">" . put_links($text) . "</span></pre></p></td>\n";
+                $ret .= "<td><p><dev id=\"message_" . $row['id'] . "\"><span id=\"message_text_" . $row['id'] . "\">" . put_links($text) . "</span></dev></p></td>\n";
                 $ret .= "</tr>\n";
                 $ret .= "<tr>\n";
                 $ret .= "<td><small>";
