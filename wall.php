@@ -63,38 +63,37 @@ if (isset($_REQUEST['del'])) {
     
     $webid = mysql_real_escape_string($_SESSION['webid']);
     $del = mysql_real_escape_string($_REQUEST['del']);
+    $reason = '';
 
     // check if we are allowed to delete?
     $query = "SELECT id FROM pingback_messages WHERE (from_uri='" . $webid . "' OR to_uri='" . $webid . "') AND id='" . $del . "'";
     $result = mysql_query($query);
     if (!$result) {
         $ok = 0;
-        $ok_text = 'The message has NOT been deleted [SQL error 1].';
-    } else if ($result !== true) {
-        mysql_free_result($result);
+        $reason = 'The message has NOT been deleted [SQL error 1].';
     } else if (mysql_num_rows($result) > 0){
         $query = "DELETE FROM pingback_messages WHERE id='" . $del . "'";
         $result = mysql_query($query);
         if (!$result) {
             $ok = 0;
-            $ok_text = 'The message has NOT been deleted [SQL error 2].';
+            $reason = 'The message has NOT been deleted [SQL error 2].';
         } else {
             $ok = 1;
-            $ok_text = 'The message has been successfully deleted.';
+            $reason = 'The message has been successfully deleted.';
         }
         if ($result !== true && $result !== false) {
             mysql_free_result($result);
         }
     } else {
         $ok = 0;
-        $ok_text = 'The message has NOT been deleted. [unknown cause]';
+        $reason = 'The message has NOT been deleted. [unknown cause]';
     }
     
     // display visual confirmation
     if ($ok == 1)
-        $confirmation = $_SESSION['myprofile']->success($ok_text);
+        $confirmation = $_SESSION['myprofile']->success($reason);
     else if ($ok == 0)
-        $confirmation = $_SESSION['myprofile']->error($ok_text);
+        $confirmation = $_SESSION['myprofile']->error($reason);
 }
 
 // ADD a post
@@ -175,7 +174,7 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
     $form_area .= "   <td style=\"width: 90px\"><p><a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
-    $form_area .= "       <img title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" style=\"padding: 0px 0px 10px 10px;\" />\n";
+    $form_area .= "       <img class=\"rounded\" title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" />\n";
     $form_area .= "   </a></p></td>\n";
     $form_area .= "   <td>\n";
     $form_area .= "       <table border=\"0\">\n"; 
