@@ -176,7 +176,6 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
                         $ret .= "<p>Details:</p>\n";
                         $ret .= "</p>" . $return . "</p>\n";
                     }
-*/
 
                     break;
                 }
