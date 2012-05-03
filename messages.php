@@ -115,6 +115,39 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
                 // proceed only if we have a valid pingback resource
                 if ($triple['o'] == 'http://purl.org/net/pingback/Container') {
 
+                    /*    
+                    $ret .= '<script>
+                        $.ajax({
+                            url: "' . $pingback_service . '",
+                            type: "POST",
+                            data: {source: "' . $source. '", target: "' . $to . '", comment: "' . $comment . '"},
+                            statusCode: {
+                                200: function () {
+                                        alert("Success!");
+                                        },
+                                201: function () {
+                                        alert("Success!");
+                                        }
+                            }
+                            });
+                        // ------- OR ------- //
+                        var request = $.ajax({
+                                    url: "' . $pingback_service . '",
+                                    type: "POST",
+                                    data: {source: "' . $source. '", target: "' . $to . '", comment: "' . $comment . '"},
+                                    dataType: "html"
+                            });
+
+                        request.done(function() {
+                            alert("Success");
+                        });
+
+                        request.done(function(jqXHR, textStatus) {
+                            alert( "Request failed: " + textStatus );
+                        });
+                        </script>';
+                    */
+
                     $fields = array ('source' => $source,
                                     'target' => $to,
                                     'comment' => $comment
@@ -143,6 +176,8 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
                         $ret .= "<p>Details:</p>\n";
                         $ret .= "</p>" . $return . "</p>\n";
                     }
+*/
+
                     break;
                 }
             }
