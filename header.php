@@ -83,7 +83,6 @@
 
 <!-- Local scripts -->
 <script type="text/javascript" src="js/form.js"></script>
-<script type="text/javascript" src="js/form-add.js"></script>
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/bootstrap-dropdown.js"></script>
 <script type="text/javascript" src="js/bootstrap-tab.js"></script>
