@@ -21,6 +21,9 @@
  */
 
 if (isset($_REQUEST['doit']))  {
+        // store here visual alert messages: error() or success()
+        $alert = '';
+        
         // load specific include files depending on the case
         if ($_REQUEST['action'] == 'edit') {
             // we can include the header here since we're not generating a cert
@@ -30,20 +33,54 @@ if (isset($_REQUEST['doit']))  {
             include_once 'include.php';
         }
 
-        // Create the graph object in which we will store data
-        $graph = new EasyRdf_Graph();
- 
+        // Depending on action, we prepare the local path to the user's profile dir
         if ($_REQUEST['action'] == 'edit') {
             $user_dir = webid_get_local_path($_SESSION['webid']);
             $webid_base = $base_uri . '/' . $user_dir . '/card';
             $webid = $_SESSION['webid'];
         } else {
-             // prepare WebID URI
+             // prepare the new WebID URI
             $webid_base = $base_uri . '/people/' . $_REQUEST['uri'] . '/card';
             $webid = $webid_base . "#me";
             $user_dir = "people/" . $_REQUEST['uri'];
         }    
         
+        // Check if the user uploaded a new picture
+        if (isset($_FILES['picture'])) {
+            if ($_FILES['picture']['size'] <= 30000) {
+                // we use getimagesize() to avoid fake mime types 
+                $image_info = exif_imagetype($_FILES['picture']['tmp_name']);
+                switch ($image_info) {
+                    case IMAGETYPE_GIF:
+                            if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.gif'))
+                                $local_img = $base_uri . '/' . $user_dir . '/picture.gif';
+                            else
+                                $alert = error('Could not copy the picture to the user\'s dir. Please check permissions.');
+                        break;
+                    case IMAGETYPE_JPEG:
+                            if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.jpg'))
+                                $local_img = $base_uri . '/' . $user_dir . '/picture.jpg';
+                            else
+                                $alert = error('Could not copy the picture to the user\'s dir. Please check permissions.');
+                        break;
+                    case IMAGETYPE_PNG:
+                            if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.png'))
+                                $local_img = $base_uri . '/' . $user_dir . '/picture.png';
+                            else
+                                $alert .= error('Could not copy the picture to the user\'s dir. Please check permissions.');
+                        break;
+                    default:
+                        $alert = error('The selected image format is not supported.');
+                        break;
+                }
+            } else {
+                $alert = error('The image size is too large. The maximum allowed size is 30KB.');
+            }
+        }
+        
+        // Create the graph object in which we will store data
+        $graph = new EasyRdf_Graph();
+
         // create primary topic
         $pt = $graph->resource($webid_base, 'foaf:PersonalProfileDocument');
         $pt->set('foaf:maker', $webid);
@@ -67,7 +104,9 @@ if (isset($_REQUEST['doit']))  {
         if ((isset($_REQUEST['foaf:title'])) && (strlen($_REQUEST['foaf:title']) > 0))
             $me->set('foaf:title', trim($_REQUEST['foaf:title']));
         // picture
-        if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0))
+        if (isset($local_img))
+            $me->set('foaf:img', trim($local_img));
+        else if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0))
             $me->set('foaf:img', trim($_REQUEST['foaf:img']));
         // nickname
         if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
@@ -199,14 +238,14 @@ if (isset($_REQUEST['doit']))  {
 		    $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
             $result = mysql_query($query);
             if (!$result) {
-                die('Unable to write to the database!');
+                $alert .= error('Unable to write to the database!');
             } else {
                 mysql_free_result($result);
             }
          
             // create dirs
             if (!mkdir($user_dir, 0775))
-                die('Failed to create user profile directory! Check permissions.');
+                $alert .= ('Failed to create user profile directory! Check permissions.');
     
             // write Rewrite .htaccess file
             $htaccess = fopen($user_dir . '/.htaccess', 'w') or die('Cannot create .htaccess file!');
@@ -248,15 +287,14 @@ if (isset($_REQUEST['doit']))  {
         if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
             download_identity_x509($x509, $webid);
         } else {
-            // We're just editing, so display form view
-            include_once 'header.php';
-            // add form view
+            // We're just editing, so display form view again after update
             echo $_SESSION['myprofile']->get_title($_REQUEST['action']);
             if ($ok) {
-                echo $_SESSION['myprofile']->success('Your profile has been updated.');
+                echo success('Your profile has been updated.');
             } else {
-                echo $_SESSION['myprofile']->error('Could not update your profile!');
+                echo error('Could not update your profile!');
             }
+            echo $alert;
             echo $_SESSION['myprofile']->form($_REQUEST['action']);
        }
 } else {
@@ -275,6 +313,8 @@ if (isset($_REQUEST['doit']))  {
     $profile = ((isset($_SESSION['myprofile'])) && ($_REQUEST['action'] == 'edit')) ? $_SESSION['myprofile'] : new MyProfile(null, $base_uri);
     
     echo $profile->get_title($_REQUEST['action']);
+    // print any error messages here
+    echo $alert;
     echo $profile->form($_REQUEST['action']);
 }
 
