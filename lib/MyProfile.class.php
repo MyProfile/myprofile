@@ -483,68 +483,68 @@ class MyProfile {
             if ($profile->get("foaf:mbox") != '[NULL]') {
                 foreach ($profile->all('foaf:mbox') as $email) {
                     $email = explode(':', $email);
-                    $this->emails .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $email[1] . "\" name=\"foaf:mbox[]\"></td><td> (foaf:mbox)</td></tr>\n";
+                    $this->emails .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $email[1] . "\" name=\"foaf:mbox[]\"></td></tr>\n";
                 }
             } else {
-                    $this->emails .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"\" name=\"foaf:mbox[]\"></td><td> (foaf:mbox)</td></tr>\n";
+                    $this->emails .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"\" name=\"foaf:mbox[]\"></td></tr>\n";
             }
             
             // SHA1 sums
             $this->sha1sums = '';
             if ($profile->get("foaf:mbox_sha1sum") != '[NULL]') {
                 foreach ($profile->all('foaf:mbox_sha1sum') as $sha1)
-                    $sha1sums .= "<tr><td>Email SHA1SUM: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $sha1 . "\" name=\"foaf:mbox_sha1sum[]\"></td><td> (foaf:mbox_sha1sum)</td></tr>\n";
+                    $sha1sums .= "<tr><td>Email SHA1SUM: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $sha1 . "\" name=\"foaf:mbox_sha1sum[]\"></td></tr>\n";
             } 
             
             // Homepages
             $this->homepages = '';
             if ($profile->get("foaf:homepage") != '[NULL]') {
                  foreach ($profile->all('foaf:homepage') as $homepage)
-                    $this->homepages .= "<tr><td>Homepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $homepage . "\" name=\"foaf:homepage[]\"></td><td> (foaf:homepage)</td></tr>\n";
+                    $this->homepages .= "<tr><td>Homepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $homepage . "\" name=\"foaf:homepage[]\"></td></tr>\n";
             } 
             
             // Blogs
             $this->blogs = '';
             if ($profile->get("foaf:weblog") != '[NULL]') {
                  foreach ($profile->all('foaf:weblog') as $blog)
-                    $this->blogs .= "<tr><td>Blog: </td><td><input type=\"text\" size=\"50\" value=\"" . $blog . "\" name=\"foaf:weblog[]\"></td><td> (foaf:weblog)</td></tr>\n";
+                    $this->blogs .= "<tr><td>Blog: </td><td><input type=\"text\" size=\"50\" value=\"" . $blog . "\" name=\"foaf:weblog[]\"></td></tr>\n";
             } 
             
             // Work Homepages
             $this->workHPS = '';
             if ($profile->get("foaf:workplaceHomepage") != '[NULL]') {
                  foreach ($profile->all('foaf:workplaceHomepage') as $workHP)
-                    $this->workHPS .= "<tr><td>WorkplaceHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $workHP . "\" name=\"foaf:workplaceHomepage[]\"></td><td> (foaf:workplaceHomepage)</td></tr>\n";
+                    $this->workHPS .= "<tr><td>WorkplaceHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $workHP . "\" name=\"foaf:workplaceHomepage[]\"></td></tr>\n";
             } 
             
             // School Homepages
             $this->schoolHPS = '';
             if ($profile->get("foaf:schoolHomepage") != '[NULL]') {
                  foreach ($profile->all('foaf:schoolHomepage') as $schoolHP)
-                    $this->schoolHPS .= "<tr><td>SchoolHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $schoolHP . "\" name=\"foaf:schoolHomepage[]\"></td><td> (foaf:schoolHomepage)</td></tr>\n";
+                    $this->schoolHPS .= "<tr><td>SchoolHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $schoolHP . "\" name=\"foaf:schoolHomepage[]\"></td></tr>\n";
             } 
             
             // Current Projects
             $this->curprojs = '';
             if ($profile->get("foaf:currentProject") != '[NULL]') {
                  foreach ($profile->all('foaf:currentProject') as $curproj)
-                    $this->curprojs .= "<tr><td>CurrentProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $curproj . "\" name=\"foaf:currentProject[]\"></td><td> (foaf:currentProject)</td></tr>\n";
+                    $this->curprojs .= "<tr><td>CurrentProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $curproj . "\" name=\"foaf:currentProject[]\"></td></tr>\n";
             } 
             
             // Past Projects
             $this->pastprojs = '';
             if ($profile->get("foaf:pastProject") != '[NULL]') {
                  foreach ($profile->all('foaf:pastProject') as $pastproj)
-                    $this->pastprojs .= "<tr><td>PastProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $pastproj . "\" name=\"foaf:pastProject[]\"></td><td> (foaf:pastProject)</td></tr>\n";
+                    $this->pastprojs .= "<tr><td>PastProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $pastproj . "\" name=\"foaf:pastProject[]\"></td></tr>\n";
             } 
 
             // Friends
             $this->knows = '';
             if ($profile->get("foaf:knows") != '[NULL]') {
                  foreach ($profile->all('foaf:knows') as $friend)
-                    $this->knows .= "<tr><td>Person: </td><td><input type=\"text\" size=\"70\" value=\"" . $friend . "\" name=\"foaf:knows[]\"> (foaf:knows)</td></tr>\n";
+                    $this->knows .= "<tr><td>Person: </td><td><input type=\"text\" size=\"70\" value=\"" . $friend . "\" name=\"foaf:knows[]\"></td></tr>\n";
             } else {
-                $this->knows .= "<tr><td>Person: </td><td><input type=\"text\" size=\"70\" value=\"\"  placeholder=\"http://fcns.eu/people/andrei/card#me\" name=\"foaf:knows[]\"> (foaf:knows)</td></tr>\n";
+                $this->knows .= "<tr><td>Person: </td><td><input type=\"text\" size=\"70\" value=\"\"  placeholder=\"http://fcns.eu/people/andrei/card#me\" name=\"foaf:knows[]\"></td></tr>\n";
             }
             
             // Interests
@@ -642,7 +642,7 @@ class MyProfile {
         $ret .= "<div class=\"container\"><br/>\n";
         if ($action != 'edit')
             $ret .= "   <p><font style=\"font-size: 1em;\"><strong>Warning:</strong> do not try to refresh the page after submitting the form!</font></p>\n";
-        $ret .= "   <form action=\"profile.php\" name=\"form_build\" method=\"post\">\n";
+        $ret .= "   <form action=\"profile.php\" name=\"form_build\" method=\"post\" enctype=\"multipart/form-data\">\n";
         $ret .= "   <input type=\"hidden\" name=\"action\" value=\"" . $action . "\">\n";
         $ret .= "   <input type=\"hidden\" name=\"doit\" value=\"1\">\n";
         $ret .= "   <div id=\"tabs\">\n";
@@ -656,59 +656,56 @@ class MyProfile {
         $ret .= "<div class=\"tab-content\" style=\"padding-left: 2em;\">\n";
         $ret .= "   <div class=\"tab-pane active\" id=\"tabs-1\">\n";
         if ($action == 'new') {
-            $ret .= "<p>Here you can provide personal information about yourself.<br/>A default certificate will also be created for you. (you must provide both username and full name)";
+            $ret .= "<p>You must provide both username and full name. (accepted characters: a-z 0-9 _ . -)";
             $ret .= "<br/>Your WebID profile will be accessible at: <font color=\"#00BBFF\" style=\"font-size: 1.3em;\">" . $this->base_uri . "/people/</font>";
             $ret .= "<b>&lt;username&gt;</b><font color=\"#00BBFF\" style=\"font-size: 1.3em;\"> /card#me</font></p>\n";
         }
     /* ----- Username ------ */
 	    $ret .= "<table id=\"tab1\" border=\"0\" valign=\"middle\">\n";
+        // Inner table contains text fields to the left and picture to the right
+	    $ret .= "<tr><td>\n";
+	    $ret .= "<table id=\"info\">\n";
         // Display username only if we're creating a new profile
         if (($action == 'new') || ($action == 'import')) {
             $ret .= "<tr valign=\"middle\">\n";
             $ret .= "<td>Username: </td>\n";
-            $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" value=\"\" id=\"uri\" name=\"uri\" maxlength=\"32\" onBlur=\"validateReq('" . $this->base_uri . "/people/', 'uri', 'fullname', 'submit')\"></td>\n";
-            $ret .= "<td><font color=\"" . $color . "\"> (accepted: a-z 0-9 _ . -)</font></td>\n";
+            $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" value=\"\" id=\"uri\" name=\"uri\" maxlength=\"32\" onBlur=\"validateReq('" . $this->base_uri . "/people/', 'uri', 'fullname', 'submit')\">";
+            $ret .= " <font color=\"" . $color . "\"> </font></td>\n";
             $ret .= "</tr>\n";
         }
     /* ----- Full name ------ */
         $ret .= "<tr><td>Full name: </td>\n";
         $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->name . "\" id=\"fullname\" name=\"foaf:name\" onBlur=\"validateReq('" . $this->base_uri . "/people/', 'uri', 'fullname', 'submit')\"></td>\n";
-        $ret .= "<td><font color=\"" . $color . "\"> (foaf:name)</font></td>\n";
         $ret .= "</tr>\n";
     /* ----- KEYGEN ------ */
         if (($action == 'new') || ($action == 'import')) {
-            $ret .= "<tr>\n";
+            $ret .= "<tr hidden>\n";
             $ret .= "<td hidden>KEYGEN Key Length</td>\n";
-            $ret .= "<td><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\"  style=\"border-color: red;\" hidden></td>\n";
-            $ret .= "<td hidden><font color=\"red\"> (certificate key strength)</font></td>\n";
+            $ret .= "<td hidden><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\"  style=\"border-color: red;\" hidden></td>\n";
             $ret .= "</tr>\n";
         }
     /* ----- Firstname ------ */
         $ret .= "<tr>\n";
         $ret .= "<td>Firstname: </td>\n";
-        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->firstname . "\" name=\"foaf:givenName\"></td><td> (foaf:givenName)</td>\n";
+        $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->firstname . "\" name=\"foaf:givenName\"></td>\n";
         $ret .= "</tr>\n";
     /* ----- Lastname ------ */
         $ret .= "<tr>\n";
         $ret .= "<td>Lastname: </td>\n";
         $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->familyname . "\" name=\"foaf:familyName\"></td>\n";
-        $ret .= "<td> (foaf:familyName)</td>\n";
         $ret .= "</tr>\n";
     /* ----- Nickname ------ */
         $ret .= "<tr>\n";
         $ret .= "<td>Nickname: </td>\n";
         $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $this->nick . "\" name=\"foaf:nick\"></td>\n";
-        $ret .= "<td> (foaf:nick)</td>\n";
+        $ret .= "</tr>\n";
+
+        $ret .= "<tr>\n";
+        $ret .= "<td>Profile photo: </td>\n";
+        $ret .= "<td><input type=\"text\" placeholder=\"http://...\" size=\"50\" maxlength=\"64\" value=\"" . $this->pic . "\" name=\"foaf:img\"></td>\n";
         $ret .= "</tr>\n";
 
 /* ----- PERSONAL ------ */
-
-    /* ----- Picture ------ */
-        $ret .= "<tr>\n";
-        $ret .= "<td>Photo location: </td>\n";
-        $ret .= "<td><input type=\"text\" placeholder=\"http://...\" size=\"50\" maxlength=\"64\" value=\"" . $this->pic . "\" name=\"foaf:img\"></td>\n";
-        $ret .= "<td> (foaf:img)</td>\n";
-        $ret .= "</tr>\n";
 
         // Add more personal info
         $ret .= $this->emails;
@@ -719,14 +716,26 @@ class MyProfile {
         $ret .= $this->schoolHPS;
         $ret .= $this->curprojs;
         $ret .= $this->pastprojs;
+        $ret .= "</table>\n";
+        $ret .= "</td>\n";
         
+        $ret .= "<td width=\"100\"></td>\n";
+        
+    /* ----- Picture ------ */
+        // Here we display the profile picture (avatar)
+        $ret .= "<td valign=\"top\">\n";
+        $ret .= "<img width=\"150\" src=\"" . $this->picture . "\"/>\n";
+        $ret .= "<input name=\"picture\" type=\"file\">\n";
+        $ret .= "</td>\n";
+        
+        $ret .= "</tr>\n";    
         $ret .= "</table>\n";
 
         $ret .= "<p><select name=\"element_tab1\">\n";
         foreach($values_person as $key => $value)
             $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
         $ret .= "</select>\n";
-        $ret .= "<input type=\"button\" class=\"btn\" value=\"Add extra info\" onclick=\"addInfo(document.form_build.element_tab1.value, 'tab1')\"/></p>\n";
+        $ret .= "<input type=\"button\" class=\"btn\" value=\"Add extra info\" onclick=\"addInfo(document.form_build.element_tab1.value, 'info')\"/></p>\n";
         $ret .= "</div>\n";
         
     /* ----- KNOWS ------ */  

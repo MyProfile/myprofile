@@ -181,8 +181,7 @@ function addInfo (type, table) {
     var row = document.createElement("tr");
     // create table cells
     var cell_l = document.createElement("td"); 
-    var cell_m = document.createElement("td"); 
-    var cell_r = document.createElement("td");
+    var cell_r = document.createElement("td"); 
     
     // append label to left cell
     var text = type.split(':')[1];
@@ -198,17 +197,15 @@ function addInfo (type, table) {
     element.setAttribute("value", '');
     element.setAttribute("name", type + '[]');
     // append input field to right table cell
-    cell_m.appendChild(element);
-    cell_r.appendChild(document.createTextNode(' (' + type + ')'));
+    cell_r.appendChild(element);
     
     // append cells to row
     row.appendChild(cell_l);
-    row.appendChild(cell_m);
     row.appendChild(cell_r);
     
-    var foo = document.getElementById(table);
+    var tab = document.getElementById(table);
     // append row to table
-    foo.appendChild(row);
+    tab.appendChild(row);
 }
 
 function addInterests (type, table) {
