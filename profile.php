@@ -228,7 +228,7 @@ if (isset($_REQUEST['doit']))  {
             $cert->add('cert:exponent', array(
                         'type' => 'literal',
                         'datatype' => 'http://www.w3.org/2001/XMLSchema#int',
-                        'value' => '65337')
+                        'value' => '65537')
                         );
             $me->add('cert:key', $cert);
             
