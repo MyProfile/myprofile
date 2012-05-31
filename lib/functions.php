@@ -73,6 +73,23 @@ function is_subscribed($webid) {
     }        
 }
 
+// return true if user has subscribed to local services and allows emails
+function is_subscribed_email($webid) {
+    $query = "SELECT id FROM pingback WHERE webid='" . mysql_real_escape_string($webid) . "' AND email='1'";
+    $result = mysql_query($query);
+    if (!$result) {
+        return null;
+    } else {
+        if (mysql_num_rows($result) > 0) {
+            mysql_free_result($result);
+            return true;
+        } else {
+            mysql_free_result($result);
+            return false;
+        }
+    }        
+}
+
 // get information about a user's subscription
 function get_sub_by_webid($webid) {
     $query = "SELECT id, feed_hash, user_hash FROM pingback WHERE webid='" . mysql_real_escape_string($webid) . "'";
@@ -360,6 +377,18 @@ function send_mail($from,$to,$subject,$body)
 	$headers .= "Date: " . date('r', time()) . "\n";
 
 	mail($to,$subject,$body,$headers);
+}
+
+function mail_utf8($to, $from_user, $from_email, $subject = '(No subject)', $message = '')
+{ 
+    $from_user = "=?UTF-8?B?".base64_encode($from_user)."?=";
+    $subject = "=?UTF-8?B?".base64_encode($subject)."?=";
+
+    $headers = "From: $from_user <$from_email>\r\n" . 
+                "MIME-Version: 1.0" . "\r\n" . 
+                "Content-type: text/html; charset=UTF-8" . "\r\n"; 
+
+    return mail($to, $subject, $message, $headers); 
 }
 
 // get the primary topic of a profile 
