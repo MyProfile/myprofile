@@ -207,10 +207,92 @@ if (isset($confirmation))
 // Add message form 
 $ret .= $form_area;
 
-// if needed load a bogus profile to be able to display site wall messages
-$profile = (isset($_SESSION['myprofile'])) ? $_SESSION['myprofile'] : new MyProfile(null, $base_uri);
-// display wall messages
-$ret .= $profile->show_wall($owner_hash);
+// Display wall messages
+// Get the last 100 messages
+$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 100";
+$result = mysql_query($query);
+
+if (!$result) {
+    $ret .= error('Unable to connect to the database!');
+} else if (mysql_num_rows($result) == 0){
+    $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
+} else {
+    $ret .= "<form method=\"GET\" action=\"\">\n";
+    $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\">\n";    
+    $ret .= "<table border=\"0\">\n";
+        
+    // populate table
+    $i = 0;
+    while ($row = mysql_fetch_assoc($result)) {
+        // Get name
+        $name = $row['name'];
+        if ($name == '[NULL]')
+            $name = $row['name'];
+        // Get picture
+        $pic = $row['pic'];
+        // Get the date and multiply by 1000 for milliseconds, otherwise moment.js breaks
+        $timestamp = $row['date'] * 1000;
+
+        $text = htmlspecialchars($row["msg"]);
+
+        // add horizontal line to separate messages
+        $ret .= "<tr><td colspan=\"2\">\n";
+        $ret .= "<a name=\"post_" . $row['id'] . "\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/></a>\n";
+        $ret .= "</td></tr>\n";
+
+        $ret .= "<tr valign=\"top\" property=\"sioc:Post\">\n";
+        $ret .= "<td width=\"80\" align=\"center\">\n";
+        // image
+        $ret .= "<a class=\"avatar-link\" href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" /></a>\n";
+        $ret .= "</td>\n";
+        $ret .= "<td>";
+        $ret .= "<table style=\"width: 700px;\" border=\"0\">\n";
+        $ret .= "<tr valign=\"top\">\n";
+        $ret .= "<td>\n";
+        // author's name
+        $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b>";
+        // time of post
+        $ret .= "<font color=\"grey\"> wrote <span id=\"date_" . $row['id'] . "\">";
+        $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(" . $timestamp . ").from());</script>";
+        $ret .= "</span></font>\n";
+        $ret .= "</td>\n";
+        $ret .= "</tr>\n";
+        $ret .= "<tr>\n";
+        // message
+        $ret .= "<td><p><pre id=\"message_" . $row['id'] . "\"><span id=\"message_text_" . $row['id'] . "\">" . put_links($text) . "</span></pre></p></td>\n";
+        $ret .= "</tr>\n";
+        $ret .= "<tr>\n";
+        $ret .= "<td><small>";
+        // show options only if we are the source of the post
+        if (
+            isset($_SESSION['webid'])
+            && (
+                ($_SESSION['webid'] == $row['from_uri'])
+                || (
+                    ($_SESSION['webid'] == $row['to_uri'])
+                    && (isset($_REQUEST['user']))
+                    && ($_REQUEST['user'] != 'local')
+                )
+            )
+        ) {
+            $add = '?user=' . $owner_hash;
+            // add option to edit post
+            $ret .= "<a onClick=\"updateWall('message_text_" . $row['id'] . "', 'wall.php" . $add . "', '" . $row['id'] . "')\" style=\"cursor: pointer;\">Edit</a>";
+            // add option to delete post
+            $ret .= " <a href=\"wall.php" . $add . "&del=" . $row['id'] . "\">Delete</a>\n";
+        }
+        $ret .= "</small></td>\n";
+        $ret .= "</tr>\n";
+        $ret .= "</table>\n";
+        $ret .= "</td>\n";
+        $ret .= "</tr>\n";
+    $i++; 
+    }
+    mysql_free_result($result);
+
+    $ret .= "</table>\n";
+    $ret .= "</form>\n"; 
+}
 
 require 'header.php';
 echo $ret;
