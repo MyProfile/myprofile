@@ -19,7 +19,6 @@
  *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 require_once 'include.php'; 
 
 // verify if we're logged in or not
@@ -37,10 +36,19 @@ if (isset($_REQUEST['subscribe'])) {
     $ret .= $_SESSION['myprofile']->subscribe();
     $_SESSION['feed_hash'] = $_SESSION['myprofile']->get_feed();
     $_SESSION['user_hash'] = $_SESSION['myprofile']->get_hash();
-} else if (isset($_REQUEST['unsubscribe'])) {
-    $_SESSION['user_hash'] = null;
-    $_SESSION['feed_hash'] = null;
-    $ret .= $_SESSION['myprofile']->unsubscribe();
+} else if (isset($_REQUEST['submit'])) {
+    // Unsubscribed if the user ticked off the checkbox
+    if ($_REQUEST['subscribed'] == 'off') {
+        $_SESSION['user_hash'] = null;
+        $_SESSION['feed_hash'] = null;
+        $ret .= $_SESSION['myprofile']->unsubscribe();
+    }
+    // Unsubscribe from receiving email notifications
+    if ($_REQUEST['email'] == 'on') {
+        $ret .= $_SESSION['myprofile']->subscribe_email();
+    } else if ((!isset($_REQUEST['email'])) || ($_REQUEST['email'] == 'off')) {
+        $ret .= $_SESSION['myprofile']->unsubscribe_email();
+    }
 }
 
 // display form if we are not registered
@@ -56,18 +64,19 @@ if (!is_subscribed($_SESSION['webid'])) {
     $ret .= "</form>\n";
 }
 // prompt the user
-else {   
+else {
+    $check_email = '';
+    if (is_subscribed_email($_SESSION['webid']) == true)
+        $check_email = 'checked';
+ 
     $ret .= "<div class=\"clear\"><p></p></div>\n";
     $ret .= "<p><font style=\"font-size: 1.3em;\">The URI for your Wall is <a href=\"" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "\">" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "</a></font></p>\n";
 
-    $ret .= "<form name=\"manage\" method=\"GET\" action=\"\">\n";
-    $ret .= "<input type=\"hidden\" name=\"unsubscribe\" value=\"1\">\n";
+    $ret .= "<form method=\"POST\" action=\"\">\n";
     $ret .= "<table border=\"0\">\n";
-    $ret .= "<tr><td><p><strong>Note:</strong> If you do not have a local profile and you want to be able to receive messages, please add the following line to your profile, inside the foaf:Person resource describing you:</p>";
-    $ret .= "<p>In RDF/XML: <code>&lt;pingback:to xmlns:pingback=\"http://purl.org/net/pingback/\" rdf:resource=\"" . $base_uri . "/pingback.php\"/&gt;</code></p>";
-    $ret .= "</td></tr>\n";
-    $ret .= "<tr><td><br />Would you like to unregister your WebID <strong>" . $_SESSION['webid'] . "</strong>? You will no longer be able to receive pingbacks and <font color=\"red\">all exisiting messages and wall posts will be lost</font>!</td></tr>\n";
-    $ret .= "<tr><td><br/><input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\" Unregister \"></td></tr>\n";
+    $ret .= "<tr><td><input type=\"checkbox\" name=\"subscribed\" checked> Receive notifcations. (Note: Unsubscribing <font color=\"red\">deletes all</font> exisiting messages and wall posts!)</td></tr>\n";
+    $ret .= "<tr><td><input type=\"checkbox\" name=\"email\" " . $check_email . "> Receive notifications through email.</td></tr>\n";
+    $ret .= "<tr><td><br /><input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Modify \"></td></tr>\n";
     $ret .= "</table>\n";
     $ret .= "</form>\n";
 }
