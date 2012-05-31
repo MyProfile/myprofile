@@ -33,8 +33,9 @@ CREATE TABLE IF NOT EXISTS `pingback` (
   `feed_hash` varchar(8) NOT NULL,
   `feed_type` tinyint(1) NOT NULL,
   `user_hash` varchar(8) DEFAULT NULL,
+  `email` tinyint(1) DEFAULT 1,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=344 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `pingback_messages` (
   `wall` tinyint(1) NOT NULL DEFAULT '0',
   `new` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=169 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
