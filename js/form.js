@@ -144,6 +144,10 @@ function UrlExists(url)
   }
 }
 
+function removeElement (id) {
+    $('#' + id).remove();
+}
+
 // Update a wall post
 function updateWall (base, action, postId) {
     // fetch text content
