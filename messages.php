@@ -93,6 +93,7 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
     $profile = $person->get_profile();
     
     $to_name = $person->get_name();
+    $to_email = $person->get_email();
     $pingback_service = $profile->get("http://purl.org/net/pingback/to");
     
     // set form data
@@ -114,40 +115,6 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
             foreach ($triples as $triple) {
                 // proceed only if we have a valid pingback resource
                 if ($triple['o'] == 'http://purl.org/net/pingback/Container') {
-
-                    /*    
-                    $ret .= '<script>
-                        $.ajax({
-                            url: "' . $pingback_service . '",
-                            type: "POST",
-                            data: {source: "' . $source. '", target: "' . $to . '", comment: "' . $comment . '"},
-                            statusCode: {
-                                200: function () {
-                                        alert("Success!");
-                                        },
-                                201: function () {
-                                        alert("Success!");
-                                        }
-                            }
-                            });
-                        // ------- OR ------- //
-                        var request = $.ajax({
-                                    url: "' . $pingback_service . '",
-                                    type: "POST",
-                                    data: {source: "' . $source. '", target: "' . $to . '", comment: "' . $comment . '"},
-                                    dataType: "html"
-                            });
-
-                        request.done(function() {
-                            alert("Success");
-                        });
-
-                        request.done(function(jqXHR, textStatus) {
-                            alert( "Request failed: " + textStatus );
-                        });
-                        </script>';
-                    */
-
                     $fields = array ('source' => $source,
                                     'target' => $to,
                                     'comment' => $comment
