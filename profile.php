@@ -269,7 +269,6 @@ if (isset($_REQUEST['doit']))  {
             $rw .= "RewriteRule ^card$ foaf.txt [R=303]\n";
             $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
             $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
-            $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
             // finally write content to file
             fwrite($htaccess, $rw);
             fclose($htaccess);
