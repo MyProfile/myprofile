@@ -89,6 +89,8 @@ if (isset($_POST['source']) && (isset($_POST['target']) && (isset($_POST['commen
     }
 } else {
     // Show form
+    $target = (isset($_REQUEST['target'])) ? $_REQUEST['target'] : '';
+    
     $ret .= '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">';
     $ret .= "<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"  xmlns:pingback=\"http://purl.org/net/pingback/\">\n";
     $ret .= "   <head>\n";
@@ -98,7 +100,7 @@ if (isset($_POST['source']) && (isset($_POST['target']) && (isset($_POST['commen
     $ret .= "   <body typeof=\"pingback:Container\">\n";
     $ret .= "   <form method=\"post\" action=\"pingback.php\">\n";
     $ret .= "       <p>Your WebID: <input size=\"30\" property=\"pingback:source\" type=\"text\" name=\"source\" /></p>\n";
-    $ret .= "       <p>Target WebID: <input size=\"30\" property=\"pingback:target\" type=\"text\" name=\"target\" value=\"" . $_GET['target'] . "\" /></p>\n";
+    $ret .= "       <p>Target WebID: <input size=\"30\" property=\"pingback:target\" type=\"text\" name=\"target\" value=\"" . $target . "\" /></p>\n";
     $ret .= "       <p>Comment (optional): <input size=\"30\" maxlength=\"256\" type=\"text\" name=\"comment\" style=\"background-color:#fff; border:dashed 1px grey;\" /></p>\n";
     $ret .= "       <p><input type=\"submit\" name=\"submit\" value=\"Ping!\" /></p>\n";
     $ret .= "   </form>\n";
