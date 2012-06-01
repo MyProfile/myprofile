@@ -65,7 +65,7 @@ if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') {
 $base_uri .= '://' . $_SERVER['SERVER_NAME'];
 
 // add current document to form full uri
-$page_uri .= $_SERVER['REQUEST_URI'];
+$page_uri = $_SERVER['REQUEST_URI'];
 
 // Preparing the session
 session_name('tzLogin');

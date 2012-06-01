@@ -169,7 +169,8 @@ else
 // Form allowing to post messages on the wall
 if (isset($_SESSION['webid'])) {
     $form_area = "<form name=\"write_wall\" method=\"POST\" action=\"" . htmlentities($_SERVER['PHP_SELF']) . "\">\n";
-    $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $_REQUEST['user'] . "\" />\n";
+    if (isset($_REQUEST['user']))
+        $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $_REQUEST['user'] . "\" />\n";
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
