@@ -81,12 +81,16 @@ if (isset($_REQUEST['uri'])) {
         $ret .= "</form></div>\n";
     }
 
+    $ret .= " <div style=\"padding-top: 65px;\" align=\"left\">\n";
     if ((isset($_REQUEST['html'])) && ($_REQUEST['html'] == '0')) {
+        // use the raw display view
   		$ret .= $graph->dump();
     } else {
+        // use the html display view
         $ret .= dumpHTML($graph, $person->get_profile(), $_REQUEST['uri']);
     }
-    $ret .= '</div>';
+    $ret .= " </div>\n";
+    $ret .= "</div>\n";
 }
 
 echo $ret;
