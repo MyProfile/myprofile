@@ -142,7 +142,7 @@ if (isset($_SESSION['webid']) && $_SESSION['webid']) {
 
 // Bad place to add logic for adding/removing friends.
 // add a specific person as friend
-if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && ($_REQUEST['action'] == 'addfriend')) {
+if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'addfriend')) {
     // add friend and display confirmation
     $confirmation = $_SESSION['myprofile']->add_friend(urldecode($_REQUEST['uri']));
     
@@ -151,7 +151,7 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
 }
 
 // add a specific person as friend
-if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && ($_REQUEST['action'] == 'delfriend')) {
+if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'delfriend')) {
     // remove friend and display confirmation    
     $confirmation = $_SESSION['myprofile']->del_friend(urldecode($_REQUEST['uri']));
 

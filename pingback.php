@@ -25,7 +25,7 @@ require 'include.php';
 $ret = "";
 
 // Process request and deliver pingback
-if (isset($_POST['source'])) {
+if (isset($_POST['source']) && (isset($_POST['target']) && (isset($_POST['comment'])) {
     // fetch the user's profile
     $profile = new MyProfile(trim($_POST['source']), $base_uri);
     $profile->load();
@@ -38,14 +38,21 @@ if (isset($_POST['source'])) {
     $pic    = mysql_real_escape_string(trim($profile->get_picture()));
 
     // Return HTTP 400 (bad request)
-    if (!isset($_POST['target'])) {
+    if (strlen($_POST['source']) == 0) {
+        // No destination user, return a proper HTTP response code with error
+        $ret .= header("HTTP/1.1 400 Bad request");
+        $ret .= header("Status: 400 Bad request");
+        $ret .= "<html><body>\n";
+        $ret .= "Bad request: you did not specify the source user.\n";
+        $ret .= "</body></html>\n";
+    } else if ((!isset($_POST['target'])) && (strlen($_POST['target']) == 0)) {
         // No destination user, return a proper HTTP response code with error
         $ret .= header("HTTP/1.1 400 Bad request");
         $ret .= header("Status: 400 Bad request");
         $ret .= "<html><body>\n";
         $ret .= "Bad request: you did not specify the destination user.\n";
         $ret .= "</body></html>\n";
-    } else if (!isset($_POST['comment'])) {
+    } else if ((!isset($_POST['comment'])) && (strlen($_POST['comment']) == 0))let m {
         // No message, return a proper HTTP response code with error
         $ret .= header("HTTP/1.1 400 Bad request");
         $ret .= header("Status: 400 Bad request");

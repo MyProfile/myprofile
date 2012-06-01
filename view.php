@@ -55,7 +55,7 @@ if (isset($_REQUEST['uri'])) {
     $ret .= "</form></div>\n";
 
     // display controls for adding/removing friend
-    if ((webid_is_local($_SESSION['webid'])) && ($_SESSION['webid'] != $_REQUEST['uri'])) {
+    if ((isset($_SESSION['webid'])) && ((webid_is_local($_SESSION['webid'])) && ($_SESSION['webid'] != $_REQUEST['uri']))) {
         if ($_SESSION['myprofile']->is_friend(urldecode($_REQUEST['uri']))) {
         // remove friend
             $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
@@ -81,7 +81,7 @@ if (isset($_REQUEST['uri'])) {
         $ret .= "</form></div>\n";
     }
 
-    if ($_REQUEST['html'] == '0') {
+    if ((isset($_REQUEST['html'])) && ($_REQUEST['html'] == '0')) {
   		$ret .= $graph->dump();
     } else {
         $ret .= dumpHTML($graph, $person->get_profile(), $_REQUEST['uri']);
