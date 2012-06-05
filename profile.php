@@ -100,8 +100,10 @@ if (isset($_REQUEST['doit']))  {
         // picture (use the uploaded one if it exists)
         if (isset($local_img))
             $me->set('foaf:img', trim($local_img));
-        else
+        else if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0)) 
             $me->set('foaf:img', $_REQUEST['foaf:img']);
+        else
+            $me->set('foaf:img', 'img/nouser.png');
         // nickname
         if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
             $me->set('foaf:nick', trim($_REQUEST['foaf:nick']));
