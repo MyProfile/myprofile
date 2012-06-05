@@ -463,6 +463,9 @@ if ($_REQUEST['action'] == 'edit') {
             $certs .= "</tr>\n";
         }
     }
+} else {
+    // Set some default values
+    $picture = '/img/nouser.png';
 }
 
 // rdf types for Person
@@ -581,7 +584,7 @@ $ret .= "<td width=\"100\"></td>\n";
 // Here we display the profile picture (avatar)
 $ret .= "<td valign=\"top\">\n";
 $ret .= "<img width=\"150\" src=\"" . $picture . "\"/>\n";
-$ret .= "<input name=\"picture\" type=\"file\">\n";
+$ret .= "<input name=\"picture\" type=\"file\" size=\"10\">\n";
 $ret .= "</td>\n";
 
 $ret .= "</tr>\n";    
