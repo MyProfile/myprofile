@@ -23,9 +23,9 @@
 require_once 'include.php';
 include 'header.php'; 
 
-$ret = "<div><form action=\"view.php\" method=\"GET\">\n";
-$ret .= "Try someone else's WebID? <input type=\"text\" name=\"uri\" placeholder=\"http://fcns.eu/people/andrei/card#me\" value=\"\" style=\"width: 400px;\">\n";
-$ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
+$ret = "<div><form action=\"lookup.php\" method=\"GET\">\n";
+$ret .= "Look for someone else? <input type=\"text\" name=\"search\" value=\"\" style=\"width: 400px;\">\n";
+$ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Search \">\n";
 $ret .= "</form></div>\n";
 
 // Display any alerts here
@@ -39,11 +39,16 @@ if (isset($_REQUEST['uri'])) {
     	$ret .= substr(urldecode($_REQUEST['uri']), 0, 47) . '...';
     else
         $ret .= urldecode($_REQUEST['uri']);
-	$ret .= "</a></h3><p>(view  <a href=\"view.php?html=0&uri=" . $_REQUEST['uri'] . "\">RDF structure</a>?)</p><br/>\n";
+	$ret .= "</a></h3><p>(view  <a href=\"view.php?html=0&uri=" . urlencode($_REQUEST['uri']) . "\">RDF structure</a>?)</p><br/>\n";
 
-    $person = new MyProfile($_REQUEST['uri'], $base_uri);
-    $person->load();
+    // graph
+    $person = new MyProfile($_REQUEST['uri'], $base_uri, $endpoint);
+    $person->load(true);
+    
     $graph = $person->get_graph();
+    $profile = $person->get_profile();
+    $profile->loadSameAs();
+    
     // check if the user has subscribed to local messages
     $is_subscribed = (strlen($person->get_hash()) > 0) ? true : false;
 
@@ -55,7 +60,7 @@ if (isset($_REQUEST['uri'])) {
     $ret .= "</form></div>\n";
 
     // display controls for adding/removing friend
-    if ((isset($_SESSION['webid'])) && ((webid_is_local($_SESSION['webid'])) && ($_SESSION['webid'] != $_REQUEST['uri']))) {
+    if ((webid_is_local($_SESSION['webid'])) && ($_SESSION['webid'] != $_REQUEST['uri'])) {
         if ($_SESSION['myprofile']->is_friend(urldecode($_REQUEST['uri']))) {
         // remove friend
             $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
@@ -81,16 +86,12 @@ if (isset($_REQUEST['uri'])) {
         $ret .= "</form></div>\n";
     }
 
-    $ret .= " <div style=\"padding-top: 65px;\" align=\"left\">\n";
-    if ((isset($_REQUEST['html'])) && ($_REQUEST['html'] == '0')) {
-        // use the raw display view
+    if ($_REQUEST['html'] == '0') {
   		$ret .= $graph->dump();
     } else {
-        // use the html display view
-        $ret .= dumpHTML($graph, $person->get_profile(), $_REQUEST['uri']);
+        $ret .= viewProfile($graph, $profile, $_REQUEST['uri'], $base_uri, $endpoint);
     }
-    $ret .= " </div>\n";
-    $ret .= "</div>\n";
+    $ret .= '</div>';
 }
 
 echo $ret;
