@@ -101,7 +101,7 @@
                 echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";
         ?>
         <li><a href="friends.php">Friends</a></li>
-        <li><a href="view.php">Lookup</a></li>
+        <li><a href="lookup.php">Lookup</a></li>
         <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">Additional Features <b class="caret"></b></a>
             <ul class="dropdown-menu">
             <?php
