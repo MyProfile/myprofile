@@ -20,6 +20,9 @@ if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file dire
 */ 
 class MyProfile {
 
+    private $sparql;
+    private $endpoint;
+    private $ttl;
     private $webid;
     private $base_uri;
     private $cache_dir;
@@ -33,13 +36,16 @@ class MyProfile {
     private $email;
 
     // Build the selectors for adding more form content
-    function __construct($webid, $base_uri) {
+    function __construct($webid, $base_uri, $ttl = null) {
         $this->webid = $webid;
         
         if (isset($base_uri))
             $this->base_uri = $base_uri;
-        
+        // set cache dir
         $this->cache_dir = 'cache/';
+        
+        // set cache time to live (default is 24h)
+        $this->ttl = ($ttl != null) ? $ttl : 24 * 3600;
     }
     
     // Load profile data for the specified WebID
@@ -60,7 +66,107 @@ class MyProfile {
         
         $this->graph = $graph;
         $this->profile = $profile;
+        $this->profile->loadSameAs();
     
+        // get user's name and picture info for display purposes    
+        $this->name = $profile->get('foaf:name');
+        if ($this->name == '[NULL]')
+        // combine firstname and lastname if name is null
+        if ($this->name == '[NULL]') {
+            $first = $profile->get('foaf:givenName');
+            $last = $profile->get('foaf:familyName');
+
+            $name = ''; 
+            if ($first != '[NULL]')
+                $name .= $first . ' ';
+            if ($last != '[NULL]')
+                $name .= $last;
+            if (strlen($name) > 0)
+                $this->name = $name;
+            else
+                $this->name = 'Anonymous';
+        }
+
+        // get the user's picture
+        if ($profile->get('foaf:img') != '[NULL]')
+            $this->picture = $profile->get('foaf:img'); 
+        else if ($profile->get('foaf:depiction') != '[NULL]')
+            $this->picture = $profile->get('foaf:depiction');
+        else
+            $this->picture = 'img/nouser.png'; // default image
+        
+        // get the user's first email address
+        if ($profile->get('foaf:mbox') != '[NULL]')
+            $this->email = $profile->get('foaf:mbox');
+            
+        // get user hash and feed hash
+        $result = mysql_query("SELECT feed_hash, user_hash FROM pingback WHERE webid='" . mysql_real_escape_string($this->webid) . "'");
+        if (!$result) {
+            die('Unable to connect to the database!');
+        } else if (mysql_num_rows($result) > 0) {
+            $row = mysql_fetch_assoc($result);
+            $this->feed_hash = $row['feed_hash'];
+            $this->user_hash = $row['user_hash'];
+            mysql_free_result($result);
+        }
+        return true;
+    }
+    
+    // Use SPARQL to manage graphs
+    function sparql($endpoint) {
+        $this->endpoint = $endpoint;
+        $this->sparql = sparql_connect($endpoint);
+    }
+    
+    function sparql_load() {
+        $db = sparql_connect($this->endpoint);
+        // delete previous data for the graph
+        $sql = "CLEAR GRAPH <" . $this->webid . ">";
+        $res = sparql_query($sql);
+            
+        // Load URI into the triple store
+        $sql = "LOAD <" . $this->webid . ">";
+        $res = sparql_query($sql);
+        
+        // Add the timestamp for the date at which it was inserted
+        $time = time();
+        $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
+        $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> {<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
+        $res = sparql_query($sql);
+        
+        //echo "sql=" . $sql . "<br/>Loaded new graph for: " . $this->webid;
+    }   
+    
+    function sparql_graph() {
+        // cache is refreshed if older than 24h
+        $time = time() - $this->ttl;
+        $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
+        
+        $query = 'SELECT * FROM <' . $this->webid . '> WHERE {?person dc:date ?date . FILTER (?date > "' . $date . '"^^xsd:dateTime)}';
+        $result = sparql_query($query);
+        // load data into the triple store if it's the first time we see it
+        $count = sparql_num_rows($result);
+
+        // force refresh of data if cache expired
+        if ($count == 0)
+            $this->sparql_load();
+
+        $query = "CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <" . $this->webid . "> { ?s ?p ?o } . }";
+        $graph = new Graphite();
+        $graph->loadSPARQL($this->endpoint, $query);
+            
+        // try to get primary topic, else go with default uri (some people don't use #)
+        $pt = $graph->resource('foaf:PersonalProfileDocument');
+        $this->primarytopic = $pt->get('foaf:primaryTopic');
+        if ($this->primarytopic != '[NULL]') 
+            $profile = $graph->resource($this->primarytopic);
+        else
+            $profile = $graph->resource($this->webid);
+        
+        $this->graph = $graph;
+        $this->profile = $profile;
+        //$this->profile->loadSameAs();
+        
         // get user's name and picture info for display purposes    
         $this->name = $profile->get('foaf:name');
         if ($this->name == '[NULL]')
