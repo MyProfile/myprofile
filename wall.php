@@ -25,31 +25,43 @@ require 'include.php';
 $ret = '';
 // fetch the WebID of the wall's owner
 if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST['user'] != 'local'))) {
-    $feed_hash = get_feed_by_hash($_REQUEST['user']);
-    $owner_webid = get_webid_by_hash($_REQUEST['user']);
-    $owner_hash = $_REQUEST['user'];
+    check_auth($idp, $page_uri);
     
-    // mark all wall messages as read when the user checks his personal wall
-    if ($_SESSION['webid'] == $owner_webid) {
-        $query = "UPDATE pingback_messages SET new='0' WHERE ";
-        $query .= "to_hash='" . mysql_real_escape_string($_SESSION['user_hash']). "' ";
-        $query .= "AND wall='1'";
-        $result = mysql_query($query);
-
-        if (!$result) {
-            $ret  .= error('Database error while trying to update message status!');
-        } else if ($result !== true) {
-            mysql_free_result($result);
-        }
-
-        $messages = get_msg_count($_SESSION['webid']);
-        $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
-    }
+    $owner_webid = get_webid_by_hash(trim($_REQUEST['user']));
     // fetch owner's profile
-    $profile = new MyProfile($owner_webid, $base_uri);
+    $profile = new MyProfile($owner_webid, $base_uri, $endpoint);
     $profile->load();
-    $owner_name = $profile->get_name();
-}  else {
+        
+    // display private wall only if the requesting user is a friend or the wall owner
+    if (($profile->is_friend($_SESSION['webid'])) || ($_SESSION['user_hash'] == $_REQUEST['user'])) {
+        $feed_hash = get_feed_by_hash($_REQUEST['user']);       
+        $owner_hash = $_REQUEST['user'];
+        
+        // mark all wall messages as read when the user checks his personal wall
+        if ($_SESSION['webid'] == $owner_webid) {
+            $query = "UPDATE pingback_messages SET new='0' WHERE ";
+            $query .= "to_hash='" . mysql_real_escape_string($_SESSION['user_hash']). "' ";
+            $query .= "AND wall='1'";
+            $result = mysql_query($query);
+
+            if (!$result) {
+                $ret  .= error('Database error while trying to update message status!');
+            } else if ($result !== true) {
+                mysql_free_result($result);
+            }
+
+            $messages = get_msg_count($_SESSION['webid']);
+            $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
+        }
+        $owner_name = $profile->get_name();
+    } else {
+        // display main wall for unauthenticated users
+        $ret .= success("You are not allowed to view " . $profile->get_name() . "'s Wall.");
+        $feed_hash = 'local';
+        $owner_webid = 'local';
+        $owner_hash = 'local';
+    }
+} else {
     // generic wall
     $feed_hash = 'local';
     $owner_webid = 'local';
@@ -91,17 +103,16 @@ if (isset($_REQUEST['del'])) {
     
     // display visual confirmation
     if ($ok == 1)
-        $confirmation = $_SESSION['myprofile']->success($reason);
+        $confirmation = success($reason);
     else if ($ok == 0)
-        $confirmation = $_SESSION['myprofile']->error($reason);
+        $confirmation = error($reason);
 }
 
 // ADD a post
 if (isset($_REQUEST['comment'])) {
 	// verify if we're logged in or not
 	check_auth($idp, $page_uri);
-
-    if (strlen($_REQUEST['user']) > 0)
+    if ((isset($_REQUEST['user'])) && (strlen($_REQUEST['user']) > 0))
         $to_hash = $_REQUEST['user'];
     else
         $to_hash = 'local';
@@ -169,8 +180,7 @@ else
 // Form allowing to post messages on the wall
 if (isset($_SESSION['webid'])) {
     $form_area = "<form name=\"write_wall\" method=\"POST\" action=\"" . htmlentities($_SERVER['PHP_SELF']) . "\">\n";
-    if (isset($_REQUEST['user']))
-        $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $_REQUEST['user'] . "\" />\n";
+    $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $_REQUEST['user'] . "\" />\n";
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
@@ -208,8 +218,8 @@ if (isset($confirmation))
 // Add message form 
 $ret .= $form_area;
 
-// Display wall messages
-// Get the last 100 messages
+// display wall messages
+// get the last 100 messages
 $query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 100";
 $result = mysql_query($query);
 
