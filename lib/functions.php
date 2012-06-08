@@ -22,6 +22,154 @@ $NAMESPACES = "
     PREFIX cert: <http://www.w3.org/ns/auth/cert#> .
 ";
 
+
+// Use SPARQL to manage graphs
+function sparql_lookup($endpoint, $base_uri, $string) {
+    $ret = '';
+    $sparql = sparql_connect($endpoint);
+
+    // Try to match against the name, nickname or webid.
+    $query = 'SELECT DISTINCT ?webid WHERE {
+                ?webid foaf:name ?name .
+                ?webid foaf:nick ?nick .
+                FILTER (regex(?name, "' . $string . '", "i") || regex(?nick, "' . $string . '", "i") || regex(?webid, "' . $string . '", "i"))
+                }';
+    $result = $sparql->query($query);
+
+    if(!$result)  
+        $ret .= error(sparql_errno() . ": " . sparql_error());
+        
+    $ret .= "<table>\n";
+    while($row = sparql_fetch_array($result)) {
+        $ret .= viewShortInfo ($row['webid'], $_SESSION['webid'], $base_uri, $endpoint);
+    }
+    $ret .= "</table>\n";
+    return $ret;
+}
+
+// Display several key information about a user (image, name, nick, email, homepage)
+function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
+    // fetch info for webid
+    $ret = '';
+    
+    $person = new MyProfile($webid, $base_uri);
+    $person->sparql($endpoint);
+    $person->sparql_graph();
+    $profile = $person->get_profile();
+
+    // find if he has me in his list of foaf:knows!
+    $all = (string)$profile->all("foaf:knows")->join(',');
+    $array = explode(',', $all);
+    $has_me = '[NULL]';
+    if (in_array($me, $array))
+        $has_me = 'true';
+      
+    // check if the user has subscribed to local messages
+    $is_subscribed = (strlen($person->get_hash()) > 0) ? true : false;
+
+    // start populating array
+    $friend = array('webid' => (string)$webid,
+        'img' => (string)$person->get_picture(),
+        'name' => (string)$profile->get("foaf:name"),
+        'nick' => (string)$profile->get("foaf:nick"),
+        'email' => (string)$profile->get("foaf:mbox"),
+        'blog' => (string)$profile->get("foaf:weblog"),
+        'pingback' => (string)$profile->get("http://purl.org/net/pingback/to"),
+        'hash' => $person->get_hash(),
+        'hasme' => $has_me
+    );
+    if (isset($new)) {
+        $friend['new'] = $new;
+    }
+
+    $ret .= "<table>\n";
+    $ret .= "<tr bgcolor=\"\"><td>\n";
+    $ret .= "<table><tr>\n";
+    $ret .= "<td width=\"70\" style=\"vertical-align: top; padding: 10px;\">\n";
+    $ret .= "<div align=\"left\"><a href=\"view.php?uri=" . urlencode($friend['webid']) . "\" target=\"_blank\">";
+    $ret .= "<img title=\"" . $friend['name'] . "\" alt=\"" . $friend['name'] . ".\" width=\"64\" src=\"" . $friend['img'] . "\" />";
+    $ret .= "</a></div>\n";
+    $ret .= "</td>\n";
+
+    $ret .= "<td><table>\n";
+    if ($friend['name'] != '[NULL]')
+        $ret .= "<tr><td><strong>" . $friend['name'] . "</strong>\n";
+    else
+        $ret .= "<tr><td><strong>Anonymous</strong>\n";
+            
+    if ($friend['nick'] != '[NULL]')
+        $ret .= "''" . $friend['nick'] . "''";
+    $ret .= "</td></tr>\n";
+
+    if ($friend['hasme'] != '[NULL]') 
+        $ret .= "<tr><td><div style=\"color:#60be60;\">Has you as friend.</div></td></tr>\n";
+
+    //$ret .= "<tr><td>&nbsp;</td></tr>\n";
+
+    if ($friend['email'] != '[NULL]')
+        $ret .= "<tr><td>Email: <a href=\"" . $friend['email'] . "\">" . clean_mail($friend['email']) . "</a></td></tr>\n";
+
+    if ($friend['blog'] != '[NULL]')
+        $ret .= "<tr><td>Blog:<a href=\"" . $friend['blog'] . "\">" . $friend['blog'] . "</a></td></tr>\n";
+
+    $ret .= "<tr><td>WebID: <a href=\"view.php?uri=" . urlencode($friend['webid']) . "\">" . $friend['webid'] . "</a></td></tr>\n";
+    $ret .= "</table>\n";
+
+    $ret .= "<br/><table>\n";
+    $ret .= "<tr>\n";
+    // send messages using the pingback protocol 
+    if ($friend['pingback'] != '[NULL]') {
+        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
+        $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
+        $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
+        $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "</form></td>\n";
+    }
+
+    // add or remove friends if we have them in our list
+    if ((isset($_SESSION['webid'])) && (webid_is_local($_SESSION['webid']))) {
+        if ($_SESSION['myprofile']->is_friend($webid)) {
+        // remove friend
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
+            $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\">\n";
+            $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
+            $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Remove \">\n";
+            $ret .= "</form></td>\n";
+        } else {
+        // add friend
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
+            $ret .= "<input type=\"hidden\" name=\"action\" value=\"addfriend\">\n";
+            $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
+            $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Add \">\n";
+            $ret .= "</form></td>\n";
+        }
+    }
+
+    // more functions if the user has previously subscribed to the local services
+    if ($is_subscribed) {
+        // Post on the user's wall
+        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
+        $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $friend['hash'] . "\">\n";
+        $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "</form></td>\n";
+    }
+
+    $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
+    $ret .= "<input type=\"hidden\" name=\"webid\" value=\"" . $friend['webid'] . "\">\n";
+    $ret .= "<input type=\"hidden\" name=\"me\" value=\"" . $me . "\">\n";
+    $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Friends \">\n";
+    $ret .= "</form></td>\n";
+    $ret .= "</tr></table></p>\n";
+
+    $ret .= "</td>\n";
+    $ret .= "</tr></table>\n";
+
+    $ret .= "</td></tr>\n";
+    $ret .= "</table>\n";
+    
+    return $ret;
+}
+
 // Returns http links for possible URIs found in a text
 // Also adds rel=nofollow attribute to indicate to the search engines that we don't "trust" the link
 function put_links($text) {
@@ -40,6 +188,17 @@ function success($text) {
     $ret .= "<div class=\"ui-state-highlight ui-corner-all\">\n";
     $ret .= "<p><span class=\"ui-icon ui-icon-info\" style=\"float: left; margin-right: .3em;\"></span>\n";
     $ret .= "<strong>Success!</strong> " . $text;
+    $ret .= "</div></div>\n";
+
+    return $ret;
+}
+
+// Display a pretty visual warning message
+function warning($text) {
+    $ret = "<br/><div class=\"ui-widget\" style=\"position:relative; width: 820px;\">\n";
+    $ret .= "<div class=\"ui-state-highlight ui-corner-all\">\n";
+    $ret .= "<p><span class=\"ui-icon ui-icon-info\" style=\"float: left; margin-right: .3em;\"></span>\n";
+    $ret .= "<strong>Warning!</strong> " . $text;
     $ret .= "</div></div>\n";
 
     return $ret;
@@ -213,7 +372,7 @@ function rss_reader($url) {
             $description = $item->description;
 			if (strlen($description) > 1300)
 				$description = substr($description, 0, 1300) . "...<br/><a href=\"" . $link . "\">Read more »</a>\n";
-            $ret .= "<h3 class=\"demoHeaders\"><b><a href=\"" . $link . "\">" . $title . "</a></b></h3>\n";
+            $ret .= "<h3 class=\"profileHeaders\"><b><a href=\"" . $link . "\">" . $title . "</a></b></h3>\n";
             if (strlen($published_on) > 0)
                 $ret .= "<span>(" . $published_on . ")</span>\n";
             $ret .= "<p>" . $description . "</p>\n";
@@ -381,14 +540,14 @@ function send_mail($from,$to,$subject,$body)
 
 function mail_utf8($to, $from_user, $from_email, $subject = '(No subject)', $message = '')
 { 
-    $from_user = "=?UTF-8?B?".base64_encode($from_user)."?=";
-    $subject = "=?UTF-8?B?".base64_encode($subject)."?=";
+  $from_user = "=?UTF-8?B?".base64_encode($from_user)."?=";
+  $subject = "=?UTF-8?B?".base64_encode($subject)."?=";
 
-    $headers = "From: $from_user <$from_email>\r\n" . 
-                "MIME-Version: 1.0" . "\r\n" . 
-                "Content-type: text/html; charset=UTF-8" . "\r\n"; 
+  $headers = "From: $from_user <$from_email>\r\n". 
+           "MIME-Version: 1.0" . "\r\n" . 
+           "Content-type: text/html; charset=UTF-8" . "\r\n"; 
 
-    return mail($to, $subject, $message, $headers); 
+ return mail($to, $subject, $message, $headers); 
 }
 
 // get the primary topic of a profile 
@@ -403,8 +562,62 @@ function getPrimaryTopic ($graph) {
         return;
 }
 
+function viewFriends($me) { 
+//    $ret = "<table border=\"0\" style=\"padding-left: 50px;\">\n";
+//    $ret .= "<tr valign=\"top\">";
+//    $ret .= "<td align=\"left\"><h3 class=\"profileHeaders\">Knows: </h3></td>";
+//    $ret .= "</tr>\n";
+
+    // foaf:knows
+    if ($me->get("foaf:knows") != '[NULL]') {
+//        $ret .= "<tr valign=\"top\">\n";
+//        $ret .= "<td>\n";
+        $friends = $me->all('foaf:knows')->join(',');
+
+        // show something if there are friends for this webid
+        if (strlen($friends) > 0) {
+	        $ret .= '<script type="text/javascript">
+                var list = "' . (string)$friends . '";
+                var uris = list.split(","); 
+                
+                // Create placeholders for each contact info
+                for (i = 0; i < uris.length; i++) {
+                    var webid = uris[i];
+                    $("#content").append("<div id=\"person_"+i+"\"></div>");
+                }
+                </script>';
+                
+	        $ret .= '<script type="text/javascript">
+                var list = "' . (string)$friends . '";
+                var uris = list.split(","); 
+                
+                if (list.length > 0) {
+                    for (i = 0; i < uris.length; i++) {
+                        var webid = uris[i];
+                        //var hash = webid.slice(webid.indexOf("#"));
+                    
+                        // script URI that we will call for each user
+			            var addr = "load.php?webid="+encodeURIComponent(webid)+"&me="+encodeURIComponent("' . $_SESSION['webid'] . '");            
+	
+                        $("#person_"+i).load(addr);
+                    }
+                }
+                </script>';
+        } else {
+            $ret .= "You do not have any friends.\n";
+        }          
+
+//        $ret .= "</td>";
+//        $ret .= "</tr>\n";
+    }
+
+//    $ret .= "</table>\n";
+
+    return $ret;
+}
+
 // Print the profile page in a prettier way
-function dumpHTML($graph, $me, $webid) {   
+function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {   
     // main table with one row which holds data in the left cell, and pics in the right cell
     $ret = "";
     $ret .= "<table align=\"center\" border=\"0\">\n";
@@ -414,14 +627,14 @@ function dumpHTML($graph, $me, $webid) {
 
     // identity    
     $ret .= "<tr valign=\"top\">";
-    $ret .= "<td><h3 class=\"demoHeaders\">Identity: </h3>";
+    $ret .= "<td><h3 class=\"profileHeaders\">Identity: </h3>";
     $ret .= "<a href=\"" . $webid . "\">$webid</a>";
     $ret .= "</td>";
     $ret .= "</tr>\n";
 
     // name    
     $ret .= "<tr valign=\"top\">";
-    $ret .= "<td><h3 class=\"demoHeaders\">Full name: </h3>";
+    $ret .= "<td><h3 class=\"profileHeaders\">Full name: </h3>";
     $ret .= "";
     if ($me->get("foaf:name") != '[NULL]') {
         $ret .= $me->get("foaf:name");
@@ -446,7 +659,7 @@ function dumpHTML($graph, $me, $webid) {
     // nickname
     if ($me->get("foaf:nick") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Nickname: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Nickname: </h3>";
         $ret .= "<dd>" . $me->get("foaf:nick") . "</dd>";
         $ret .= "</td>";
         $ret .= "</tr>\n";
@@ -455,7 +668,7 @@ function dumpHTML($graph, $me, $webid) {
     // b-day    
     if ($me->get("foaf:birthday") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Birthday: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Birthday: </h3>";
         $ret .= "<dd>" . $me->get("foaf:birthday") . "</dd>";
         $ret .= "</td>";
         $ret .= "</tr>\n";
@@ -465,14 +678,14 @@ function dumpHTML($graph, $me, $webid) {
     if ($me->get("http://www.w3.org/2000/10/swap/pim/contact#home") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
         foreach ($me->all('http://www.w3.org/2000/10/swap/pim/contact#home') as $cont) {
-            $ret .= "<td><h3 class=\"demoHeaders\">Contact info: </h3>";
+            $ret .= "<td><h3 class=\"profileHeaders\">Contact info: </h3>";
             $contres = $graph->resource($cont);
             $address = $graph->resource($contres->get('http://www.w3.org/2000/10/swap/pim/contact#address'));
             
-            $ret .= "<dd><h3 class=\"demoHeaders\">Street</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#street') . "</dd>\n";   
-            $ret .= "<dd><h3 class=\"demoHeaders\">City</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#city') . "</dd>\n";   
-            $ret .= "<dd><h3 class=\"demoHeaders\">Zip code</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#postalCode') . "</dd>\n";   
-            $ret .= "<dd><h3 class=\"demoHeaders\">Country</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#country') . "</dd>\n";   
+            $ret .= "<dd><h3 class=\"profileHeaders\">Street</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#street') . "</dd>\n";   
+            $ret .= "<dd><h3 class=\"profileHeaders\">City</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#city') . "</dd>\n";   
+            $ret .= "<dd><h3 class=\"profileHeaders\">Zip code</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#postalCode') . "</dd>\n";   
+            $ret .= "<dd><h3 class=\"profileHeaders\">Country</h3> " . $address->get('http://www.w3.org/2000/10/swap/pim/contact#country') . "</dd>\n";   
 
             $ret .= "</td>";
         }
@@ -482,7 +695,7 @@ function dumpHTML($graph, $me, $webid) {
     // email   
     if ($me->get("foaf:mbox") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Email: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Email: </h3>";
         foreach ($me->all("foaf:mbox") as $mail)
             $ret .= "<dd>" . clean_mail($mail) . "</dd>";
         $ret .= "</td>";
@@ -492,7 +705,7 @@ function dumpHTML($graph, $me, $webid) {
     // mbox_sha1   
     if ($me->get("foaf:mbox_sha1sum") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">mbox sha1sum: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">mbox sha1sum: </h3>";
         $ret .= "<dd>" . $me->all("foaf:mbox_sha1sum")->join( "<br>" ) . "</dd>";
         $ret .= "</td>";
         $ret .= "</tr>\n";
@@ -501,7 +714,7 @@ function dumpHTML($graph, $me, $webid) {
     // homepage
     if ($me->get("foaf:homepage") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Homepage: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Homepage: </h3>";
         foreach ($me->all("foaf:homepage") as $homepage) {
             $ret .= "<dd>" . $graph->resource($homepage)->link() . "</dd>";
         }
@@ -512,7 +725,7 @@ function dumpHTML($graph, $me, $webid) {
     // blogs
     if ($me->get("foaf:weblog") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Blog: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Blog: </h3>";
         foreach ($me->all("foaf:weblog") as $blog) {
             $ret .= "<dd>" . $graph->resource($blog)->link() . "</dd>";
         }
@@ -523,7 +736,7 @@ function dumpHTML($graph, $me, $webid) {
     // workplaceHomepage  
     if ($me->get("foaf:workplaceHomepage") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Workplace Homepage: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Workplace Homepage: </h3>";
         foreach ($me->all("foaf:workplaceHomepage") as $workpage) {
             $ret .= "<dd>" . $graph->resource($workpage)->link() . "</dd>";
         }
@@ -534,7 +747,7 @@ function dumpHTML($graph, $me, $webid) {
     // schoolHomepage
     if ($me->get("foaf:schoolHomepage") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">School Homepage: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">School Homepage: </h3>";
         foreach ($me->all("foaf:schoolHomepage") as $schoolpage) {
             $ret .= "<dd>" . $graph->resource($schoolpage)->link() . "</dd>";
         }
@@ -545,7 +758,7 @@ function dumpHTML($graph, $me, $webid) {
     // current proj
     if ($me->get("foaf:currentProject") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Current projects: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Current projects: </h3>";
         foreach ($me->all("foaf:currentProject") as $currproj) {
             $ret .= "<dd>" . $graph->resource($currproj)->link() . "</dd>";
         }
@@ -556,7 +769,7 @@ function dumpHTML($graph, $me, $webid) {
     // past proj
     if ($me->get("foaf:pastProject") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Past projects: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Past projects: </h3>";
         foreach ($me->all("foaf:pastProject") as $pastproj) {
             $ret .= "<dd>" . $graph->resource($pastproj)->link() . "</dd>";
         }
@@ -567,30 +780,18 @@ function dumpHTML($graph, $me, $webid) {
     // rss feeds
     if ($me->get("foaf:rssFeed") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">RSS feeds: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">RSS feeds: </h3>";
         foreach ($me->all('foaf:rssFeed') as $rss) {
 			// each feed is a separate resource
             $contres = $graph->resource($rss);
             if ($contres->get('http://purl.org/rss/1.0/title') != '[NULL]')          
-                $ret .= "<dd><h3 class=\"demoHeaders\">Title</h3> " . $contres->get('http://purl.org/rss/1.0/title') . "</dd>\n";
+                $ret .= "<dd><h3 class=\"profileHeaders\">Title</h3> " . $contres->get('http://purl.org/rss/1.0/title') . "</dd>\n";
             if ($contres->get('http://purl.org/rss/1.0/link') != '[NULL]')
-                $ret .= "<dd><h3 class=\"demoHeaders\">Link</h3> <a href=\"" . $contres->get('http://purl.org/rss/1.0/link') . "\">" . $contres->get('http://purl.org/rss/1.0/link') . "</a></dd>\n";
+                $ret .= "<dd><h3 class=\"profileHeaders\">Link</h3> <a href=\"" . $contres->get('http://purl.org/rss/1.0/link') . "\">" . $contres->get('http://purl.org/rss/1.0/link') . "</a></dd>\n";
             if ($contres->get('http://purl.org/rss/1.0/description') != '[NULL]')
-                $ret .= "<dd><h3 class=\"demoHeaders\">Description</h3> " . $contres->get('http://purl.org/rss/1.0/description') . "</dd>\n";
+                $ret .= "<dd><h3 class=\"profileHeaders\">Description</h3> " . $contres->get('http://purl.org/rss/1.0/description') . "</dd>\n";
             $ret .= "<br/>\n";
         }
-        $ret .= "</td>";
-        $ret .= "</tr>\n";
-    }
-    
-    // knows
-    if ($me->get("foaf:knows") != '[NULL]') {
-        $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Knows: </h3>";
-
-        foreach ($me->all('foaf:knows') as $friend)
-            $ret .= "<dd><a href=\"view.php?uri=" . urlencode($friend) . "\">" . $friend . "</a></dd>";
-
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
@@ -598,7 +799,7 @@ function dumpHTML($graph, $me, $webid) {
     // holds account
     if ($me->get("foaf:holdsAccount") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Holds account: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Holds account: </h3>";
         foreach ($me->all('foaf:holdsAccount') as $accounts) {
             // each account is a separate resource
             $account = $graph->resource($accounts);
@@ -617,7 +818,7 @@ function dumpHTML($graph, $me, $webid) {
     // interests
     if ($me->get("foaf:interest") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Interests: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Interests: </h3>";
         foreach ($me->all('foaf:interest') as $interests) {
             // each interest is a separate resource
             $interest = $graph->resource($interests);
@@ -628,18 +829,66 @@ function dumpHTML($graph, $me, $webid) {
         $ret .= "</tr>\n";
     }
     
+    // foaf:knows
+    if ($me->get("foaf:knows") != '[NULL]') {
+        $ret .= "<tr valign=\"top\">";
+        $ret .= "<td align=\"left\"><h3 class=\"profileHeaders\">Knows: </h3></td>";
+        $ret .= "</tr>\n";
+        $ret .= "<tr>\n";
+        $ret .= "<td id=\"knows\">\n";
+        
+        $friends = $me->all('foaf:knows')->join(',');
+
+        // show something if there are friends for this webid
+        if (strlen($friends) > 0) {
+	        $ret .= '<script type="text/javascript">
+                var list = "' . (string)$friends . '";
+                var uris = list.split(","); 
+                
+                // Create placeholders for each contact info
+                for (i = 0; i < uris.length; i++) {
+                    var webid = uris[i];
+                    $("#knows").append("<div id=\"person_"+i+"\"></div>");
+                }
+                </script>';
+                
+	        $ret .= '<script type="text/javascript">
+                var list = "' . (string)$friends . '";
+                var uris = list.split(","); 
+                
+                if (list.length > 0) {
+                    for (i = 0; i < uris.length; i++) {
+                        var webid = uris[i];
+                        //var hash = webid.slice(webid.indexOf("#"));
+                    
+                        // script URI that we will call for each user
+			            var addr = "load.php?webid="+encodeURIComponent(webid)+"&me="+encodeURIComponent("' . $_SESSION['webid'] . '");            
+	
+                        $("#person_"+i).load(addr);
+                    }
+                }
+                </script>';
+        } else {
+            $ret .= "You do not have any friends.\n";
+        }          
+
+        $ret .= "</td>";
+        $ret .= "</tr>\n";
+    }
+    
+    
     // public keys
     if ($me->get("wot:hasKey") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
-        $ret .= "<td><h3 class=\"demoHeaders\">Public key: </h3>";
+        $ret .= "<td><h3 class=\"profileHeaders\">Public key: </h3>";
         foreach ($me->all('wot:hasKey') as $keys) {
             // each key is a separate resource
             $key = $graph->resource($keys);
     
             if ($key->get("wot:fingerprint") != '[NULL]')
-                $ret .= "<dd><h3 class=\"demoHeaders\">Fingerprint:</h3></dd><dd>" . $key->get("wot:fingerprint") . "</dd>\n";
+                $ret .= "<dd><h3 class=\"profileHeaders\">Fingerprint:</h3></dd><dd>" . $key->get("wot:fingerprint") . "</dd>\n";
             if ($key->get("wot:hex_id") != '[NULL]')
-                $ret .= "<dd><h3 class=\"demoHeaders\">Hex ID:</h3></dd><dd>" . $key->get("wot:hex_id") . "</dd>";
+                $ret .= "<dd><h3 class=\"profileHeaders\">Hex ID:</h3></dd><dd>" . $key->get("wot:hex_id") . "</dd>";
             $ret .= "<br/>";
         }
         $ret .= "</td>";
@@ -648,7 +897,7 @@ function dumpHTML($graph, $me, $webid) {
     
     // certificates
     $ret .= "<tr valign=\"top\">";
-    $ret .= "<td><h3 class=\"demoHeaders\">Certificates: </h3>";
+    $ret .= "<td><h3 class=\"profileHeaders\">Certificates: </h3>";
     foreach ($graph->allOfType('http://www.w3.org/ns/auth/cert#RSAPublicKey') as $certs) {
 
         // get corresponding resources for modulus and exponent
@@ -676,12 +925,12 @@ function dumpHTML($graph, $me, $webid) {
                 if (is_array($modulus))
                     $modulus = (string)$modulus[0];
 
-                $ret .= "<dd><h3 class=\"demoHeaders\">Modulus:</h3></dd><dd>" . wordwrap($modulus, 70, "<br />\n", 1) . "</dd><br/>\n";
+                $ret .= "<dd><h3 class=\"profileHeaders\">Modulus:</h3></dd><dd>" . wordwrap($modulus, 70, "<br />\n", 1) . "</dd><br/>\n";
             }
         } else {
-            $ret .= "<dd><h3 class=\"demoHeaders\">Modulus:</h3></dd><dd>" . wordwrap($hex, 70, "<br />\n", 1) . "</dd><br/>\n";
+            $ret .= "<dd><h3 class=\"profileHeaders\">Modulus:</h3></dd><dd>" . wordwrap($hex, 70, "<br />\n", 1) . "</dd><br/>\n";
         }
-        $ret .= "<dd><h3 class=\"demoHeaders\">Public exponent:</h3></dd><dd>" . $exponent . "</dd>\n";
+        $ret .= "<dd><h3 class=\"profileHeaders\">Public exponent:</h3></dd><dd>" . $exponent . "</dd>\n";
         $ret .= "<br/>\n";
     }
 
