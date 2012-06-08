@@ -22,32 +22,35 @@
  
 require_once 'include.php';
 
-$form = "";
-$form .= "<div>\n";
-$form .= "<form action=\"friends.php\" method=\"GET\">\n";
-$form .= "Try someone else's WebID? <input type=\"text\" name=\"webid\" value=\"\" placeholder=\"http://fcns.eu/people/andrei/card#me\" style=\"width: 400px;\">\n";
-$form .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
-$form .= "</form></div>\n";
-
-$ret = '';
-$ret .= "<div class=\"clear\"></div>\n";
-$ret .= "<p><font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">Friends</font></p>\n";
-$ret .= "<p><small>This page may take a while to finish loading...<small></p>\n";
-
-// display confirmation message here
-if (isset($confirmation)) {
-    $ret .= $confirmation;
-}
 
 // load a specific webid instead of the logged user
 if (isset($_REQUEST['webid'])) {
-    $person = new MyProfile(urldecode($_REQUEST['webid']), $base_uri);
+    $person = new MyProfile(urldecode($_REQUEST['webid']), $base_uri, $endpoint);
     $person->load();
     $profile = $person->get_profile();
 } else {
     // verify if we're logged in or not, so we get the user's list of contacts
     check_auth($idp, $page_uri);
     $profile = $_SESSION['myprofile']->get_profile();
+}
+
+$user = $profile->get("foaf:name");
+
+$form = "";
+$form .= "<div>\n";
+$form .= "<form action=\"lookup.php\" method=\"GET\">\n";
+$form .= "Look for someone else? <input type=\"text\" name=\"search\" value=\"\" style=\"width: 400px;\">\n";
+$form .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Search \">\n";
+$form .= "</form></div>\n";
+
+$ret = '';
+$ret .= "<div class=\"clear\"></div>\n";
+$ret .= "<p><font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . $user . "'s Friends</font></p>\n";
+$ret .= "<p><small>This page may take a while to finish loading...<small></p>\n";
+
+// display confirmation message here
+if (isset($confirmation)) {
+    $ret .= $confirmation;
 }
 
 // call ajax script here to load each friend's data
@@ -62,7 +65,7 @@ if (strlen($friends) > 0) {
         // Create placeholders for each contact info
         for (i = 0; i < uris.length; i++) {
             var webid = uris[i];
-            $("#content").append("<p id=\"person_"+i+"\"></p>");
+            $("#content").append("<div id=\"person_"+i+"\"></div>");
         }
         </script>';
         
