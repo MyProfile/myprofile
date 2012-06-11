@@ -22,26 +22,34 @@ $NAMESPACES = "
     PREFIX cert: <http://www.w3.org/ns/auth/cert#> .
 ";
 
-
 // Use SPARQL to manage graphs
-function sparql_lookup($endpoint, $base_uri, $string) {
+function sparql_lookup($string, $base_uri, $endpoint) {
     $ret = '';
-    $sparql = sparql_connect($endpoint);
-
-    // Try to match against the name, nickname or webid.
-    $query = 'SELECT DISTINCT ?webid WHERE {
-                ?webid foaf:name ?name .
-                ?webid foaf:nick ?nick .
-                FILTER (regex(?name, "' . $string . '", "i") || regex(?nick, "' . $string . '", "i") || regex(?webid, "' . $string . '", "i"))
-                }';
-    $result = $sparql->query($query);
-
-    if(!$result)  
-        $ret .= error(sparql_errno() . ": " . sparql_error());
-        
     $ret .= "<table>\n";
-    while($row = sparql_fetch_array($result)) {
-        $ret .= viewShortInfo ($row['webid'], $_SESSION['webid'], $base_uri, $endpoint);
+    
+    // check if we have a WebID uri in the search input
+    if (strpos(urldecode($string), '#') === false) {
+        // search the local cache for a match
+        $sparql = sparql_connect($endpoint);
+
+        // Try to match against the name, nickname or webid.
+        $query = 'SELECT DISTINCT ?webid WHERE {
+                    ?webid foaf:name ?name .
+                    ?webid foaf:nick ?nick .
+                    FILTER (regex(?name, "' . $string . '", "i") || regex(?nick, "' . $string . '", "i") || regex(?webid, "' . $string . '", "i"))
+                    }';
+        $result = $sparql->query($query);
+
+        if(!$result)  
+            $ret .= error(sparql_errno() . ": " . sparql_error());
+            
+        
+        while ($row = sparql_fetch_array($result)) {
+            $ret .= viewShortInfo ($row['webid'], $_SESSION['webid'], $base_uri, $endpoint);
+        }
+    } else {
+        // use the WebID source
+        $ret .= viewShortInfo ($string, $_SESSION['webid'], $base_uri, $endpoint);
     }
     $ret .= "</table>\n";
     return $ret;
@@ -52,9 +60,8 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
     // fetch info for webid
     $ret = '';
     
-    $person = new MyProfile($webid, $base_uri);
-    $person->sparql($endpoint);
-    $person->sparql_graph();
+    $person = new MyProfile($webid, $base_uri, $endpoint);
+    $person->load();
     $profile = $person->get_profile();
 
     // find if he has me in his list of foaf:knows!
@@ -562,16 +569,10 @@ function getPrimaryTopic ($graph) {
         return;
 }
 
-function viewFriends($me) { 
-//    $ret = "<table border=\"0\" style=\"padding-left: 50px;\">\n";
-//    $ret .= "<tr valign=\"top\">";
-//    $ret .= "<td align=\"left\"><h3 class=\"profileHeaders\">Knows: </h3></td>";
-//    $ret .= "</tr>\n";
-
+// Uses Ajax calls to load a user's list of friends asynchronously
+function viewFriends($me) {
     // foaf:knows
     if ($me->get("foaf:knows") != '[NULL]') {
-//        $ret .= "<tr valign=\"top\">\n";
-//        $ret .= "<td>\n";
         $friends = $me->all('foaf:knows')->join(',');
 
         // show something if there are friends for this webid
@@ -606,13 +607,7 @@ function viewFriends($me) {
         } else {
             $ret .= "You do not have any friends.\n";
         }          
-
-//        $ret .= "</td>";
-//        $ret .= "</tr>\n";
     }
-
-//    $ret .= "</table>\n";
-
     return $ret;
 }
 
@@ -875,7 +870,6 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
-    
     
     // public keys
     if ($me->get("wot:hasKey") != '[NULL]') {
