@@ -23,8 +23,11 @@
 require_once 'include.php';
 include 'header.php'; 
 
+if (isset($_REQUEST['search']))
+    $search = $_REQUEST['search'];
+
 $ret = "<div><form action=\"\" method=\"GET\">\n";
-$ret .= "Look someone up <input type=\"text\" name=\"search\" value=\"\" style=\"width: 400px;\">\n";
+$ret .= "Looking for someone? <input type=\"text\" name=\"search\" placeholder=\"name, nickname or WebID\" value=\"" . $search . "\" style=\"width: 400px;\">\n";
 $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
 $ret .= "</form></div>\n";
 
@@ -41,7 +44,7 @@ if (isset($_REQUEST['search'])) {
         $ret .= urldecode($_REQUEST['search']);
     $ret .= "</h3>\n";
 
-    $ret .= sparql_lookup($endpoint, $base_uri, trim($_REQUEST['search']));
+    $ret .= sparql_lookup(trim($_REQUEST['search']), $base_uri, SPARQL_ENDPOINT);
 
 }
 

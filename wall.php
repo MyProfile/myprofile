@@ -29,7 +29,7 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
     
     $owner_webid = get_webid_by_hash(trim($_REQUEST['user']));
     // fetch owner's profile
-    $profile = new MyProfile($owner_webid, $base_uri, $endpoint);
+    $profile = new MyProfile($owner_webid, $base_uri, SPARQL_ENDPOINT);
     $profile->load();
         
     // display private wall only if the requesting user is a friend or the wall owner

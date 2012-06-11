@@ -25,7 +25,7 @@ require_once 'include.php';
 
 // load a specific webid instead of the logged user
 if (isset($_REQUEST['webid'])) {
-    $person = new MyProfile(urldecode($_REQUEST['webid']), $base_uri, $endpoint);
+    $person = new MyProfile(urldecode($_REQUEST['webid']), $base_uri, SPARQL_ENDPOINT);
     $person->load();
     $profile = $person->get_profile();
 } else {
@@ -36,10 +36,13 @@ if (isset($_REQUEST['webid'])) {
 
 $user = $profile->get("foaf:name");
 
+if (isset($_REQUEST['search']))
+    $search = $_REQUEST['search'];
+    
 $form = "";
 $form .= "<div>\n";
 $form .= "<form action=\"lookup.php\" method=\"GET\">\n";
-$form .= "Look for someone else? <input type=\"text\" name=\"search\" value=\"\" style=\"width: 400px;\">\n";
+$form .= "Looking for someone? <input type=\"text\" name=\"search\" placeholder=\"name, nickname or WebID\" value=\"" . $search . "\" style=\"width: 400px;\">\n";
 $form .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Search \">\n";
 $form .= "</form></div>\n";
 

@@ -64,7 +64,7 @@ if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') {
     $page_uri .= 's';
 }
 $page_uri .= '://' . $_SERVER['SERVER_NAME'];
-// this is the base uri
+// this is the base uri 
 $base_uri = $page_uri;
 // add current document
 $page_uri .= $_SERVER['REQUEST_URI'];
@@ -115,7 +115,7 @@ if (strlen($auth->webid) > 0) {
         if (!isset($_SESSION['myprofile'])) {
             $_SESSION['webid'] = $webid;
 
-            $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
+            $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
             // load rest of data only if we can load the profile
             if ($_SESSION['myprofile']->load()) {
                 $_SESSION['usr'] = $_SESSION['myprofile']->get_name();
@@ -148,7 +148,7 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
     // add friend and display confirmation
     $confirmation = $_SESSION['myprofile']->add_friend(urldecode($_REQUEST['uri']));
     
-    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
+    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load();
 }
 
@@ -157,7 +157,7 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
     // remove friend and display confirmation    
     $confirmation = $_SESSION['myprofile']->del_friend(urldecode($_REQUEST['uri']));
 
-    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
+    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load();
 }
 
