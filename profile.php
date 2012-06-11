@@ -299,7 +299,7 @@ if (isset($_REQUEST['doit']))  {
             if ($ok) {
                 $alert .= success('Your profile has been updated.');
                 // reload the profile information
-                $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
+                $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
                 $_SESSION['myprofile']->load();
             } else {
                 $alert .= error('Could not update your profile!');
