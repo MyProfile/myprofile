@@ -44,7 +44,7 @@ if (isset($_REQUEST['subscribe'])) {
         $ret .= $_SESSION['myprofile']->unsubscribe();
     }
     // Unsubscribe from receiving email notifications
-    if ($_REQUEST['email'] == 'on') {
+    if ((isset($_REQUEST['email'])) || ($_REQUEST['email'] == 'on')) {
         $ret .= $_SESSION['myprofile']->subscribe_email();
     } else if ((!isset($_REQUEST['email'])) || ($_REQUEST['email'] == 'off')) {
         $ret .= $_SESSION['myprofile']->unsubscribe_email();
@@ -58,7 +58,7 @@ if (!is_subscribed($_SESSION['webid'])) {
     $ret .= "<form name=\"manage\" method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"subscribe\" value=\"1\">\n";
     $ret .= "<table border=\"0\">\n";
-    $ret .= "<tr><td>Your WebID <font color=\"#00BBFF\">" . $_SESSION['webid'] . "</font> will be registered in order to receive pingbacks.</td></tr>\n";
+    $ret .= "<tr><td>Your WebID <font color=\"#00BBFF\">" . $_SESSION['webid'] . "</font> will be registered in order to receive messages.</td></tr>\n";
     $ret .= "<tr><td><br/><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\"Register\"></td></tr>\n";
     $ret .= "</table>\n";
     $ret .= "</form>\n";

@@ -24,7 +24,9 @@
  * display the user's messages
  */ 
 
-require_once 'include.php'; 
+require_once 'include.php';
+require_once 'lib/mail.php';
+require_once 'lib/Mail/mime.php';
 
 // verify if we're logged in or not
 check_auth($idp, $page_uri);
@@ -88,7 +90,7 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
     $to = trim($_REQUEST['to']);
 
     // fetch the user's profile
-    $person = new MyProfile($to, $base_uri);
+    $person = new MyProfile($to, $base_uri, SPARQL_ENDPOINT);
     $person->load();
     $profile = $person->get_profile();
     
@@ -115,6 +117,7 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
             foreach ($triples as $triple) {
                 // proceed only if we have a valid pingback resource
                 if ($triple['o'] == 'http://purl.org/net/pingback/Container') {
+
                     $fields = array ('source' => $source,
                                     'target' => $to,
                                     'comment' => $comment
