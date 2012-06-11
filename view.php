@@ -42,7 +42,7 @@ if (isset($_REQUEST['uri'])) {
 	$ret .= "</a></h3><p>(view  <a href=\"view.php?html=0&uri=" . urlencode($_REQUEST['uri']) . "\">RDF structure</a>?)</p><br/>\n";
 
     // graph
-    $person = new MyProfile($_REQUEST['uri'], $base_uri, $endpoint);
+    $person = new MyProfile($_REQUEST['uri'], $base_uri, SPARQL_ENDPOINT);
     $person->load(true);
     
     $graph = $person->get_graph();
@@ -89,7 +89,7 @@ if (isset($_REQUEST['uri'])) {
     if ($_REQUEST['html'] == '0') {
   		$ret .= $graph->dump();
     } else {
-        $ret .= viewProfile($graph, $profile, $_REQUEST['uri'], $base_uri, $endpoint);
+        $ret .= viewProfile($graph, $profile, $_REQUEST['uri'], $base_uri, SPARQL_ENDPOINT);
     }
     $ret .= '</div>';
 }

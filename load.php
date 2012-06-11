@@ -32,7 +32,7 @@ else if (isset($_REQUEST['me']))
 if (isset($_REQUEST['webid'])) {
     $webid = urldecode($_REQUEST['webid']);
 
-    $ret .= viewShortInfo($webid, $me, $base_uri, $endpoint);
+    $ret .= viewShortInfo($webid, $me, $base_uri, SPARQL_ENDPOINT);
 
 } else {
     $ret .= "You need to specify a person.";

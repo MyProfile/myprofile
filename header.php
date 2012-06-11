@@ -154,7 +154,7 @@
         echo "</ul>\n";
         echo "</li>\n";
     } else {
-        echo "<li><a href=\"" . $idp . "" . $_SESSION['page_uri'] . "\" style=\"\padding-top: 8px;\">\n";
+        echo "<li><a href=\"" . IDP . "" . $_SESSION['page_uri'] . "\" style=\"\padding-top: 8px;\">\n";
         echo "  <img alt=\"WebID Login\" title=\"WebID Login\" src=\"img/webid.png\" style=\"height: 22px; \" />";
         echo "</a></li>\n";
     }
