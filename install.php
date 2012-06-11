@@ -196,6 +196,12 @@ if (isset($_REQUEST['submit'])) {
     $db_host		= trim($_REQUEST['host']);
     $db_user		= trim($_REQUEST['user']);
     $db_pass		= trim($_REQUEST['pass']);
+    
+    /* SMTP server config */
+    $smtp_authentication = $_REQUEST['smtp_auth']; 
+    $smtp_server		= trim($_REQUEST['smtp_server']);
+    $smtp_username		= trim($_REQUEST['smtp_user']);
+    $smtp_passpasswod	= trim($_REQUEST['smtp_pass']);
 
     // Establish db connection
     if (!mysql_connect($db_host,$db_user,$db_pass))
@@ -229,6 +235,12 @@ if (isset($_REQUEST['submit'])) {
         $content .= '$db_host       = \'' . $db_host . '\';' . "\n";
         $content .= '$db_user       = \'' . $db_user . '\';' . "\n";
         $content .= '$db_pass       = \'' . $db_pass . '\';' . "\n";
+        $content .= "\n";
+        $content .= "/* SMTP config */\n";
+        $content .= '$smtp_authentication   = \'' . $smtp_authentication . '\';' . "\n";
+        $content .= '$smtp_server       = \'' . $smtp_server . '\';' . "\n";
+        $content .= '$smtp_username     = \'' . $smtp_user . '\';' . "\n";
+        $content .= '$smtp_passwrod     = \'' . $smtp_pass . '\';' . "\n";
         $content .= "\n";
         $content .= "// Establish db connection\n";
         $content .= 'mysql_connect($db_host,$db_user,$db_pass) or die(\'Unable to establish a DB connection\');' . "\n";
@@ -319,6 +331,12 @@ if (isset($_REQUEST['submit'])) {
     $ret .= "<tr><td>Database name: </td><td><input type=\"text\" name=\"database\" value=\"\"></td></tr>\n";
     $ret .= "<tr><td>Database user: </td><td><input type=\"text\" name=\"user\" value=\"\"></td></tr>\n";
     $ret .= "<tr><td>Database pass: </td><td><input type=\"password\" name=\"pass\" value=\"\"></td></tr>\n";
+
+    $ret .= "<tr><td colspan=\"2\"><br/><p><strong>Email server</strong></p><br/></td></tr>\n";
+    $ret .= "<tr><td>Email server: </td><td><input type=\"text\" name=\"smtp_server\" value=\"\"></td></tr>\n";
+    $ret .= "<tr><td colspan=\"2\">Does the server require authentication? <input type=\"checkbox\" name=\"smtp_auth\" value=\"\"></td></tr>\n";
+    $ret .= "<tr><td>Email user: </td><td><input type=\"text\" name=\"smtp_user\" value=\"\"></td></tr>\n";
+    $ret .= "<tr><td>Email pass: </td><td><input type=\"password\" name=\"smtp_pass\" value=\"\"></td></tr>\n";
 
     $ret .= "<tr><td colspan=\"2\"><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Proceed to install \"></p></td></tr>\n";
     $ret .= "</table>\n";
