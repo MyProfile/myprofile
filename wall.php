@@ -191,7 +191,7 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "       <table border=\"0\">\n"; 
     $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
     $form_area .= "       <tr><td><textarea name=\"comment\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
-    $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \"> <font color=\"grey\">";
+    $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \" /> <font color=\"grey\">";
     $form_area .= "       <small>[Note: you can always delete your message after]</small></font></p></td></tr>\n";
     $form_area .= "       </table>\n";
     $form_area .= "   </td>\n";
@@ -199,12 +199,12 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "</table>\n";
     $form_area .= "</form>\n";
 } else {
-    $form_area = "<p><font style=\"font-size: 1.3em;\"><a href=\"" . $idp . "" . $page_uri . "\">Login</a> with your WebID to post messages.</font></p>\n";
+    $form_area = "<p><font style=\"font-size: 1.3em;\"><a href=\"" . IDP . "" . $page_uri . "\">Login</a> with your WebID to post messages.</font></p>\n";
 }
 
 // Page title (User's Wall)
 $ret .= "<div>";
-$ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . $title . " Wall</font>\n";
+$ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . $title . " Wall</font></p>\n";
 $ret .= "<p>Subscribe now using this <a href=\"" . $base_uri . "/atom.php?id=" . $owner_hash . "\">Atom feed</a>.</p>\n";
 $ret .= "</div>";
 
@@ -229,7 +229,7 @@ if (!$result) {
     $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
 } else {
     $ret .= "<form method=\"GET\" action=\"\">\n";
-    $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\">\n";    
+    $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\" />\n";    
     $ret .= "<table border=\"0\">\n";
         
     // populate table
@@ -250,27 +250,32 @@ if (!$result) {
         $ret .= "<tr><td colspan=\"2\">\n";
         $ret .= "<a name=\"post_" . $row['id'] . "\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/></a>\n";
         $ret .= "</td></tr>\n";
-
-        $ret .= "<tr valign=\"top\" property=\"sioc:Post\">\n";
+        
+        $ret .= "<tr valign=\"top\">\n";
         $ret .= "<td width=\"80\" align=\"center\">\n";
         // image
-        $ret .= "<a class=\"avatar-link\" href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" /></a>\n";
+        $ret .= "<a class=\"avatar-link\" href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" property=\"sioc:avatar\"/></a>\n";
         $ret .= "</td>\n";
         $ret .= "<td>";
         $ret .= "<table style=\"width: 700px;\" border=\"0\">\n";
         $ret .= "<tr valign=\"top\">\n";
         $ret .= "<td>\n";
         // author's name
-        $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b>";
+        $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
+        $ret .= "   <span property=\"sioc:UserAccount\">" . $name . "</span>";
+        $ret .= "</a></b>";
         // time of post
-        $ret .= "<font color=\"grey\"> wrote <span id=\"date_" . $row['id'] . "\">";
+        $ret .= "<font color=\"grey\"> wrote <span property=\"dcterms:created\">" . date("Y-m-d H:m:s", $row['date']) . "</span> ";
+        $ret .= "<span id=\"date_" . $row['id'] . "\">";
         $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(" . $timestamp . ").from());</script>";
         $ret .= "</span></font>\n";
         $ret .= "</td>\n";
         $ret .= "</tr>\n";
         $ret .= "<tr>\n";
         // message
-        $ret .= "<td><p><pre id=\"message_" . $row['id'] . "\"><span id=\"message_text_" . $row['id'] . "\">" . put_links($text) . "</span></pre></p></td>\n";
+        $ret .= "<td><p><pre id=\"message_" . $row['id'] . "\"><span property=\"sioc:Post\" id=\"message_text_" . $row['id'] . "\">\n";
+        $ret .= put_links($text);
+        $ret .= "</span></pre></p></td>\n";
         $ret .= "</tr>\n";
         $ret .= "<tr>\n";
         $ret .= "<td><small>";
@@ -302,7 +307,8 @@ if (!$result) {
     mysql_free_result($result);
 
     $ret .= "</table>\n";
-    $ret .= "</form>\n"; 
+    $ret .= "</form>\n";
+    $ret .= "</div>\n";
 }
 
 require 'header.php';
