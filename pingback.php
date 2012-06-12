@@ -91,11 +91,15 @@ if (isset($_POST['source'])) {
                                 'To' => $to,
                                 'Subject' => $subject);
 
-                $smtp = Mail::factory('smtp', array ('host' => SMTP_SERVER,
-                                                     'auth' => SMTP_AUTHENTICATION,
-                                                     'username' => SMTP_USERNAME,
-                                                     'password' => SMTP_PASSWORD));
-
+                if (SMTP_AUTHENTICATION == true) {
+                    $mail_factory = Mail::factory('smtp', array ('host' => SMTP_SERVER,
+                                                         'auth' => SMTP_AUTHENTICATION,
+                                                         'username' => SMTP_USERNAME,
+                                                         'password' => SMTP_PASSWORD));
+                } else {
+                    $mail_factory = Mail::factory('mail');
+                }
+                
                 $message = '<html><body>';
                 $message .= '<p>Hello ' . $to_name . ',</p>';
                 $message .= '<p>You have just received a new message from ' . $name . '! ';
@@ -117,7 +121,7 @@ if (isset($_POST['source'])) {
                 $headers = $mime->headers($headers); 
                 $body = $mime->get($mimeparams);
 
-                $mail = $smtp->send($to, $headers, $body);
+                $mail = $mail_factory->send($to, $headers, $body);
 
                 if (PEAR::isError($mail)) {
                     $ret .= error('Sendmail: ' . $mail->getMessage());
