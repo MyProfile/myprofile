@@ -386,31 +386,12 @@ function addSecurity (type, table) {
         // append label to left cell
         var label = document.createTextNode("Modulus: ");
         var exponent = document.createTextNode(" Exponent: ");
-        var id_label = document.createTextNode("Identity (WebID URI): ");
-        
-        // create URI field
-        var identity = document.createElement("input");
-        //Assign different attributes to the element.
-        identity.setAttribute("type", 'text');
-        identity.setAttribute("size", '32');
-        identity.setAttribute("value", '');
-        identity.setAttribute("name", 'identity[]');
-
-        // append input field to right table cell
-        cell_l.appendChild(id_label);
-        cell_r.appendChild(identity);
-        // append cells to row
-        row.appendChild(cell_l);
-        row.appendChild(cell_r);
-        var foo = document.getElementById(table);
-        // append row to table
-        foo.appendChild(row);
 
         //Create textarea for certificate modulus.
         var modulus = document.createElement("textarea");
         //Assign different attributes to the element.
         modulus.setAttribute("cols", '48');
-        modulus.setAttribute("rows", '7');
+        modulus.setAttribute("onFocus", 'textAreaResize(this)');
         modulus.setAttribute("value", '');
         modulus.setAttribute("style", 'margin:1px; padding:1px; border-style:solid; border-color: #666; border-width:1px;');
         modulus.setAttribute("name", 'modulus[]');
