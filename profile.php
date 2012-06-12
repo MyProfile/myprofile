@@ -300,7 +300,7 @@ if (isset($_REQUEST['doit']))  {
                 $alert .= success('Your profile has been updated.');
                 // reload the profile information
                 $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
-                $_SESSION['myprofile']->load();
+                $_SESSION['myprofile']->load(true);
             } else {
                 $alert .= error('Could not update your profile!');
             }
@@ -434,28 +434,7 @@ if ($_REQUEST['action'] == 'edit') {
             $certs .= "   <td>\n";
             $certs .= "       <table>\n";
             $certs .= "       <tr>\n";
-            $certs .= "          <td><textarea style=\"height: 130px;\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
-            $certs .= "          <td> Exponent: <input type=\"text\" size=\"10\" value=\"" . $int . "\" name=\"exponent[]\"></td>\n";
-            $certs .= "       </tr>\n";
-            $certs .= "       </table>\n";
-            $certs .= "   </td>\n";
-            $certs .= "</tr>\n";
-        }
-    } else {
-        foreach ($graph->allOfType('cert:RSAPublicKey') as $cert) {
-            $hex = preg_replace('/\s+/', '', strtolower($cert->get('cert:modulus')));
-            $int = $cert->get('cert:exponent');
-            if ($hex == '[NULL]')
-                $hex = '';
-            if ($int == '[NULL]')
-                $int = '';
-            
-            $certs .= "<tr>\n";
-            $certs .= "   <td>Modulus: </td>\n";
-            $certs .= "   <td>\n";
-            $certs .= "       <table>\n";
-            $certs .= "       <tr>\n";
-            $certs .= "          <td><textarea style=\"height: 130px;\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
+            $certs .= "          <td><textarea style=\"height: 130px;\" onfocus=\"textAreaResize(this)\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
             $certs .= "          <td> Exponent: <input type=\"text\" size=\"10\" value=\"" . $int . "\" name=\"exponent[]\"></td>\n";
             $certs .= "       </tr>\n";
             $certs .= "       </table>\n";
