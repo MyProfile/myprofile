@@ -19,8 +19,8 @@
  *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
- 
-ini_set('memory_limit', '256M');
+
+ini_set('memory_limit', '64M');
 set_time_limit ( 0 );
 
 // schema file to be used as source
@@ -198,7 +198,10 @@ if (isset($_REQUEST['submit'])) {
     $db_pass		= trim($_REQUEST['pass']);
     
     /* SMTP server config */
-    $smtp_authentication = $_REQUEST['smtp_auth']; 
+    if (isset($_REQUEST['smtp_auth']))
+        $smtp_authentication = true;
+    else
+        $smtp_authentication = false;
     $smtp_server		= trim($_REQUEST['smtp_server']);
     $smtp_username		= trim($_REQUEST['smtp_user']);
     $smtp_passpasswod	= trim($_REQUEST['smtp_pass']);
@@ -220,31 +223,34 @@ if (isset($_REQUEST['submit'])) {
         $content .= "\n";
         $content .= "// ------------- USER STUFF ---------------- //\n";
         $content .= "/* Password for CA private key (used to generate client certs) */\n";
-        $content .= '$CApass = \'' . trim($_REQUEST['capass']) . '\';' . "\n";
+        $content .= 'define (\'CA_PASS\', \'' . trim($_REQUEST['capass']) . '\');' . "\n";
         $content .= "/* OpenSSL config file location */\n";
-        $content .= '$SSLconf = \'' . trim($_REQUEST['openssl']) . '\';' . "\n";
+        $content .= 'define (\'SSL_CONF\', \'' . trim($_REQUEST['openssl']) . '\');' . "\n";
         $content .= "\n";
         $content .= "/* IDP address */\n";
-        $content .= '$idp = \'' . trim($_REQUEST['idp']) . '\';' . "\n";
+        $content .= 'define (\'IDP\', \'' . trim($_REQUEST['idp']) . '\');' . "\n";
+        $content .= "\n";
+        $content .= "/* Cache time to live - default 48h */\n";
+        $content .= 'define (\'CACHE_TTL\', \'' . 48 * 60 * 60 . '\');' . "\n";
         $content .= "\n";
         $content .= "/* SPARQL endpoint */\n";
-        $content .= '$endpoint = \'' . trim($_REQUEST['endpoint']) . '\';' . "\n";
+        $content .= 'define (\'SPARQL_ENDPOINT\', \'' . trim($_REQUEST['endpoint']) . '\');' . "\n";
         $content .= "\n";
         $content .= "/* Database config */\n";
-        $content .= '$db_database   = \'' . $db_database . '\';' . "\n";
-        $content .= '$db_host       = \'' . $db_host . '\';' . "\n";
-        $content .= '$db_user       = \'' . $db_user . '\';' . "\n";
-        $content .= '$db_pass       = \'' . $db_pass . '\';' . "\n";
+        $content .= 'define (\'DB_DATABASE\', \'' . $db_database . '\');' . "\n";
+        $content .= 'define (\'DB_HOST\', \'' . $db_host . '\');' . "\n";
+        $content .= 'define (\'DB_USER\', \'' . $db_user . '\');' . "\n";
+        $content .= 'define (\'DB_PASS\', \'' . $db_pass . '\');' . "\n";
         $content .= "\n";
         $content .= "/* SMTP config */\n";
-        $content .= '$smtp_authentication   = \'' . $smtp_authentication . '\';' . "\n";
-        $content .= '$smtp_server       = \'' . $smtp_server . '\';' . "\n";
-        $content .= '$smtp_username     = \'' . $smtp_user . '\';' . "\n";
-        $content .= '$smtp_passwrod     = \'' . $smtp_pass . '\';' . "\n";
+        $content .= 'define (\'SMTP_AUTHENTICATION\', ' . $smtp_authentication . ');' . "\n";
+        $content .= 'define (\'SMTP_SERVER\', \'' . $smtp_server . '\');' . "\n";
+        $content .= 'define (\'SMTP_USERNAME\', \'' . $smtp_username . '\');' . "\n";
+        $content .= 'define (\'SMTP_PASSWORD\', \'' . $smtp_passpasswod . '\');' . "\n";
         $content .= "\n";
         $content .= "// Establish db connection\n";
-        $content .= 'mysql_connect($db_host,$db_user,$db_pass) or die(\'Unable to establish a DB connection\');' . "\n";
-        $content .= 'mysql_select_db($db_database);' . "\n";
+        $content .= 'mysql_connect(DB_HOST, DB_USER, DB_PASS) or die(\'Unable to establish a database connection\');' . "\n";
+        $content .= 'mysql_select_db(DB_DATABASE);' . "\n";
         $content .= "mysql_query(\"SET names UTF8\");\n";
         $content .= "?>";
 
@@ -321,7 +327,7 @@ if (isset($_REQUEST['submit'])) {
 
     $ret .= "<tr><td colspan=\"2\"><br/><p><strong>Delegated authentication</strong></p><br/></td></tr>\n";
     $ret .= "<tr><td>IdP address: </td><td><input type=\"text\" name=\"idp\" size=\"50\" value=\"https://auth.my-profile.eu/auth/index.php?authreqissuer=\"></td></tr>\n";
-    $ret .= "<tr><td colspan=\"2\"><font color=\"grey\">Important note regarding using a different IdP: if you want to use a different IdP, you will have to edit the file <i>lib/libAuthentication/lib/Authentication_X509CertRepo.php</i> and add the IdP's certificate in (PEM form) to the array of IdPs.</font></td></tr>\n";
+    $ret .= "<tr><td colspan=\"2\"><font color=\"grey\">Important note regarding using a different IdP: if you want to use a different IdP, you will have to manually edit the file <i>lib/libAuthentication/Authentication_X509CertRepo.php</i> and add the IdP's certificate in (PEM form) to the array of IdPs.</font></td></tr>\n";
 
     $ret .= "<tr><td colspan=\"2\"><br/><p><strong>SPARQL endpoint</strong></p><br/></td></tr>\n";
     $ret .= "<tr><td>Endpoint address: </td><td><input type=\"text\" name=\"endpoint\" size=\"50\" value=\"\"></td></tr>\n";
