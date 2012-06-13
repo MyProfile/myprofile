@@ -30,7 +30,7 @@ if (isset($_REQUEST['webid'])) {
     $profile = $person->get_profile();
 } else {
     // verify if we're logged in or not, so we get the user's list of contacts
-    check_auth($idp, $page_uri);
+    check_auth(IDP, $page_uri);
     $profile = $_SESSION['myprofile']->get_profile();
 }
 

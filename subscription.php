@@ -22,7 +22,7 @@
 require_once 'include.php'; 
 
 // verify if we're logged in or not
-check_auth($idp, $page_uri);
+check_auth(IDP, $page_uri);
 
 $ret = "";
 $ret .= "<div class=\"container\">\n";

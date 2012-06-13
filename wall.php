@@ -25,7 +25,7 @@ require 'include.php';
 $ret = '';
 // fetch the WebID of the wall's owner
 if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST['user'] != 'local'))) {
-    check_auth($idp, $page_uri);
+    check_auth(IDP, $page_uri);
     
     $owner_webid = get_webid_by_hash(trim($_REQUEST['user']));
     // fetch owner's profile
@@ -71,7 +71,7 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
 // delete a post
 if (isset($_REQUEST['del'])) {
     // verify if we're logged in or not
-    check_auth($idp, $page_uri);
+    check_auth(IDP, $page_uri);
     
     $webid = mysql_real_escape_string($_SESSION['webid']);
     $del = mysql_real_escape_string($_REQUEST['del']);
@@ -111,7 +111,7 @@ if (isset($_REQUEST['del'])) {
 // ADD a post
 if (isset($_REQUEST['comment'])) {
 	// verify if we're logged in or not
-	check_auth($idp, $page_uri);
+	check_auth(IDP, $page_uri);
     if ((isset($_REQUEST['user'])) && (strlen($_REQUEST['user']) > 0))
         $to_hash = $_REQUEST['user'];
     else
