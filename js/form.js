@@ -148,6 +148,39 @@ function removeElement (id) {
     $('#' + id).remove();
 }
 
+// vote on a message
+function setVote (base, vote, message_id) {
+    var other_base = '';
+    var other_vote = '';
+    if (vote == 'no') {
+        other_base = 'yes_' + message_id;
+        other_vote = 'yes';
+    } else if (vote == 'yes') {
+        other_base = 'no_' + message_id;
+        other_vote = 'no';
+    }
+
+    $.post('include.php?vote=' + vote + '&message_id=' + message_id, function(data) {
+        // disable the link for the current vote button
+        $('#' + base).parent().removeAttr('onclick');
+        $('#' + base).parent().removeAttr('style');
+        $('#' + base).empty().append(data);
+        
+        // enable the link for the other vote button
+        $('#' + other_base).parent().attr('onClick', "setVote('" + other_vote + "_" + message_id + "', '" + other_vote + "', '" + message_id + "')");
+        $('#' + other_base).parent().attr('style', 'cursor: pointer;');
+        
+        // substract one vote from the other vote type (no -> yes / yes -> no)
+        
+        var new_val = parseInt($('#' + other_base).text());
+        if (new_val > 0) {
+            new_val = new_val - 1;
+            $('#' + other_base).text(new_val);
+        }
+    });
+}
+
+
 // Update a wall post
 function updateWall (base, action, postId) {
     // fetch text content
@@ -386,12 +419,31 @@ function addSecurity (type, table) {
         // append label to left cell
         var label = document.createTextNode("Modulus: ");
         var exponent = document.createTextNode(" Exponent: ");
+        var id_label = document.createTextNode("Identity (WebID URI): ");
+        
+        // create URI field
+        var identity = document.createElement("input");
+        //Assign different attributes to the element.
+        identity.setAttribute("type", 'text');
+        identity.setAttribute("size", '32');
+        identity.setAttribute("value", '');
+        identity.setAttribute("name", 'identity[]');
+
+        // append input field to right table cell
+        cell_l.appendChild(id_label);
+        cell_r.appendChild(identity);
+        // append cells to row
+        row.appendChild(cell_l);
+        row.appendChild(cell_r);
+        var foo = document.getElementById(table);
+        // append row to table
+        foo.appendChild(row);
 
         //Create textarea for certificate modulus.
         var modulus = document.createElement("textarea");
         //Assign different attributes to the element.
         modulus.setAttribute("cols", '48');
-        modulus.setAttribute("onFocus", 'textAreaResize(this)');
+        modulus.setAttribute("rows", '7');
         modulus.setAttribute("value", '');
         modulus.setAttribute("style", 'margin:1px; padding:1px; border-style:solid; border-color: #666; border-width:1px;');
         modulus.setAttribute("name", 'modulus[]');

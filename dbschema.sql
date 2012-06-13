@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.5deb1
+-- version 3.4.10.1deb1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 04, 2012 at 09:41 PM
--- Server version: 5.1.61
--- PHP Version: 5.3.6-13ubuntu3.6
+-- Generation Time: Jun 13, 2012 at 02:28 PM
+-- Server version: 5.5.24
+-- PHP Version: 5.3.10-1ubuntu3.1
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -26,16 +26,15 @@ SET time_zone = "+00:00";
 -- Table structure for table `pingback`
 --
 
-DROP TABLE IF EXISTS `pingback`;
 CREATE TABLE IF NOT EXISTS `pingback` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `webid` varchar(512) CHARACTER SET utf8 NOT NULL COMMENT 'WebID URI',
   `feed_hash` varchar(8) NOT NULL,
   `feed_type` tinyint(1) NOT NULL,
   `user_hash` varchar(8) DEFAULT NULL,
-  `email` tinyint(1) DEFAULT 1,
+  `email` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -43,7 +42,6 @@ CREATE TABLE IF NOT EXISTS `pingback` (
 -- Table structure for table `pingback_messages`
 --
 
-DROP TABLE IF EXISTS `pingback_messages`;
 CREATE TABLE IF NOT EXISTS `pingback_messages` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `date` bigint(20) NOT NULL,
@@ -56,7 +54,22 @@ CREATE TABLE IF NOT EXISTS `pingback_messages` (
   `wall` tinyint(1) NOT NULL DEFAULT '0',
   `new` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `votes`
+--
+
+CREATE TABLE IF NOT EXISTS `votes` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `webid` varchar(512) NOT NULL COMMENT 'The person who cast the vote.',
+  `timestamp` bigint(20) NOT NULL COMMENT 'Timestamp for the vote.',
+  `message_id` int(11) NOT NULL COMMENT 'Message ID.',
+  `vote` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Stores the votes for each message.';
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

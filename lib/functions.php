@@ -2,26 +2,6 @@
 
 if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file directly');
 
-$NAMESPACES = "
-	PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> .
-  	PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-  	PREFIX rdfa: <http://www.w3.org/1999/xhtml/vocab#> .
-  	PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-	PREFIX owl: <http://www.w3.org/2002/07/owl#> .
-  	PREFIX foaf: <http://xmlns.com/foaf/0.1/> .
-  	PREFIX dc: <http://purl.org/dc/elements/1.1/> . 
-  	PREFIX dcterms: <http://purl.org/dc/terms/> .
-  	PREFIX skos: <http://www.w3.org/2004/02/skos/core#> .
-  	PREFIX sioc: <http://rdfs.org/sioc/ns#> .
-  	PREFIX sioct: <http://rdfs.org/sioc/types#> .
-  	PREFIX xfn: <http://gmpg.org/xfn/11#> .
-  	PREFIX twitter: <http://twitter.com/> .
-  	PREFIX rss: <http://purl.org/rss/1.0/> .
-  	PREFIX wot: <http://xmlns.com/wot/0.1/> .
-    PREFIX rsa: <http://www.w3.org/ns/auth/rsa#> .
-    PREFIX cert: <http://www.w3.org/ns/auth/cert#> .
-";
-
 // Use SPARQL to manage graphs
 function sparql_lookup($string, $base_uri, $endpoint) {
     $ret = '';
@@ -268,27 +248,6 @@ function get_sub_by_webid($webid) {
         return $row;
     }    
 }    
-
-/* return the number of messages with the given parameters 
- * @webid = URI 
- * @new = 0 (viewed) / 1 (new)
-*/
-function get_msg_count($webid, $new=1, $wall=null) {
-    $sql = "SELECT id FROM pingback_messages WHERE ";
-    $sql .= "to_uri='" . mysql_real_escape_string($webid) . "' ";
-    $sql .= "AND new='" . mysql_real_escape_string($new) . "' ";
-    if ($wall !== null)
-        $sql .= "AND wall='" . mysql_real_escape_string($wall) . "' ";
-
-    $result = mysql_query($sql);
-    if (!$result) {
-        return null;
-    } else {
-        $messages = mysql_num_rows($result);
-        mysql_free_result($result);
-        return $messages;
-    }
-}
 
 // return the WebID URI of a user based on the hash value provided
 function get_webid_by_hash($hash) {

@@ -73,39 +73,7 @@ if (isset($_REQUEST['del'])) {
     // verify if we're logged in or not
     check_auth(IDP, $page_uri);
     
-    $webid = mysql_real_escape_string($_SESSION['webid']);
-    $del = mysql_real_escape_string($_REQUEST['del']);
-    $reason = '';
-
-    // check if we are allowed to delete?
-    $query = "SELECT id FROM pingback_messages WHERE (from_uri='" . $webid . "' OR to_uri='" . $webid . "') AND id='" . $del . "'";
-    $result = mysql_query($query);
-    if (!$result) {
-        $ok = 0;
-        $reason = 'The message has NOT been deleted [SQL error 1].';
-    } else if (mysql_num_rows($result) > 0){
-        $query = "DELETE FROM pingback_messages WHERE id='" . $del . "'";
-        $result = mysql_query($query);
-        if (!$result) {
-            $ok = 0;
-            $reason = 'The message has NOT been deleted [SQL error 2].';
-        } else {
-            $ok = 1;
-            $reason = 'The message has been successfully deleted.';
-        }
-        if ($result !== true && $result !== false) {
-            mysql_free_result($result);
-        }
-    } else {
-        $ok = 0;
-        $reason = 'The message has NOT been deleted. [unknown cause]';
-    }
-    
-    // display visual confirmation
-    if ($ok == 1)
-        $confirmation = success($reason);
-    else if ($ok == 0)
-        $confirmation = error($reason);
+    $confirmation = delete_message($_SESSION['webid'], $_REQUEST['del']);
 }
 
 // ADD a post
@@ -120,24 +88,24 @@ if (isset($_REQUEST['comment'])) {
     $msg = trim(substr($_REQUEST['comment'], 0, 10000));
 
     if (isset($_REQUEST['new'])) {
-    // Insert into databse
-    $query = "INSERT INTO pingback_messages SET ";
-    $query .= "date='" . time() . "', ";
-    $query .= "from_uri = '" . mysql_real_escape_string($_SESSION['webid']) . "', ";
-    $query .= "to_hash='" . $to_hash . "', ";
-    if ($owner_webid != 'local')
-        $query .= "to_uri = '" . mysql_real_escape_string($owner_webid) . "', ";
-    $query .= "name = '" . mysql_real_escape_string($_SESSION['usr']) . "', ";
-    $query .= "pic = '" . mysql_real_escape_string($_SESSION['img']) . "', ";
-    $query .= "msg = '" . mysql_real_escape_string($msg) . "', ";
-    $query .= "wall='1'";
+        // Insert into databse
+        $query = "INSERT INTO pingback_messages SET ";
+        $query .= "date='" . time() . "', ";
+        $query .= "from_uri = '" . mysql_real_escape_string($_SESSION['webid']) . "', ";
+        $query .= "to_hash='" . $to_hash . "', ";
+        if ($owner_webid != 'local')
+            $query .= "to_uri = '" . mysql_real_escape_string($owner_webid) . "', ";
+        $query .= "name = '" . mysql_real_escape_string($_SESSION['usr']) . "', ";
+        $query .= "pic = '" . mysql_real_escape_string($_SESSION['img']) . "', ";
+        $query .= "msg = '" . mysql_real_escape_string($msg) . "', ";
+        $query .= "wall='1'";
 
-    $result = mysql_query($query);
-    if (!$result) {
-        $ret  .= error('Database error while trying to insert new message!');
-    } else if ($result !== true) {
-        mysql_free_result($result);
-    }
+        $result = mysql_query($query);
+        if (!$result) {
+            $ret  .= error('Database error while trying to insert new message!');
+        } else if ($result !== true) {
+            mysql_free_result($result);
+        }
 
     }
 
@@ -180,7 +148,7 @@ else
 // Form allowing to post messages on the wall
 if (isset($_SESSION['webid'])) {
     $form_area = "<form name=\"write_wall\" method=\"POST\" action=\"" . htmlentities($_SERVER['PHP_SELF']) . "\">\n";
-    $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $_REQUEST['user'] . "\" />\n";
+    $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $owner_hash . "\" />\n";
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
@@ -219,8 +187,8 @@ if (isset($confirmation))
 $ret .= $form_area;
 
 // display wall messages
-// get the last 100 messages
-$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 100";
+// get the last 50 messages
+$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 50";
 $result = mysql_query($query);
 
 if (!$result) {
@@ -297,6 +265,11 @@ if (!$result) {
             // add option to delete post
             $ret .= " <a href=\"wall.php" . $add . "&del=" . $row['id'] . "\">Delete</a>\n";
         }
+        
+        // show vote counters and buttons for logged users
+        if (isset($_SESSION['webid']))
+            $ret .= add_vote_buttons($_SESSION['webid'], $row['id']);
+        
         $ret .= "</small></td>\n";
         $ret .= "</tr>\n";
         $ret .= "</table>\n";
