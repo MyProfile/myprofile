@@ -42,7 +42,11 @@ if (!file_exists('config.php')) {
 // Local includes
 require_once 'config.php';
 require_once 'lib/functions.php';
+require_once 'lib/Messages.php';
 require_once 'lib/MyProfile.class.php';
+// Email libs
+require_once 'lib/Mail.php';
+require_once 'lib/Mail/mime.php';
 
 // Logging
 require_once 'lib/logger.php';
@@ -66,6 +70,7 @@ if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') {
 $page_uri .= '://' . $_SERVER['SERVER_NAME'];
 // this is the base uri 
 $base_uri = $page_uri;
+define ('BASE_URI', $base_uri);
 // add current document
 $page_uri .= $_SERVER['REQUEST_URI'];
 
@@ -159,6 +164,15 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
 
     $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load();
+}
+
+// cast a YES vote for a given message and user
+if ((isset($_REQUEST['vote'])) && ($_REQUEST['vote'] == 'yes') && (isset($_SESSION['myprofile'])) && (isset($_REQUEST['message_id']))) {
+    echo cast_vote ($_SESSION['webid'], $_REQUEST['message_id'], 1);
+}
+// cast a NO vote for a given message and user
+if ((isset($_REQUEST['vote'])) && ($_REQUEST['vote'] == 'no') && (isset($_SESSION['myprofile'])) && (isset($_REQUEST['message_id']))) {
+    echo cast_vote ($_SESSION['webid'], $_REQUEST['message_id'], 0);
 }
 
 ?>

@@ -19,6 +19,7 @@
     <link type="text/css" href="css/bootstrap.css" rel="stylesheet" />
     <link type="text/css" href="css/bootstrap-responsive.css" rel="stylesheet" />
     <link type="text/css" href="css/demo.css" rel="stylesheet" />
+
     <style type="text/css">
       /* Override some defaults */
       html, body {
@@ -83,6 +84,8 @@
 <script type="text/javascript" src="js/bootstrap-tab.js"></script>
 <script type="text/javascript" src="js/moment.min.js"></script>
 <script type="text/javascript" src="js/prettify.js"></script>
+<script type="text/javascript" src="js/autocomplete.js"></script>
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
 
 <div class="navbar navbar-classic" id="navbar-example" align="center">
   <div class="navbar-inner" style="height: 40px; width: 900px;">
