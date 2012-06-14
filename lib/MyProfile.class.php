@@ -86,19 +86,24 @@ class MyProfile {
         $db = sparql_connect($this->endpoint);
         $query = 'SELECT * FROM <' . $this->webid . '> WHERE {?person dc:date ?date . FILTER (?date > "' . $date . '"^^xsd:dateTime)}';
         $result = sparql_query($query);
-        // cache data into the triple store if it's the first time we see it
-        $count = sparql_num_rows($result);
 
-        // force refresh of data if cache expired
-        if ($count == 0)
-            $this->sparql_cache();
+        // fallback to Graphite if there's a problem with the SPARQL endpoint
+        if (!$result) {
+            $this->direct_graph();
+        } else {
+            // cache data into the triple store if it's the first time we see it
+            $count = sparql_num_rows($result);
 
-        $query = "CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <" . $this->webid . "> { ?s ?p ?o } . }";
-        $graph = new Graphite();
-        $graph->loadSPARQL($this->endpoint, $query);
-        
-        $this->graph = $graph;
-        
+            // force refresh of data if cache expired
+            if ($count == 0)
+                $this->sparql_cache();
+
+            $query = "CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <" . $this->webid . "> { ?s ?p ?o } . }";
+            $graph = new Graphite();
+            $graph->loadSPARQL($this->endpoint, $query);
+            
+            $this->graph = $graph;
+        }
         return true;
     }
     
