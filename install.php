@@ -202,6 +202,7 @@ if (isset($_REQUEST['submit'])) {
         $smtp_authentication = true;
     else
         $smtp_authentication = false;
+    $smtp_email         = trim($_REQUEST['smtp_email']);   
     $smtp_server		= trim($_REQUEST['smtp_server']);
     $smtp_username		= trim($_REQUEST['smtp_user']);
     $smtp_passpasswod	= trim($_REQUEST['smtp_pass']);
@@ -243,6 +244,7 @@ if (isset($_REQUEST['submit'])) {
         $content .= 'define (\'DB_PASS\', \'' . $db_pass . '\');' . "\n";
         $content .= "\n";
         $content .= "/* SMTP config */\n";
+        $content .= 'define (\'SMTP_EMAIL\', ' . $smtp_email . ');' . "\n";
         $content .= 'define (\'SMTP_AUTHENTICATION\', ' . $smtp_authentication . ');' . "\n";
         $content .= 'define (\'SMTP_SERVER\', \'' . $smtp_server . '\');' . "\n";
         $content .= 'define (\'SMTP_USERNAME\', \'' . $smtp_username . '\');' . "\n";
@@ -339,6 +341,7 @@ if (isset($_REQUEST['submit'])) {
     $ret .= "<tr><td>Database pass: </td><td><input type=\"password\" name=\"pass\" value=\"\"></td></tr>\n";
 
     $ret .= "<tr><td colspan=\"2\"><br/><p><strong>Email server</strong></p><br/></td></tr>\n";
+    $ret .= "<tr><td>Email address: </td><td><input type=\"text\" name=\"smtp_email\" placeholder=\"user@example.com\" value=\"\"></td></tr>\n";
     $ret .= "<tr><td>Email server: </td><td><input type=\"text\" name=\"smtp_server\" value=\"\"></td></tr>\n";
     $ret .= "<tr><td colspan=\"2\">Does the server require authentication? <input type=\"checkbox\" name=\"smtp_auth\" value=\"\"></td></tr>\n";
     $ret .= "<tr><td>Email user: </td><td><input type=\"text\" name=\"smtp_user\" value=\"\"></td></tr>\n";

@@ -21,8 +21,6 @@
 // See <http://www.gnu.org/licenses/> for a description of this license.
 
 require 'include.php';
-require_once 'lib/Mail.php';
-require_once 'lib/Mail/mime.php';
 
 $ret = "";
 
@@ -82,7 +80,7 @@ if (isset($_POST['source'])) {
                 $to_name = $person->get_name();
                 $to_email = $person->get_email();
                 
-                $from = 'MyProfile Notification System <' . SMTP_USERNAME . '>';
+                $from = 'MyProfile Notification System <' . SMTP_EMAIL . '>';
                 $to = '"' . $to_name . '" <' . clean_mail($to_email) . '>';
                 $subject = 'You have received a new personal message!';
 
@@ -90,15 +88,18 @@ if (isset($_POST['source'])) {
                                 'To' => $to,
                                 'Subject' => $subject);
 
-                if (SMTP_AUTHENTICATION == true) {
+                if (strlen(SMTP_SERVER) > 0) {
+                    // use the provided SMTP server to send emails 
                     $mail_factory = Mail::factory('smtp', array ('host' => SMTP_SERVER,
                                                          'auth' => SMTP_AUTHENTICATION,
                                                          'username' => SMTP_USERNAME,
                                                          'password' => SMTP_PASSWORD));
                 } else {
+                    // use the default mailer
                     $mail_factory = Mail::factory('mail');
                 }
-
+                
+                // body of the message
                 $message = '<html><body>';
                 $message .= '<p>Hello ' . $to_name . ',</p>';
                 $message .= '<p>You have just received a new message from ' . $name . '! ';
@@ -112,18 +113,22 @@ if (isset($_POST['source'])) {
                 $crlf = "\n";
                 $mime = new Mail_Mime(array('eol' => $crlf));
                 $mime->setHTMLBody($message);
-
+                
+                // set charset for email to UTF-8
                 $mimeparams=array(); 
                 $mimeparams['html_charset']="UTF-8"; 
                 $mimeparams['head_charset']="UTF-8"; 
 
+                // add headers
                 $headers = $mime->headers($headers); 
                 $body = $mime->get($mimeparams);
 
+                // send the actual email
                 $mail = $mail_factory->send($to, $headers, $body);
-
+                
+                // display error message in case we have problems
                 if (PEAR::isError($mail)) {
-                    $ret .= error('Sendmail: ' . $mail->getMessage());
+                    $ret .= error('Email error: ' . $mail->getMessage());
                 }
             }
             
@@ -146,7 +151,7 @@ if (isset($_POST['source'])) {
     $ret .= "   <body typeof=\"pingback:Container\">\n";
     $ret .= "   <form method=\"post\" action=\"pingback.php\">\n";
     $ret .= "       <p>Your WebID: <input size=\"30\" property=\"pingback:source\" type=\"text\" name=\"source\" /></p>\n";
-    $ret .= "       <p>Target WebID: <input size=\"30\" property=\"pingback:target\" type=\"text\" name=\"target\" value=\"" . $_GET['target'] . "\" /></p>\n";
+    $ret .= "       <p>Target WebID: <input size=\"30\" property=\"pingback:target\" type=\"text\" name=\"target\" value=\"" . $_REQUEST['target'] . "\" /></p>\n";
     $ret .= "       <p>Comment (optional): <input size=\"30\" maxlength=\"256\" type=\"text\" name=\"comment\" style=\"background-color:#fff; border:dashed 1px grey;\" /></p>\n";
     $ret .= "       <p><input type=\"submit\" name=\"submit\" value=\"Ping!\" /></p>\n";
     $ret .= "   </form>\n";
