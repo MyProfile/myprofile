@@ -9,7 +9,8 @@ $query = 'SELECT DISTINCT ?webid, ?name WHERE {
                     ?webid foaf:name ?name .
                     ?webid foaf:nick ?nick .
                     FILTER (regex(?name, "' . $input . '", "i") || regex(?nick, "' . $input . '", "i") || regex(?webid, "' . $input . '", "i"))
-                    MINUS { FILTER (regex(?webid, "nodeID", "i")) }
+                    MINUS { ?webid a foaf:Person .
+                           FILTER (regex(?webid, "nodeID", "i")) }
                     } LIMIT 10';
                     
 $result = $sparql->query($query);
