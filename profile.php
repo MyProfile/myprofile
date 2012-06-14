@@ -223,7 +223,7 @@ if (isset($_REQUEST['doit']))  {
     	    $pubkey			        = $_REQUEST["pubkey"];
 
     	    // Create a x509 SSL certificate in DER format
-        	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, $SSLconf, $CApass);
+        	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, SSL_CONF, CA_PASS);
             $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
           	$output = explode('=', shell_exec($command));
             
