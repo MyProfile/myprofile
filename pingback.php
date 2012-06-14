@@ -74,16 +74,15 @@ if (isset($_POST['source'])) {
             $ret .= "</body></html>\n";
         } else {
             mysql_free_result($result);
-            // Everything is OK, return a proper HTTP response success code
-            
+           
             // Send a mail too if the receiving user allows it
-            if ((is_subscribed_email($to)) && ($to_email != '[NULL]')) {
+            if (is_subscribed_email($to)) {
                 $person = new MyProfile(trim($_POST['target']), $base_uri, SPARQL_ENDPOINT);
                 $person->load();
                 $to_name = $person->get_name();
                 $to_email = $person->get_email();
                 
-                $from = 'MyProfile Notification System <' . $email_username . '>';
+                $from = 'MyProfile Notification System <' . SMTP_USERNAME . '>';
                 $to = '"' . $to_name . '" <' . clean_mail($to_email) . '>';
                 $subject = 'You have received a new personal message!';
 
@@ -99,7 +98,7 @@ if (isset($_POST['source'])) {
                 } else {
                     $mail_factory = Mail::factory('mail');
                 }
-                
+
                 $message = '<html><body>';
                 $message .= '<p>Hello ' . $to_name . ',</p>';
                 $message .= '<p>You have just received a new message from ' . $name . '! ';
@@ -127,6 +126,8 @@ if (isset($_POST['source'])) {
                     $ret .= error('Sendmail: ' . $mail->getMessage());
                 }
             }
+            
+            // Everything is OK, return a proper HTTP response success code
             $ret .= header("HTTP/1.1 201 Created");
             $ret .= header("Status: 201 Created");
             $ret .= "<html><body>\n";
