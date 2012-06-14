@@ -25,8 +25,6 @@
  */ 
 
 require_once 'include.php';
-require_once 'lib/mail.php';
-require_once 'lib/Mail/mime.php';
 
 // verify if we're logged in or not
 check_auth(IDP, $page_uri);
@@ -85,85 +83,7 @@ if (isset($_REQUEST['id'])) {
 
 // send a new message using the pingback protocol
 if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
-    $ret .= "<br/>\n";
-    
-    $to = trim($_REQUEST['to']);
-
-    // fetch the user's profile
-    $person = new MyProfile($to, $base_uri, SPARQL_ENDPOINT);
-    $person->load();
-    $profile = $person->get_profile();
-    
-    $to_name = $person->get_name();
-    $to_email = $person->get_email();
-    $pingback_service = $profile->get("http://purl.org/net/pingback/to");
-    
-    // set form data
-    $source = $_SESSION['webid'];
-    $comment = $_REQUEST['message'];
-        
-    // parse the pingback form
-    $config = array('auto_extract' => 0);
-    $parser = ARC2::getSemHTMLParser($config);
-    $parser->parse($pingback_service);
-    $parser->extractRDF('rdfa');
-    // load triples
-    $triples = $parser->getTriples();
-
-    // proceed only if the user has defined a pingback:to relation    
-    if ($pingback_service != '[NULL]') {
-        if (sizeof($triples) > 0) {
-            //echo "<pre>" . print_r($triples, true) . "</pre>\n";
-            foreach ($triples as $triple) {
-                // proceed only if we have a valid pingback resource
-                if ($triple['o'] == 'http://purl.org/net/pingback/Container') {
-
-                    $fields = array ('source' => $source,
-                                    'target' => $to,
-                                    'comment' => $comment
-                                );
-                    
-                    // Should really replace curl with an ajax call
-                    //open connection to pingback service
-                    $ch = curl_init();
-
-                    //set the url, number of POST vars, POST data
-                    curl_setopt($ch,CURLOPT_URL,$pingback_service);
-                    curl_setopt($ch,CURLOPT_POST,count($fields));
-                    curl_setopt($ch,CURLOPT_POSTFIELDS,$fields);
-                    curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
-
-                    //execute post
-                    $return = curl_exec($ch);
-                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); 
-                    //close connection
-                    curl_close($ch);
-
-                    if (($httpCode == '201') || ($httpCode == '202')) {
-                        $ret .= success('Message delivered!');
-                    } else {
-                        $ret .= error('Something happened and I couldn\'t deliver the message!');
-                        $ret .= "<p>Details:</p>\n";
-                        $ret .= "</p>" . $return . "</p>\n";
-                    }
-
-                    break;
-                }
-            }
-        } else {
-            $ret .= "   <p>$pingback_service does not comply with semantic pingback standards! Showing the pingback service page instead.</p>\n";
-            // show frame
-            $ret .= "   <iframe src=\"$pingback_service\" width=\"100%\" height=\"300\">\n";
-            $ret .= "   <p>Your browser does not support iframes.</p>\n";
-            $ret .= "   </iframe>\n";
-        }
-    } else {
-        // no valid pingback service found, fallback to AKSW 
-        $ret .= "   <p>Could not find a pingback service for the given WebID. Here is a generic pingback service provided by http://pingback.aksw.org/.</p>\n";
-        $ret .= "   <iframe src=\"http://pingback.aksw.org/\" width=\"100%\" height=\"300\">\n";
-        $ret .= "   <p>Your browser does not support iframes.</p>\n";
-        $ret .= "   </iframe>\n";
-    }
+    $ret .= sendPing($_REQUEST['to'], $_REQUEST['message'], $base_uri, true);
 }
 
 // display form to send local messages
