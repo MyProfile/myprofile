@@ -107,7 +107,7 @@ function sendPing ($to, $message, $base_uri, $verbose = false) {
  * @message_id = the message the user votes on
  * returns HTML 
 */
-function add_vote_buttons($webid, $message_id) {
+function add_vote_buttons($message_id) {
     $ret = '';
     
     $yes_votes = get_yes_votes ($message_id);
@@ -116,20 +116,20 @@ function add_vote_buttons($webid, $message_id) {
     $no_votes = get_no_votes ($message_id);
     if ($no_votes == null)
         $no_votes = 0;
-    
-    // Check if the user has already cast a vote 
-    $vote = has_voted($webid, $message_id);
-        
-    $yes_link = "<a onClick=\"setVote('yes_" . $message_id . "', 'yes', '" . $message_id . "')\" style=\"text-decoration: none; cursor: pointer;\">";
-    $no_link = "<a onClick=\"setVote('no_" . $message_id . "', 'no', '" . $message_id . "')\" style=\"text-decoration: none; cursor: pointer;\">";
-    
-    if ($vote == 1) {
-        $yes_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
-    } else if ($vote == 0) {
-        $no_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
-    }
 
     if (isset($_SESSION['webid'])) {
+        // Check if the user has already cast a vote 
+        $vote = has_voted($_SESSION['webid'], $message_id);
+            
+        $yes_link = "<a onClick=\"setVote('yes_" . $message_id . "', 'yes', '" . $message_id . "')\" style=\"text-decoration: none; cursor: pointer;\">";
+        $no_link = "<a onClick=\"setVote('no_" . $message_id . "', 'no', '" . $message_id . "')\" style=\"text-decoration: none; cursor: pointer;\">";
+        
+        if ($vote == 1) {
+            $yes_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
+        } else if ($vote == 0) {
+            $no_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
+        }
+
         $ret .= $yes_link . "<img src=\"img/yes-vote.png\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span></a>\n";
         $ret .= " | ";
         $ret .= $no_link . "<img src=\"img/no-vote.png\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span></a>\n";
