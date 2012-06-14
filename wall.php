@@ -56,7 +56,7 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
         $owner_name = $profile->get_name();
     } else {
         // display main wall for unauthenticated users
-        $ret .= success("You are not allowed to view " . $profile->get_name() . "'s Wall.");
+        $ret .= warning("You are not allowed to view " . $profile->get_name() . "'s Wall.");
         $feed_hash = 'local';
         $owner_webid = 'local';
         $owner_hash = 'local';
