@@ -53,30 +53,33 @@ class MyProfile {
     
     // Cache user data into a SPARQL triplestore
     function sparql_cache() {
-        $db = sparql_connect($this->endpoint);
-        // first delete previous data for the graph
-        $sql = "CLEAR GRAPH <" . $this->webid . ">";
-        $res = sparql_query($sql);
+        // Insert only real WebIDs (i.e. skip bnodes)
+        if ((strpos($this->webid, 'node') !== false) || (strpos($this->webid, '_:') !== false)) {
+            $db = sparql_connect($this->endpoint);
+            // first delete previous data for the graph
+            $sql = "CLEAR GRAPH <" . $this->webid . ">";
+            $res = sparql_query($sql);
+                
+            // Load URI into the triple store
+            $sql = "LOAD <" . $this->webid . ">";
+            $res = sparql_query($sql);
             
-        // Load URI into the triple store
-        $sql = "LOAD <" . $this->webid . ">";
-        $res = sparql_query($sql);
+            // Add the timestamp for the date at which it was inserted
+            $time = time();
+            $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
+            $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> {<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
+            $res = sparql_query($sql);
         
-        // Add the timestamp for the date at which it was inserted
-        $time = time();
-        $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
-        $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> {<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
-        $res = sparql_query($sql);
-        // DEBUG
-        //echo "sql=" . $sql . "<br/>Loaded new graph for: " . $this->webid;
-        
-        return true;
+            return true;
+        } else {
+            return false;
+        }
     }   
     
     // Load profile data using SPARQL
     // returns true
     function sparql_graph() {
-        // cache data is refreshed if it's older than 24h
+        // cache data is refreshed if it's older than the given TTL
         $time = time() - $this->ttl;
         $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
         
@@ -208,6 +211,11 @@ class MyProfile {
     // get the user's full name
     function get_name() {
         return $this->name;
+    }
+    
+    // get the user's nickname
+    function get_nick() {
+        return $this->profile->get("foaf:nick");
     }
     
     // get the user's picture

@@ -85,8 +85,13 @@ if (isset($_REQUEST['comment'])) {
     else
         $to_hash = 'local';
 
+    // Limit the message to 10k characters
     $msg = trim(substr($_REQUEST['comment'], 0, 10000));
-
+            
+    // Get the list of mentioned WebIDs from the message 
+    preg_match_all("/<(.*)>/Ui", $msg, $out, PREG_PATTERN_ORDER);  
+    $webids = $out[1];
+    
     if (isset($_REQUEST['new'])) {
         // Insert into databse
         $query = "INSERT INTO pingback_messages SET ";
@@ -103,8 +108,18 @@ if (isset($_REQUEST['comment'])) {
         $result = mysql_query($query);
         if (!$result) {
             $ret  .= error('Database error while trying to insert new message!');
-        } else if ($result !== true) {
+        } else {
             mysql_free_result($result);
+            
+            // send a notification to each mentioned user
+            foreach ($webids as $to) {
+                $ping_msg = 'I have just mentioned you in a ';
+                $ping_msg .= ($owner_webid != 'local') ? 'private':'public';
+                $ping_msg .=' wall post. You can see it here: ' . $base_uri . '/wall.php?user=' . $to_hash;
+                // send only if the source != target
+                if ($_SESSION['webid'] != $to)
+                    sendPing($to, $ping_msg, $base_uri, false);
+            }
         }
 
     }
@@ -133,7 +148,7 @@ if (isset($_REQUEST['comment'])) {
 
     $result = mysql_query($query);
     if (!$result) {
-        $ret  .= error('Database error while updating user info!');
+        $ret .= error('Database error while updating user info!');
     } else if ($result !== true) {
         mysql_free_result($result);
     }
@@ -158,7 +173,7 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "   <td>\n";
     $form_area .= "       <table border=\"0\">\n"; 
     $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
-    $form_area .= "       <tr><td><textarea name=\"comment\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
+    $form_area .= "       <tr><td><textarea id=\"comment\" name=\"comment\" onfocus=\"textAreaResize(this)\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
     $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \" /> <font color=\"grey\">";
     $form_area .= "       <small>[Note: you can always delete your message after]</small></font></p></td></tr>\n";
     $form_area .= "       </table>\n";
@@ -212,7 +227,9 @@ if (!$result) {
         // Get the date and multiply by 1000 for milliseconds, otherwise moment.js breaks
         $timestamp = $row['date'] * 1000;
 
-        $text = htmlspecialchars($row["msg"]);
+        //$msg = htmlspecialchars($row["msg"]);
+        // Replace WebIDs with actual names and links to the WebID
+        $msg = preg_replace_callback("/<(.*)>/Ui", "preg_get_handle_by_webid", $row["msg"]);
 
         // add horizontal line to separate messages
         $ret .= "<tr><td colspan=\"2\">\n";
@@ -233,7 +250,7 @@ if (!$result) {
         $ret .= "   <span property=\"sioc:UserAccount\">" . $name . "</span>";
         $ret .= "</a></b>";
         // time of post
-        $ret .= "<font color=\"grey\"> wrote <span property=\"dcterms:created\">" . date("Y-m-d H:m:s", $row['date']) . "</span> ";
+        $ret .= "<font color=\"grey\"> wrote ";
         $ret .= "<span id=\"date_" . $row['id'] . "\">";
         $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(" . $timestamp . ").from());</script>";
         $ret .= "</span></font>\n";
@@ -241,9 +258,9 @@ if (!$result) {
         $ret .= "</tr>\n";
         $ret .= "<tr>\n";
         // message
-        $ret .= "<td><p><pre id=\"message_" . $row['id'] . "\"><span property=\"sioc:Post\" id=\"message_text_" . $row['id'] . "\">\n";
-        $ret .= put_links($text);
-        $ret .= "</span></pre></p></td>\n";
+        $ret .= "<td><pre id=\"message_" . $row['id'] . "\"><span property=\"sioc:Post\" id=\"message_text_" . $row['id'] . "\">\n";
+        $ret .= put_links($msg);
+        $ret .= "</span></pre></td>\n";
         $ret .= "</tr>\n";
         $ret .= "<tr>\n";
         $ret .= "<td><small>";
@@ -267,8 +284,7 @@ if (!$result) {
         }
         
         // show vote counters and buttons for logged users
-        if (isset($_SESSION['webid']))
-            $ret .= add_vote_buttons($_SESSION['webid'], $row['id']);
+        $ret .= add_vote_buttons($_SESSION['webid'], $row['id']);
         
         $ret .= "</small></td>\n";
         $ret .= "</tr>\n";
@@ -287,4 +303,7 @@ if (!$result) {
 require 'header.php';
 echo $ret;
 include 'footer.php';
-?>        
+?>
+<script>
+$(document).ready(do_autocomplete("comment"));
+</script>  

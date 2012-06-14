@@ -2,6 +2,106 @@
 
 if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file directly');
 
+
+// Returns a short handle based on a given WebID
+function preg_get_handle_by_webid($array) {
+    $webid = urldecode($array[1]);
+    $person = new MyProfile($webid, BASE_URI, SPARQL_ENDPOINT);
+    $person->load();
+    $name = $person->get_name();
+    $nick = $person->get_nick();
+    
+    $ret = '';
+    $ret .= ' <a href="view.php?uri=' . urlencode($webid) . '">';
+    $ret .= ($nick != '[NULL]') ? '@' . $nick : '@' . $name;
+    $ret .= '</a>';
+    return $ret;
+}
+
+// Attempt to ping someone using Semantic Pingback.
+function sendPing ($to, $message, $base_uri, $verbose = false) {
+    $ret = "<br/>\n";
+    
+    $to = trim($to);
+
+    // fetch the user's profile
+    $person = new MyProfile($to, $base_uri, SPARQL_ENDPOINT);
+    $person->load();
+    $profile = $person->get_profile();
+    
+    $to_name = $person->get_name();
+    $to_email = $person->get_email();
+    $pingback_service = $profile->get("http://purl.org/net/pingback/to");
+    
+    // set form data
+    $source = $_SESSION['webid'];
+        
+    // parse the pingback form
+    $config = array('auto_extract' => 0);
+    $parser = ARC2::getSemHTMLParser($config);
+    $parser->parse($pingback_service);
+    $parser->extractRDF('rdfa');
+    // load triples
+    $triples = $parser->getTriples();
+
+    // proceed only if the user has defined a pingback:to relation    
+    if ($pingback_service != '[NULL]') {
+        if (sizeof($triples) > 0) {
+            //echo "<pre>" . print_r($triples, true) . "</pre>\n";
+            foreach ($triples as $triple) {
+                // proceed only if we have a valid pingback resource
+                if ($triple['o'] == 'http://purl.org/net/pingback/Container') {
+
+                    $fields = array ('source' => $source,
+                                    'target' => $to,
+                                    'comment' => $message
+                                );
+                    
+                    // Should really replace curl with an ajax call
+                    //open connection to pingback service
+                    $ch = curl_init();
+
+                    //set the url, number of POST vars, POST data
+                    curl_setopt($ch,CURLOPT_URL,$pingback_service);
+                    curl_setopt($ch,CURLOPT_POST,count($fields));
+                    curl_setopt($ch,CURLOPT_POSTFIELDS,$fields);
+                    curl_setopt($ch,CURLOPT_RETURNTRANSFER, true);
+
+                    //execute post
+                    $return = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); 
+                    //close connection
+                    curl_close($ch);
+
+                    if (($httpCode == '201') || ($httpCode == '202')) {
+                        $ret .= success('Message delivered!');
+                    } else {
+                        $ret .= error('Something happened and I couldn\'t deliver the message!');
+                        $ret .= "<p>Details:</p>\n";
+                        $ret .= "</p>" . $return . "</p>\n";
+                    }
+
+                    break;
+                }
+            }
+        } else {
+            $ret .= "   <p>$pingback_service does not comply with semantic pingback standards! Showing the pingback service page instead.</p>\n";
+            // show frame
+            $ret .= "   <iframe src=\"$pingback_service\" width=\"100%\" height=\"300\">\n";
+            $ret .= "   <p>Your browser does not support iframes.</p>\n";
+            $ret .= "   </iframe>\n";
+        }
+    } else {
+        // no valid pingback service found, fallback to AKSW 
+        $ret .= "   <p>Could not find a pingback service for the given WebID. Here is a generic pingback service provided by http://pingback.aksw.org/.</p>\n";
+        $ret .= "   <iframe src=\"http://pingback.aksw.org/\" width=\"100%\" height=\"300\">\n";
+        $ret .= "   <p>Your browser does not support iframes.</p>\n";
+        $ret .= "   </iframe>\n";
+    }
+    if ($verbose)
+        return $ret;
+}
+
 /* Display voting counters and buttons
  * @webid = the user who votes
  * @message_id = the message the user votes on
@@ -20,19 +120,25 @@ function add_vote_buttons($webid, $message_id) {
     // Check if the user has already cast a vote 
     $vote = has_voted($webid, $message_id);
         
-    $yes_link = "<a onClick=\"setVote('yes_" . $message_id . "', 'yes', '" . $message_id . "')\" style=\"cursor: pointer;\">";
-    $no_link = "<a onClick=\"setVote('no_" . $message_id . "', 'no', '" . $message_id . "')\" style=\"cursor: pointer;\">";
+    $yes_link = "<a onClick=\"setVote('yes_" . $message_id . "', 'yes', '" . $message_id . "')\" style=\"text-decoration: none; cursor: pointer;\">";
+    $no_link = "<a onClick=\"setVote('no_" . $message_id . "', 'no', '" . $message_id . "')\" style=\"text-decoration: none; cursor: pointer;\">";
     
     if ($vote == 1) {
-        $yes_link = "<a>";
+        $yes_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
     } else if ($vote == 0) {
-        $no_link = "<a>";
+        $no_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
     }
 
-    $ret .= $yes_link . "<img src=\"img/yes-vote.png\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span></a>\n";
-    $ret .= " | ";
-    $ret .= $no_link . "<img src=\"img/no-vote.png\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span></a>\n";
-
+    if (isset($_SESSION['webid'])) {
+        $ret .= $yes_link . "<img src=\"img/yes-vote.png\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span></a>\n";
+        $ret .= " | ";
+        $ret .= $no_link . "<img src=\"img/no-vote.png\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span></a>\n";
+    } else {
+        $ret .= "<img src=\"img/yes-vote.png\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span>\n";
+        $ret .= " | ";
+        $ret .= "<img src=\"img/no-vote.png\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span>\n";
+    }
+    
     return $ret;
 }
 
@@ -201,10 +307,6 @@ function delete_message($webid, $message_id) {
     
     // display visual confirmation
     return ($ok == 1) ? success($reason) : error($reason);
-}
-
-function mark_as_read($message_id) {
-    //
 }
 
 ?>
