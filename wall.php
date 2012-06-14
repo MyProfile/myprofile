@@ -56,7 +56,7 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
         $owner_name = $profile->get_name();
     } else {
         // display main wall for unauthenticated users
-        $ret .= warning("You are not allowed to view " . $profile->get_name() . "'s Wall.");
+        $warning = true;
         $feed_hash = 'local';
         $owner_webid = 'local';
         $owner_hash = 'local';
@@ -209,7 +209,11 @@ $result = mysql_query($query);
 if (!$result) {
     $ret .= error('Unable to connect to the database!');
 } else if (mysql_num_rows($result) == 0){
-    $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
+    if (isset($warning)) {
+        $ret .= "<h3>You are not allowed to see this Wall because you are not a friend of " . $profile->get_name() . ".</h3>";
+    } else {
+        $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
+    }
 } else {
     $ret .= "<form method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\" />\n";    
