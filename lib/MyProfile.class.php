@@ -53,27 +53,22 @@ class MyProfile {
     
     // Cache user data into a SPARQL triplestore
     function sparql_cache() {
-        // Insert only real WebIDs (i.e. skip bnodes)
-        if ((strpos($this->webid, 'node') !== false) || (strpos($this->webid, '_:') !== false)) {
-            $db = sparql_connect($this->endpoint);
-            // first delete previous data for the graph
-            $sql = "CLEAR GRAPH <" . $this->webid . ">";
-            $res = sparql_query($sql);
-                
-            // Load URI into the triple store
-            $sql = "LOAD <" . $this->webid . ">";
-            $res = sparql_query($sql);
+        $db = sparql_connect($this->endpoint);
+        // first delete previous data for the graph
+        $sql = "CLEAR GRAPH <" . $this->webid . ">";
+        $res = sparql_query($sql);
             
-            // Add the timestamp for the date at which it was inserted
-            $time = time();
-            $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
-            $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> {<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
-            $res = sparql_query($sql);
+        // Load URI into the triple store
+        $sql = "LOAD <" . $this->webid . ">";
+        $res = sparql_query($sql);
         
-            return true;
-        } else {
-            return false;
-        }
+        // Add the timestamp for the date at which it was inserted
+        $time = time();
+        $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
+        $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> {<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
+        $res = sparql_query($sql);
+    
+        return true;
     }   
     
     // Load profile data using SPARQL
