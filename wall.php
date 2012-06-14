@@ -284,7 +284,7 @@ if (!$result) {
         }
         
         // show vote counters and buttons for logged users
-        $ret .= add_vote_buttons($_SESSION['webid'], $row['id']);
+        $ret .= add_vote_buttons($row['id']);
         
         $ret .= "</small></td>\n";
         $ret .= "</tr>\n";
