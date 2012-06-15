@@ -62,24 +62,17 @@ require_once 'lib/EasyRdf.php';
 require_once 'lib/graphite.php';
 require_once 'lib/sparqllib.php';
 
-// Get the current document URI (base uri)
-$base_uri = 'http';
+// Get the current document URI
+$page_uri = 'http';
 if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') {
-    $base_uri .= 's';
+    $page_uri .= 's';
 }
-<<<<<<< HEAD
-$base_uri .= '://' . $_SERVER['SERVER_NAME'];
-
-// add current document to form full uri
-$page_uri = $_SERVER['REQUEST_URI'];
-=======
 $page_uri .= '://' . $_SERVER['SERVER_NAME'];
 // this is the base uri 
 $base_uri = $page_uri;
 define ('BASE_URI', $base_uri);
 // add current document
 $page_uri .= $_SERVER['REQUEST_URI'];
->>>>>>> develop
 
 // Preparing the session
 session_name('tzLogin');
@@ -138,7 +131,7 @@ if (strlen($auth->webid) > 0) {
         }
 
         // Store some data in the session
-        setcookie('tzRemember', '0');
+        setcookie('tzRemember', '1');
         // Log success
         $log->LogInfo("[SUCCESS] Authenticated " . $webid . " => " . $auth->authnDiagnostic);
     } else {
