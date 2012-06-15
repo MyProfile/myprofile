@@ -31,6 +31,7 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
     // fetch owner's profile
     $profile = new MyProfile($owner_webid, $base_uri, SPARQL_ENDPOINT);
     $profile->load();
+    $owner_name = $profile->get_name();
         
     // display private wall only if the requesting user is a friend or the wall owner
     if (($profile->is_friend($_SESSION['webid'])) || ($_SESSION['user_hash'] == $_REQUEST['user'])) {
@@ -53,7 +54,6 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
             $messages = get_msg_count($_SESSION['webid']);
             $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
         }
-        $owner_name = $profile->get_name();
     } else {
         // display main wall for unauthenticated users
         $warning = true;
@@ -220,10 +220,9 @@ $result = mysql_query($query);
 if (!$result) {
     $ret .= error('Unable to connect to the database!');
 } else if (mysql_num_rows($result) == 0){
-    if (isset($warning)) {
-        $ret .= "<h3>You are not allowed to see this page because you are not a friend of " . $profile->get_name() . ".</h3>";
-    else
         $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
+} else if (isset($warning)) {
+        $ret .= "<h3>You are not allowed to see this page because you are not a friend of " . $profile->get_name() . ".</h3>";
 } else {
     $ret .= "<form method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\" />\n";    
