@@ -19,24 +19,35 @@
  *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+ 
+require_once 'include.php';
+include 'header.php'; 
 
-include_once 'include.php';
+if (isset($_REQUEST['search']))
+    $search = $_REQUEST['search'];
 
-$ret = "";
+$ret = "<div><form action=\"\" method=\"GET\">\n";
+$ret .= "Looking for someone? <input type=\"text\" name=\"search\" placeholder=\"name, nickname or WebID\" value=\"" . $search . "\" style=\"width: 400px;\">\n";
+$ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
+$ret .= "</form></div>\n";
 
-if (isset($_SESSION['webid']))
-    $me = $_SESSION['webid'];
-else if (isset($_REQUEST['me']))
-    $me = urldecode($_REQUEST['me']);
+// Display any alerts here
+if (isset($confirmation))
+    $ret .= $confirmation;
 
-if (isset($_REQUEST['webid'])) {
-    $webid = urldecode($_REQUEST['webid']);
+if (isset($_REQUEST['search'])) {
+    $ret .= '<div>';
+	$ret .= "<h3 class=\"profileHeaders\">Search results for: ";
+	if (strlen($_REQUEST['uri']) > 50)
+    	$ret .= substr(urldecode($_REQUEST['search']), 0, 47) . '...';
+    else
+        $ret .= urldecode($_REQUEST['search']);
+    $ret .= "</h3>\n";
 
-    $ret .= viewShortInfo($webid, $me, $base_uri, SPARQL_ENDPOINT);
+    $ret .= sparql_lookup(trim($_REQUEST['search']), $base_uri, SPARQL_ENDPOINT);
 
-} else {
-    $ret .= "You need to specify a person.";
 }
+
 echo $ret;
-   
-?> 
+include 'footer.php';
+?>        

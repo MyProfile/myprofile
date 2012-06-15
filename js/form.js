@@ -148,6 +148,39 @@ function removeElement (id) {
     $('#' + id).remove();
 }
 
+// vote on a message
+function setVote (base, vote, message_id) {
+    var other_base = '';
+    var other_vote = '';
+    if (vote == 'no') {
+        other_base = 'yes_' + message_id;
+        other_vote = 'yes';
+    } else if (vote == 'yes') {
+        other_base = 'no_' + message_id;
+        other_vote = 'no';
+    }
+
+    $.post('include.php?vote=' + vote + '&message_id=' + message_id, function(data) {
+        // disable the link for the current vote button
+        $('#' + base).parent().removeAttr('onclick');
+        $('#' + base).parent().removeAttr('style');
+        $('#' + base).empty().append(data);
+        
+        // enable the link for the other vote button
+        $('#' + other_base).parent().attr('onClick', "setVote('" + other_vote + "_" + message_id + "', '" + other_vote + "', '" + message_id + "')");
+        $('#' + other_base).parent().attr('style', 'cursor: pointer;');
+        
+        // substract one vote from the other vote type (no -> yes / yes -> no)
+        
+        var new_val = parseInt($('#' + other_base).text());
+        if (new_val > 0) {
+            new_val = new_val - 1;
+            $('#' + other_base).text(new_val);
+        }
+    });
+}
+
+
 // Update a wall post
 function updateWall (base, action, postId) {
     // fetch text content

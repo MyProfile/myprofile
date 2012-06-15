@@ -42,7 +42,11 @@ if (!file_exists('config.php')) {
 // Local includes
 require_once 'config.php';
 require_once 'lib/functions.php';
+require_once 'lib/Messages.php';
 require_once 'lib/MyProfile.class.php';
+// Email libs
+require_once 'lib/Mail.php';
+require_once 'lib/Mail/mime.php';
 
 // Logging
 require_once 'lib/logger.php';
@@ -56,16 +60,26 @@ require_once 'lib/feeds/FeedWriter.php';
 // RDF stuff
 require_once 'lib/EasyRdf.php';
 require_once 'lib/graphite.php';
+require_once 'lib/sparqllib.php';
 
 // Get the current document URI (base uri)
 $base_uri = 'http';
 if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') {
     $base_uri .= 's';
 }
+<<<<<<< HEAD
 $base_uri .= '://' . $_SERVER['SERVER_NAME'];
 
 // add current document to form full uri
 $page_uri = $_SERVER['REQUEST_URI'];
+=======
+$page_uri .= '://' . $_SERVER['SERVER_NAME'];
+// this is the base uri 
+$base_uri = $page_uri;
+define ('BASE_URI', $base_uri);
+// add current document
+$page_uri .= $_SERVER['REQUEST_URI'];
+>>>>>>> develop
 
 // Preparing the session
 session_name('tzLogin');
@@ -113,7 +127,7 @@ if (strlen($auth->webid) > 0) {
         if (!isset($_SESSION['myprofile'])) {
             $_SESSION['webid'] = $webid;
 
-            $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
+            $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
             // load rest of data only if we can load the profile
             if ($_SESSION['myprofile']->load()) {
                 $_SESSION['usr'] = $_SESSION['myprofile']->get_name();
@@ -146,7 +160,7 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
     // add friend and display confirmation
     $confirmation = $_SESSION['myprofile']->add_friend(urldecode($_REQUEST['uri']));
     
-    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
+    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load();
 }
 
@@ -155,8 +169,17 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
     // remove friend and display confirmation    
     $confirmation = $_SESSION['myprofile']->del_friend(urldecode($_REQUEST['uri']));
 
-    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
+    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load();
+}
+
+// cast a YES vote for a given message and user
+if ((isset($_REQUEST['vote'])) && ($_REQUEST['vote'] == 'yes') && (isset($_SESSION['myprofile'])) && (isset($_REQUEST['message_id']))) {
+    echo cast_vote ($_SESSION['webid'], $_REQUEST['message_id'], 1);
+}
+// cast a NO vote for a given message and user
+if ((isset($_REQUEST['vote'])) && ($_REQUEST['vote'] == 'no') && (isset($_SESSION['myprofile'])) && (isset($_REQUEST['message_id']))) {
+    echo cast_vote ($_SESSION['webid'], $_REQUEST['message_id'], 0);
 }
 
 ?>
