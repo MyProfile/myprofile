@@ -131,7 +131,7 @@ if (strlen($auth->webid) > 0) {
         }
 
         // Store some data in the session
-        setcookie('tzRemember', '0');
+        setcookie('tzRemember', '1');
         // Log success
         $log->LogInfo("[SUCCESS] Authenticated " . $webid . " => " . $auth->authnDiagnostic);
     } else {
@@ -153,7 +153,7 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
     // add friend and display confirmation
     $confirmation = $_SESSION['myprofile']->add_friend(urldecode($_REQUEST['uri']));
     
-    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
+    $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load();
 }
 
@@ -162,7 +162,7 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
     // remove friend and display confirmation    
     $confirmation = $_SESSION['myprofile']->del_friend(urldecode($_REQUEST['uri']));
 
-    $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
+    $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load();
 }
 
