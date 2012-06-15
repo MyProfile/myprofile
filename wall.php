@@ -201,19 +201,29 @@ if (isset($confirmation))
 // Add message form 
 $ret .= $form_area;
 
-// display wall messages
-// get the last 50 messages
-$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 50";
+// display activity stream if request is met
+if ((isset($_SESSION['webid'])) && (isset($_REQUEST['activity']))) {
+    $webids = sparql_get_people_im_friend_of($_SESSION['webid'], SPARQL_ENDPOINT);
+    $query = 'SELECT * FROM pingback_messages WHERE to_hash IS NOT NULL AND to_hash NOT LIKE "local" AND (';
+    foreach ($webids as $key => $from) {
+        $add = ($key > 0) ? ' OR' : '';
+        $query .= $add . " from_uri='" . $from . "'";
+    }
+    $query .= ") ORDER by date DESC LIMIT 50";
+} else {
+    // get the last 50 wall messages
+    $query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 50";
+}
+
 $result = mysql_query($query);
 
 if (!$result) {
     $ret .= error('Unable to connect to the database!');
 } else if (mysql_num_rows($result) == 0){
     if (isset($warning)) {
-        $ret .= "<h3>You are not allowed to see this Wall because you are not a friend of " . $profile->get_name() . ".</h3>";
-    } else {
+        $ret .= "<h3>You are not allowed to see this page because you are not a friend of " . $profile->get_name() . ".</h3>";
+    else
         $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
-    }
 } else {
     $ret .= "<form method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\" />\n";    
@@ -231,7 +241,15 @@ if (!$result) {
         // Get the date and multiply by 1000 for milliseconds, otherwise moment.js breaks
         $timestamp = $row['date'] * 1000;
 
-        //$msg = htmlspecialchars($row["msg"]);
+        // To whom it is addressed
+        if (strlen($row['to_uri']) > 0) {
+            $to_person = new MyProfile($row['to_uri'], $base_uri, SPARQL_ENDPOINT);
+            $to_person->load();
+            $to_name = $to_person->get_name();
+        } else {
+            $to_name = 'MyProfile';
+        }
+
         // Replace WebIDs with actual names and links to the WebID
         $msg = preg_replace_callback("/<(.*)>/Ui", "preg_get_handle_by_webid", $row["msg"]);
 
@@ -252,9 +270,15 @@ if (!$result) {
         // author's name
         $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
         $ret .= "   <span property=\"sioc:UserAccount\">" . $name . "</span>";
-        $ret .= "</a></b>";
+        $ret .= "</a></b> wrote ";       
+        // activity stream
+        if (isset($_REQUEST['activity'])) {
+            $ret .= "on <a href=\"wall.php?user=" . $row['to_hash'] . "\" target=\"_blank\" style=\"font-color: black;\">";
+            $ret .= $to_name . "'s Wall ";
+            $ret .= "</a>";
+        }
         // time of post
-        $ret .= "<font color=\"grey\"> wrote ";
+        $ret .= "<font color=\"grey\">";
         $ret .= "<span id=\"date_" . $row['id'] . "\">";
         $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(" . $timestamp . ").from());</script>";
         $ret .= "</span></font>\n";

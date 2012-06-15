@@ -98,6 +98,8 @@
     </h3>
     <ul class="nav">
         <?php
+            if (isset($_SESSION['webid']))
+                echo "<li><a href=\"wall.php?activity=1\">Activity stream</a></li>\n";
             if (isset($_SESSION['user_hash']))
                 echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">My wall</a></li>\n";
             else
@@ -105,7 +107,7 @@
         ?>
         <li><a href="friends.php">Friends</a></li>
         <li><a href="lookup.php">Lookup</a></li>
-        <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">Additional Features <b class="caret"></b></a>
+        <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">More<b class="caret"></b></a>
             <ul class="dropdown-menu">
             <?php
                 if (isset($_SESSION['webid']))
@@ -142,7 +144,7 @@
 		echo "</li>\n";
 
         // User info
-        $username = (strlen($_SESSION['usr']) > 30) ? substr($_SESSION['usr'], 0, 30) . '...' : $_SESSION['usr'];
+        $username = (strlen($_SESSION['usr']) > 18) ? substr($_SESSION['usr'], 0, 18) . '...' : $_SESSION['usr'];
         echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu3\"><img id=\"rounded\" alt=\"" . $_SESSION['usr'] . "\" src=\"" . $_SESSION['img'] . "\" style=\"height: 22px; float:left; display:inline; margin: 0px 10px 0px 10px;\" /> " . $username . " <b class=\"caret\"></b></a>";
         echo "<ul class=\"dropdown-menu\">\n";
         echo "<li><a href=\"view.php?uri=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
