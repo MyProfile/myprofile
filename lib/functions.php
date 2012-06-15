@@ -17,6 +17,8 @@ function sparql_lookup($string, $base_uri, $endpoint) {
                     ?webid foaf:name ?name .
                     ?webid foaf:nick ?nick .
                     FILTER (regex(?name, "' . $string . '", "i") || regex(?nick, "' . $string . '", "i") || regex(?webid, "' . $string . '", "i"))
+                    MINUS { ?webid a foaf:Person .
+                           FILTER (regex(?webid, "nodeID", "i")) }
                     }';
         $result = $sparql->query($query);
 
