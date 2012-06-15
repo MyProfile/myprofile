@@ -25,31 +25,43 @@ require 'include.php';
 $ret = '';
 // fetch the WebID of the wall's owner
 if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST['user'] != 'local'))) {
-    $feed_hash = get_feed_by_hash($_REQUEST['user']);
-    $owner_webid = get_webid_by_hash($_REQUEST['user']);
-    $owner_hash = $_REQUEST['user'];
+    check_auth(IDP, $page_uri);
     
-    // mark all wall messages as read when the user checks his personal wall
-    if ($_SESSION['webid'] == $owner_webid) {
-        $query = "UPDATE pingback_messages SET new='0' WHERE ";
-        $query .= "to_hash='" . mysql_real_escape_string($_SESSION['user_hash']). "' ";
-        $query .= "AND wall='1'";
-        $result = mysql_query($query);
-
-        if (!$result) {
-            $ret  .= error('Database error while trying to update message status!');
-        } else if ($result !== true) {
-            mysql_free_result($result);
-        }
-
-        $messages = get_msg_count($_SESSION['webid']);
-        $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
-    }
+    $owner_webid = get_webid_by_hash(trim($_REQUEST['user']));
     // fetch owner's profile
-    $profile = new MyProfile($owner_webid, $base_uri);
+    $profile = new MyProfile($owner_webid, $base_uri, SPARQL_ENDPOINT);
     $profile->load();
-    $owner_name = $profile->get_name();
-}  else {
+        
+    // display private wall only if the requesting user is a friend or the wall owner
+    if (($profile->is_friend($_SESSION['webid'])) || ($_SESSION['user_hash'] == $_REQUEST['user'])) {
+        $feed_hash = get_feed_by_hash($_REQUEST['user']);       
+        $owner_hash = $_REQUEST['user'];
+        
+        // mark all wall messages as read when the user checks his personal wall
+        if ($_SESSION['webid'] == $owner_webid) {
+            $query = "UPDATE pingback_messages SET new='0' WHERE ";
+            $query .= "to_hash='" . mysql_real_escape_string($_SESSION['user_hash']). "' ";
+            $query .= "AND wall='1'";
+            $result = mysql_query($query);
+
+            if (!$result) {
+                $ret  .= error('Database error while trying to update message status!');
+            } else if ($result !== true) {
+                mysql_free_result($result);
+            }
+
+            $messages = get_msg_count($_SESSION['webid']);
+            $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
+        }
+        $owner_name = $profile->get_name();
+    } else {
+        // display main wall for unauthenticated users
+        $warning = true;
+        $feed_hash = 'local';
+        $owner_webid = 'local';
+        $owner_hash = 'local';
+    }
+} else {
     // generic wall
     $feed_hash = 'local';
     $owner_webid = 'local';
@@ -59,74 +71,56 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
 // delete a post
 if (isset($_REQUEST['del'])) {
     // verify if we're logged in or not
-    check_auth($idp, $page_uri);
+    check_auth(IDP, $page_uri);
     
-    $webid = mysql_real_escape_string($_SESSION['webid']);
-    $del = mysql_real_escape_string($_REQUEST['del']);
-    $reason = '';
-
-    // check if we are allowed to delete?
-    $query = "SELECT id FROM pingback_messages WHERE (from_uri='" . $webid . "' OR to_uri='" . $webid . "') AND id='" . $del . "'";
-    $result = mysql_query($query);
-    if (!$result) {
-        $ok = 0;
-        $reason = 'The message has NOT been deleted [SQL error 1].';
-    } else if (mysql_num_rows($result) > 0){
-        $query = "DELETE FROM pingback_messages WHERE id='" . $del . "'";
-        $result = mysql_query($query);
-        if (!$result) {
-            $ok = 0;
-            $reason = 'The message has NOT been deleted [SQL error 2].';
-        } else {
-            $ok = 1;
-            $reason = 'The message has been successfully deleted.';
-        }
-        if ($result !== true && $result !== false) {
-            mysql_free_result($result);
-        }
-    } else {
-        $ok = 0;
-        $reason = 'The message has NOT been deleted. [unknown cause]';
-    }
-    
-    // display visual confirmation
-    if ($ok == 1)
-        $confirmation = $_SESSION['myprofile']->success($reason);
-    else if ($ok == 0)
-        $confirmation = $_SESSION['myprofile']->error($reason);
+    $confirmation = delete_message($_SESSION['webid'], $_REQUEST['del']);
 }
 
 // ADD a post
 if (isset($_REQUEST['comment'])) {
 	// verify if we're logged in or not
-	check_auth($idp, $page_uri);
-
-    if (strlen($_REQUEST['user']) > 0)
+	check_auth(IDP, $page_uri);
+    if ((isset($_REQUEST['user'])) && (strlen($_REQUEST['user']) > 0))
         $to_hash = $_REQUEST['user'];
     else
         $to_hash = 'local';
 
+    // Limit the message to 10k characters
     $msg = trim(substr($_REQUEST['comment'], 0, 10000));
-
+            
+    // Get the list of mentioned WebIDs from the message 
+    preg_match_all("/<(.*)>/Ui", $msg, $out, PREG_PATTERN_ORDER);  
+    $webids = $out[1];
+    
     if (isset($_REQUEST['new'])) {
-    // Insert into databse
-    $query = "INSERT INTO pingback_messages SET ";
-    $query .= "date='" . time() . "', ";
-    $query .= "from_uri = '" . mysql_real_escape_string($_SESSION['webid']) . "', ";
-    $query .= "to_hash='" . $to_hash . "', ";
-    if ($owner_webid != 'local')
-        $query .= "to_uri = '" . mysql_real_escape_string($owner_webid) . "', ";
-    $query .= "name = '" . mysql_real_escape_string($_SESSION['usr']) . "', ";
-    $query .= "pic = '" . mysql_real_escape_string($_SESSION['img']) . "', ";
-    $query .= "msg = '" . mysql_real_escape_string($msg) . "', ";
-    $query .= "wall='1'";
+        // Insert into databse
+        $query = "INSERT INTO pingback_messages SET ";
+        $query .= "date='" . time() . "', ";
+        $query .= "from_uri = '" . mysql_real_escape_string($_SESSION['webid']) . "', ";
+        $query .= "to_hash='" . $to_hash . "', ";
+        if ($owner_webid != 'local')
+            $query .= "to_uri = '" . mysql_real_escape_string($owner_webid) . "', ";
+        $query .= "name = '" . mysql_real_escape_string($_SESSION['usr']) . "', ";
+        $query .= "pic = '" . mysql_real_escape_string($_SESSION['img']) . "', ";
+        $query .= "msg = '" . mysql_real_escape_string($msg) . "', ";
+        $query .= "wall='1'";
 
-    $result = mysql_query($query);
-    if (!$result) {
-        $ret  .= error('Database error while trying to insert new message!');
-    } else if ($result !== true) {
-        mysql_free_result($result);
-    }
+        $result = mysql_query($query);
+        if (!$result) {
+            $ret  .= error('Database error while trying to insert new message!');
+        } else {
+            mysql_free_result($result);
+            
+            // send a notification to each mentioned user
+            foreach ($webids as $to) {
+                $ping_msg = 'I have just mentioned you in a ';
+                $ping_msg .= ($owner_webid != 'local') ? 'private':'public';
+                $ping_msg .=' wall post. You can see it here: ' . $base_uri . '/wall.php?user=' . $to_hash;
+                // send only if the source != target
+                if ($_SESSION['webid'] != $to)
+                    sendPing($to, $ping_msg, $base_uri, false);
+            }
+        }
 
     }
 
@@ -154,7 +148,7 @@ if (isset($_REQUEST['comment'])) {
 
     $result = mysql_query($query);
     if (!$result) {
-        $ret  .= error('Database error while updating user info!');
+        $ret .= error('Database error while updating user info!');
     } else if ($result !== true) {
         mysql_free_result($result);
     }
@@ -169,8 +163,7 @@ else
 // Form allowing to post messages on the wall
 if (isset($_SESSION['webid'])) {
     $form_area = "<form name=\"write_wall\" method=\"POST\" action=\"" . htmlentities($_SERVER['PHP_SELF']) . "\">\n";
-    if (isset($_REQUEST['user']))
-        $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $_REQUEST['user'] . "\" />\n";
+    $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $owner_hash . "\" />\n";
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
@@ -180,8 +173,8 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "   <td>\n";
     $form_area .= "       <table border=\"0\">\n"; 
     $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
-    $form_area .= "       <tr><td><textarea name=\"comment\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
-    $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \"> <font color=\"grey\">";
+    $form_area .= "       <tr><td><textarea id=\"comment\" name=\"comment\" onfocus=\"textAreaResize(this)\" style=\"background-color:#fff; border:solid 1px grey;\" cols=\"80\" rows=\"2\"></textarea><br/><br/></td></tr>\n";
+    $form_area .= "       <tr><td><p><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \" /> <font color=\"grey\">";
     $form_area .= "       <small>[Note: you can always delete your message after]</small></font></p></td></tr>\n";
     $form_area .= "       </table>\n";
     $form_area .= "   </td>\n";
@@ -189,12 +182,12 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "</table>\n";
     $form_area .= "</form>\n";
 } else {
-    $form_area = "<p><font style=\"font-size: 1.3em;\"><a href=\"" . $idp . "" . $page_uri . "\">Login</a> with your WebID to post messages.</font></p>\n";
+    $form_area = "<p><font style=\"font-size: 1.3em;\"><a href=\"" . IDP . "" . $page_uri . "\">Login</a> with your WebID to post messages.</font></p>\n";
 }
 
 // Page title (User's Wall)
 $ret .= "<div>";
-$ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . $title . " Wall</font>\n";
+$ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . $title . " Wall</font></p>\n";
 $ret .= "<p>Subscribe now using this <a href=\"" . $base_uri . "/atom.php?id=" . $owner_hash . "\">Atom feed</a>.</p>\n";
 $ret .= "</div>";
 
@@ -208,18 +201,22 @@ if (isset($confirmation))
 // Add message form 
 $ret .= $form_area;
 
-// Display wall messages
-// Get the last 100 messages
-$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 100";
+// display wall messages
+// get the last 50 messages
+$query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 50";
 $result = mysql_query($query);
 
 if (!$result) {
     $ret .= error('Unable to connect to the database!');
 } else if (mysql_num_rows($result) == 0){
-    $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
+    if (isset($warning)) {
+        $ret .= "<h3>You are not allowed to see this Wall because you are not a friend of " . $profile->get_name() . ".</h3>";
+    } else {
+        $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
+    }
 } else {
     $ret .= "<form method=\"GET\" action=\"\">\n";
-    $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\">\n";    
+    $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\" />\n";    
     $ret .= "<table border=\"0\">\n";
         
     // populate table
@@ -234,33 +231,40 @@ if (!$result) {
         // Get the date and multiply by 1000 for milliseconds, otherwise moment.js breaks
         $timestamp = $row['date'] * 1000;
 
-        $text = htmlspecialchars($row["msg"]);
+        //$msg = htmlspecialchars($row["msg"]);
+        // Replace WebIDs with actual names and links to the WebID
+        $msg = preg_replace_callback("/<(.*)>/Ui", "preg_get_handle_by_webid", $row["msg"]);
 
         // add horizontal line to separate messages
         $ret .= "<tr><td colspan=\"2\">\n";
         $ret .= "<a name=\"post_" . $row['id'] . "\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/></a>\n";
         $ret .= "</td></tr>\n";
-
-        $ret .= "<tr valign=\"top\" property=\"sioc:Post\">\n";
+        
+        $ret .= "<tr valign=\"top\">\n";
         $ret .= "<td width=\"80\" align=\"center\">\n";
         // image
-        $ret .= "<a class=\"avatar-link\" href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" /></a>\n";
+        $ret .= "<a class=\"avatar-link\" href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" property=\"sioc:avatar\"/></a>\n";
         $ret .= "</td>\n";
         $ret .= "<td>";
         $ret .= "<table style=\"width: 700px;\" border=\"0\">\n";
         $ret .= "<tr valign=\"top\">\n";
         $ret .= "<td>\n";
         // author's name
-        $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b>";
+        $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
+        $ret .= "   <span property=\"sioc:UserAccount\">" . $name . "</span>";
+        $ret .= "</a></b>";
         // time of post
-        $ret .= "<font color=\"grey\"> wrote <span id=\"date_" . $row['id'] . "\">";
+        $ret .= "<font color=\"grey\"> wrote ";
+        $ret .= "<span id=\"date_" . $row['id'] . "\">";
         $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(" . $timestamp . ").from());</script>";
         $ret .= "</span></font>\n";
         $ret .= "</td>\n";
         $ret .= "</tr>\n";
         $ret .= "<tr>\n";
         // message
-        $ret .= "<td><p><pre id=\"message_" . $row['id'] . "\"><span id=\"message_text_" . $row['id'] . "\">" . put_links($text) . "</span></pre></p></td>\n";
+        $ret .= "<td><pre id=\"message_" . $row['id'] . "\"><span property=\"sioc:Post\" id=\"message_text_" . $row['id'] . "\">\n";
+        $ret .= put_links($msg);
+        $ret .= "</span></pre></td>\n";
         $ret .= "</tr>\n";
         $ret .= "<tr>\n";
         $ret .= "<td><small>";
@@ -282,6 +286,10 @@ if (!$result) {
             // add option to delete post
             $ret .= " <a href=\"wall.php" . $add . "&del=" . $row['id'] . "\">Delete</a>\n";
         }
+        
+        // show vote counters and buttons for logged users
+        $ret .= add_vote_buttons($row['id']);
+        
         $ret .= "</small></td>\n";
         $ret .= "</tr>\n";
         $ret .= "</table>\n";
@@ -292,10 +300,14 @@ if (!$result) {
     mysql_free_result($result);
 
     $ret .= "</table>\n";
-    $ret .= "</form>\n"; 
+    $ret .= "</form>\n";
+    $ret .= "</div>\n";
 }
 
 require 'header.php';
 echo $ret;
 include 'footer.php';
-?>        
+?>
+<script>
+$(document).ready(do_autocomplete("comment"));
+</script>  

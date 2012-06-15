@@ -1,6 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-        xml:lang="en" 
         xmlns:sioc="http://rdfs.org/sioc/ns#"
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
@@ -8,9 +7,7 @@
         xmlns:dcterms="http://purl.org/dc/terms/">
 
 <head>
-    <meta charset="utf-8">
     <title>MyProfile</title>
-    <meta name="author" content="Andrei Sambra">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -19,9 +16,10 @@
   
     <!-- Styles --> 
     <link type="text/css" href="css/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
-    <link type="text/css" href="css/bootstrap.css" rel="stylesheet">
-    <link type="text/css" href="css/bootstrap-responsive.css" rel="stylesheet">
-    <link type="text/css" href="css/demo.css" rel="stylesheet">
+    <link type="text/css" href="css/bootstrap.css" rel="stylesheet" />
+    <link type="text/css" href="css/bootstrap-responsive.css" rel="stylesheet" />
+    <link type="text/css" href="css/demo.css" rel="stylesheet" />
+
     <style type="text/css">
       /* Override some defaults */
       html, body {
@@ -72,9 +70,7 @@
      .topbar .btn {
         border: 0;
       }
-
     </style>
-
 <link rel="SHORTCUT ICON" href="favicon.png" />
 </head>
 
@@ -88,11 +84,18 @@
 <script type="text/javascript" src="js/bootstrap-tab.js"></script>
 <script type="text/javascript" src="js/moment.min.js"></script>
 <script type="text/javascript" src="js/prettify.js"></script>
+<script type="text/javascript" src="js/autocomplete.js"></script>
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
 
 <div class="navbar navbar-classic" id="navbar-example" align="center">
   <div class="navbar-inner" style="height: 40px; width: 900px;">
     <div class="container">
-    <h3><a class="brand" href="wall.php"><img alt="MyProfile Wall" title="MyProfile Wall" height="22" src="img/myprofile-logo.png" style="height: 22px; float:left; display:inline; margin-right:10px;" />MyProfile</a></h3>
+    <h3>
+        <a class="brand" href="wall.php">
+        <img alt="MyProfile Wall" title="MyProfile Wall" height="22" src="img/myprofile-logo.png" style="height: 22px; float:left; display:inline; margin-right:10px;" />
+        MyProfile
+        </a>
+    </h3>
     <ul class="nav">
         <?php
             if (isset($_SESSION['user_hash']))
@@ -101,7 +104,7 @@
                 echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";
         ?>
         <li><a href="friends.php">Friends</a></li>
-        <li><a href="view.php">Lookup</a></li>
+        <li><a href="lookup.php">Lookup</a></li>
         <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">Additional Features <b class="caret"></b></a>
             <ul class="dropdown-menu">
             <?php
@@ -154,7 +157,7 @@
         echo "</ul>\n";
         echo "</li>\n";
     } else {
-        echo "<li><a href=\"" . $idp . "" . $_SESSION['page_uri'] . "\" style=\"\padding-top: 8px;\">\n";
+        echo "<li><a href=\"" . IDP . "" . $_SESSION['page_uri'] . "\" style=\"\padding-top: 8px;\">\n";
         echo "  <img alt=\"WebID Login\" title=\"WebID Login\" src=\"img/webid.png\" style=\"height: 22px; \" />";
         echo "</a></li>\n";
     }

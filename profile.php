@@ -100,8 +100,10 @@ if (isset($_REQUEST['doit']))  {
         // picture (use the uploaded one if it exists)
         if (isset($local_img))
             $me->set('foaf:img', trim($local_img));
-        else
+        else if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0)) 
             $me->set('foaf:img', $_REQUEST['foaf:img']);
+        else
+            $me->set('foaf:img', 'img/nouser.png');
         // nickname
         if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
             $me->set('foaf:nick', trim($_REQUEST['foaf:nick']));
@@ -221,7 +223,7 @@ if (isset($_REQUEST['doit']))  {
     	    $pubkey			        = $_REQUEST["pubkey"];
 
     	    // Create a x509 SSL certificate in DER format
-        	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, $SSLconf, $CApass);
+        	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, SSL_CONF, CA_PASS);
             $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
           	$output = explode('=', shell_exec($command));
             
@@ -297,8 +299,8 @@ if (isset($_REQUEST['doit']))  {
             if ($ok) {
                 $alert .= success('Your profile has been updated.');
                 // reload the profile information
-                $_SESSION['myprofile'] = new MyProfile($webid, $base_uri);
-                $_SESSION['myprofile']->load();
+                $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
+                $_SESSION['myprofile']->load(true);
             } else {
                 $alert .= error('Could not update your profile!');
             }
@@ -432,28 +434,7 @@ if ($_REQUEST['action'] == 'edit') {
             $certs .= "   <td>\n";
             $certs .= "       <table>\n";
             $certs .= "       <tr>\n";
-            $certs .= "          <td><textarea style=\"height: 130px;\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
-            $certs .= "          <td> Exponent: <input type=\"text\" size=\"10\" value=\"" . $int . "\" name=\"exponent[]\"></td>\n";
-            $certs .= "       </tr>\n";
-            $certs .= "       </table>\n";
-            $certs .= "   </td>\n";
-            $certs .= "</tr>\n";
-        }
-    } else {
-        foreach ($graph->allOfType('cert:RSAPublicKey') as $cert) {
-            $hex = preg_replace('/\s+/', '', strtolower($cert->get('cert:modulus')));
-            $int = $cert->get('cert:exponent');
-            if ($hex == '[NULL]')
-                $hex = '';
-            if ($int == '[NULL]')
-                $int = '';
-            
-            $certs .= "<tr>\n";
-            $certs .= "   <td>Modulus: </td>\n";
-            $certs .= "   <td>\n";
-            $certs .= "       <table>\n";
-            $certs .= "       <tr>\n";
-            $certs .= "          <td><textarea style=\"height: 130px;\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
+            $certs .= "          <td><textarea style=\"height: 130px;\" onfocus=\"textAreaResize(this)\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
             $certs .= "          <td> Exponent: <input type=\"text\" size=\"10\" value=\"" . $int . "\" name=\"exponent[]\"></td>\n";
             $certs .= "       </tr>\n";
             $certs .= "       </table>\n";
@@ -461,6 +442,9 @@ if ($_REQUEST['action'] == 'edit') {
             $certs .= "</tr>\n";
         }
     }
+} else {
+    // Set some default values
+    $picture = '/img/nouser.png';
 }
 
 // rdf types for Person
@@ -579,7 +563,7 @@ $ret .= "<td width=\"100\"></td>\n";
 // Here we display the profile picture (avatar)
 $ret .= "<td valign=\"top\">\n";
 $ret .= "<img width=\"150\" src=\"" . $picture . "\"/>\n";
-$ret .= "<input name=\"picture\" type=\"file\">\n";
+$ret .= "<input name=\"picture\" type=\"file\" size=\"10\">\n";
 $ret .= "</td>\n";
 
 $ret .= "</tr>\n";    

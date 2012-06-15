@@ -20,6 +20,9 @@ if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file dire
 */ 
 class MyProfile {
 
+    private $sparql;
+    private $endpoint;
+    private $ttl;
     private $webid;
     private $base_uri;
     private $cache_dir;
@@ -32,35 +35,110 @@ class MyProfile {
     private $user_hash;
     private $email;
 
-    // Build the selectors for adding more form content
-    function __construct($webid, $base_uri) {
+    // Build the selectors for adding more form content (default ttl is 24h)
+    function __construct($webid, $base_uri, $endpoint, $ttl = 86400) {
         $this->webid = $webid;
         
         if (isset($base_uri))
             $this->base_uri = $base_uri;
-        
+        // set cache dir
         $this->cache_dir = 'cache/';
+        
+        // set the SPARQL endpoint address
+        $this->endpoint = $endpoint; 
+        
+        // set cache time to live (default is 24h)
+        $this->ttl = $ttl;
     }
     
-    // Load profile data for the specified WebID
+    // Cache user data into a SPARQL triplestore
+    function sparql_cache() {
+        $db = sparql_connect($this->endpoint);
+        // first delete previous data for the graph
+        $sql = "CLEAR GRAPH <" . $this->webid . ">";
+        $res = sparql_query($sql);
+            
+        // Load URI into the triple store
+        $sql = "LOAD <" . $this->webid . ">";
+        $res = sparql_query($sql);
+        
+        // Add the timestamp for the date at which it was inserted
+        $time = time();
+        $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
+        $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> {<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
+        $res = sparql_query($sql);
+    
+        return true;
+    }   
+    
+    // Load profile data using SPARQL
     // returns true
-    function load() {
+    function sparql_graph() {
+        // cache data is refreshed if it's older than the given TTL
+        $time = time() - $this->ttl;
+        $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
+        
+        $db = sparql_connect($this->endpoint);
+        $query = 'SELECT * FROM <' . $this->webid . '> WHERE {?person dc:date ?date . FILTER (?date > "' . $date . '"^^xsd:dateTime)}';
+        $result = sparql_query($query);
+
+        // fallback to Graphite if there's a problem with the SPARQL endpoint
+        if (!$result) {
+            $this->direct_graph();
+        } else {
+            // cache data into the triple store if it's the first time we see it
+            $count = sparql_num_rows($result);
+
+            // force refresh of data if cache expired
+            if ($count == 0)
+                $this->sparql_cache();
+
+            $query = "CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <" . $this->webid . "> { ?s ?p ?o } . }";
+            $graph = new Graphite();
+            $graph->loadSPARQL($this->endpoint, $query);
+            
+            $this->graph = $graph;
+        }
+        return true;
+    }
+    
+    // Load profile data using Graphite
+    // returns true
+    function direct_graph() {
         // Load the RDF graph data
         $graph = new Graphite();
         $graph->load($this->webid);
         $graph->cacheDir($this->cache_dir);
 
+        $this->graph = $graph;
+
+        return true;
+    }
+    
+    // Load the user's data (either through SPARQL or directly)
+    function load($refresh = false) {
+        // check if we have a SPARQL endpoint configured
+        if (strlen($this->endpoint) >0) {
+            // force a cache refresh
+            if ($refresh == true)
+                $this->sparql_cache();
+            // use the SPARQL endpoint
+            $this->sparql_graph();
+        } else {
+            // use the direct method (Graphite)
+            $this->direct_graph();
+        }
+        
         // try to get primary topic, else go with default uri (some people don't use #)
-        $pt = $graph->resource('foaf:PersonalProfileDocument');
+        $pt = $this->graph->resource('foaf:PersonalProfileDocument');
         $this->primarytopic = $pt->get('foaf:primaryTopic');
         if ($this->primarytopic != '[NULL]') 
-            $profile = $graph->resource($this->primarytopic);
+            $profile = $this->graph->resource($this->primarytopic);
         else
-            $profile = $graph->resource($this->webid);
-        
-        $this->graph = $graph;
+            $profile = $this->graph->resource($this->webid);
+
         $this->profile = $profile;
-    
+        
         // get user's name and picture info for display purposes    
         $this->name = $profile->get('foaf:name');
         if ($this->name == '[NULL]')
@@ -133,6 +211,11 @@ class MyProfile {
     // get the user's full name
     function get_name() {
         return $this->name;
+    }
+    
+    // get the user's nickname
+    function get_nick() {
+        return $this->profile->get("foaf:nick");
     }
     
     // get the user's picture

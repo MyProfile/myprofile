@@ -100,7 +100,7 @@ if ($_POST['doit'] == 1) {
     } else {
         include_once 'lib/functions.php';
     	// Create a x509 SSL certificate
-	    if ($x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $commonName, $emailAddress, $foafLocation, $pubkey, $SSLconf, $CApass)) {
+	    if ($x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $commonName, $emailAddress, $foafLocation, $pubkey, SSL_CONF, CA_PASS)) {
 		    // Send the X.509 SSL certificate to the script caller (user) as a file transfer
 		    download_identity_x509($x509, $foafLocation[0]);
 	    }
