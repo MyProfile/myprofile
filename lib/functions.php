@@ -2,7 +2,28 @@
 
 if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file directly');
 
-// Use SPARQL to manage graphs
+// Return a list of WebIDs (people) I am friend of
+function sparql_get_people_im_friend_of($webid, $endpoint) {
+    $sparql = sparql_connect($endpoint);
+    
+    $query = 'SELECT DISTINCT ?webid WHERE {
+                    ?webid a foaf:Person .
+                    ?webid foaf:knows <' . trim(urldecode($webid)) . '> .
+                    MINUS { ?webid a foaf:Person .
+                           FILTER (regex(?webid, "nodeID", "i")) }
+                    }';
+    $result = $sparql->query($query);
+
+    $webids = array();
+    
+    while ($row = $result->fetch_array()) {
+        array_push($webids, $row['webid']);
+    }
+    
+    return $webids;
+}
+
+// Use SPARQL to lookup a user
 function sparql_lookup($string, $base_uri, $endpoint) {
     $ret = '';
     $ret .= "<table>\n";
@@ -26,7 +47,7 @@ function sparql_lookup($string, $base_uri, $endpoint) {
             $ret .= error(sparql_errno() . ": " . sparql_error());
             
         
-        while ($row = sparql_fetch_array($result)) {
+        while ($row = $result->fetch_array($result)) {
             $ret .= viewShortInfo ($row['webid'], $_SESSION['webid'], $base_uri, $endpoint);
         }
     } else {
