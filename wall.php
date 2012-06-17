@@ -201,29 +201,47 @@ if (isset($confirmation))
 // Add message form 
 $ret .= $form_area;
 
-// display activity stream if request is met
+// By default there are no posts to display
+$rows = 0;
+
+// display activity stream if for a certain user
 if ((isset($_SESSION['webid'])) && (isset($_REQUEST['activity']))) {
     $webids = sparql_get_people_im_friend_of($_SESSION['webid'], SPARQL_ENDPOINT);
-    $query = 'SELECT * FROM pingback_messages WHERE to_hash IS NOT NULL AND to_hash NOT LIKE "local" AND (';
-    foreach ($webids as $key => $from) {
-        $add = ($key > 0) ? ' OR' : '';
-        $query .= $add . " from_uri='" . $from . "'";
+    // Prepare the activity stream SQL query only if the user has friends (foaf:knows)
+    if (sizeof($webids) > 0) {
+        $query = 'SELECT * FROM pingback_messages WHERE to_hash IS NOT NULL AND wall=\'1\' AND (';
+        foreach ($webids as $key => $from) {
+            $add = ($key > 0) ? ' OR' : '';
+            $query .= $add . " from_uri='" . mysql_real_escape_string($from) . "'";
+        }
+        $query .= ") ORDER by date DESC LIMIT 50";
+
+        $result = mysql_query($query);
+
+        if (!$result) 
+            $ret .= error('Unable to connect to the database, to display Activity Stream!');
+        else
+            $rows = mysql_num_rows($result);
     }
-    $query .= ") ORDER by date DESC LIMIT 50";
 } else {
-    // get the last 50 wall messages
-    $query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 50";
+    // get the last 50 wall messages for a user
+    $query = "SELECT * FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($owner_hash) . "' AND wall='1' ORDER by date DESC LIMIT 50";    
+    $result = mysql_query($query);
+
+    if (!$result)
+        $ret .= error('Unable to connect to the database, to display wall posts!');
+    else
+        $rows = mysql_num_rows($result);
 }
 
-$result = mysql_query($query);
-
-if (!$result) {
-    $ret .= error('Unable to connect to the database!');
-} else if (mysql_num_rows($result) == 0){
-        $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
-} else if (isset($warning)) {
-        $ret .= "<h3>You are not allowed to see this page because you are not a friend of " . $profile->get_name() . ".</h3>";
+// Display warning if the user isn't allowed to view a certain wall
+if (isset($warning)) {
+    $ret .= "<h3>You are not allowed to see this page because you are not a friend of " . $profile->get_name() . ".</h3>";
+} else if ($rows == 0){
+    // There are no messages on the wall
+    $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
 } else {
+    // Display messages
     $ret .= "<form method=\"GET\" action=\"\">\n";
     $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\" />\n";    
     $ret .= "<table border=\"0\">\n";
