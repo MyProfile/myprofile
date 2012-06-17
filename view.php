@@ -52,13 +52,6 @@ if (isset($_REQUEST['uri'])) {
     // check if the user has subscribed to local messages
     $is_subscribed = (strlen($person->get_hash()) > 0) ? true : false;
 
-    // send messages 
-    $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
-    $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
-    $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $_REQUEST['uri'] . "\">\n";
-    $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
-    $ret .= "</form></div>\n";
-
     // display controls for adding/removing friend
     if ((webid_is_local($_SESSION['webid'])) && ($_SESSION['webid'] != $_REQUEST['uri'])) {
         if ($_SESSION['myprofile']->is_friend(urldecode($_REQUEST['uri']))) {
@@ -66,7 +59,7 @@ if (isset($_REQUEST['uri'])) {
             $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\">\n";
             $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $_REQUEST['uri'] . "\">\n";
-            $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Remove from friends \">\n";
+            $ret .= "<input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\" Remove from friends \">\n";
             $ret .= "</form></div>\n";
         } else {
         // add friend
@@ -77,12 +70,18 @@ if (isset($_REQUEST['uri'])) {
             $ret .= "</form></div>\n";
         }
     }   
-    // more functions if the user has previously subscribed to the local services
+    // send messages 
+    $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
+    $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
+    $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $_REQUEST['uri'] . "\">\n";
+    $ret .= "<input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
+    $ret .= "</form></div>\n";
+
+    // View the user's wall
     if ($is_subscribed) {
-        // Post on the user's wall
         $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
         $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $person->get_hash() . "\">\n";
-        $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "<input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></div>\n";
     }
 
