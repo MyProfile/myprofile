@@ -52,38 +52,44 @@ if (isset($_REQUEST['uri'])) {
     // check if the user has subscribed to local messages
     $is_subscribed = (strlen($person->get_hash()) > 0) ? true : false;
 
-    // display controls for adding/removing friend
-    if ((webid_is_local($_SESSION['webid'])) && ($_SESSION['webid'] != $_REQUEST['uri'])) {
-        if ($_SESSION['myprofile']->is_friend(urldecode($_REQUEST['uri']))) {
+    $ret .= "<table><tr>\n";
+    // add or remove friends if we have them in our list
+    if ((isset($_SESSION['webid'])) && (webid_is_local($_SESSION['webid']))) {
+        if ($_SESSION['myprofile']->is_friend($webid)) {
         // remove friend
-            $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\">\n";
-            $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $_REQUEST['uri'] . "\">\n";
-            $ret .= "<input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\" Remove from friends \">\n";
-            $ret .= "</form></div>\n";
-        } else {
+            $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
+            $ret .= "<input src=\"img/actions/remove.png\" type=\"image\" title=\"Remove this person from your list of friends\" name=\"submit\" value=\" Remove \">\n";
+            $ret .= "</form></td>\n";
+        } else if ($_SESSION['webid'] != $webid) {
         // add friend
-            $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"\" method=\"GET\">\n";
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"addfriend\">\n";
-            $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $_REQUEST['uri'] . "\">\n";
-            $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Add to friends \">\n";
-            $ret .= "</form></div>\n";
+            $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
+            $ret .= "<input src=\"img/actions/add.png\" type=\"image\" title=\"Add this person from your list of friends\" name=\"submit\" value=\" Add \">\n";
+            $ret .= "</form></td>\n";
         }
-    }   
-    // send messages 
-    $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
-    $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
-    $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $_REQUEST['uri'] . "\">\n";
-    $ret .= "<input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
-    $ret .= "</form></div>\n";
-
-    // View the user's wall
-    if ($is_subscribed) {
-        $ret .= "<div style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
-        $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $person->get_hash() . "\">\n";
-        $ret .= "<input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
-        $ret .= "</form></div>\n";
     }
+
+    // send messages using the pingback protocol 
+    if ($friend['pingback'] != '[NULL]') {
+        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
+        $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
+        $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
+        $ret .= "<input src=\"img/actions/message.png\" type=\"image\" title=\"Send a message\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "</form></td>\n";
+    }
+
+    // more functions if the user has previously subscribed to the local services
+    if ($is_subscribed) {
+        // Post on the user's wall
+        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
+        $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $friend['hash'] . "\">\n";
+        $ret .= "<input src=\"img/actions/wall.png\" type=\"image\" title=\"View posts\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "</form></td>\n";
+    }
+    $ret .= "</tr></table>\n";
 
     if ((isset($_REQUEST['html'])) && ($_REQUEST['html'] == '0')) {
   		$ret .= $graph->dump();

@@ -135,14 +135,14 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
             $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\">\n";
             $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
-            $ret .= "<input class=\"btn btn-danger\" type=\"submit\" name=\"submit\" value=\" Remove \">\n";
+            $ret .= "<input src=\"img/actions/remove.png\" type=\"image\" title=\"Remove friend\" name=\"submit\" value=\" Remove \">\n";
             $ret .= "</form></td>\n";
         } else {
         // add friend
             $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"addfriend\">\n";
             $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
-            $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Add \">\n";
+            $ret .= "<input src=\"img/actions/add.png\" type=\"image\" title=\"Add friend\" name=\"submit\" value=\" Add \">\n";
             $ret .= "</form></td>\n";
         }
     }
@@ -152,7 +152,7 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
         $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
         $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
         $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
-        $ret .= "<input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "<input src=\"img/actions/message.png\" type=\"image\" title=\"Send a message\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></td>\n";
     }
 
@@ -161,14 +161,14 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
         // Post on the user's wall
         $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
         $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $friend['hash'] . "\">\n";
-        $ret .= "<input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
+        $ret .= "<input src=\"img/actions/wall.png\" type=\"image\" title=\"View posts\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></td>\n";
     }
 
     $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
     $ret .= "<input type=\"hidden\" name=\"webid\" value=\"" . $friend['webid'] . "\">\n";
     $ret .= "<input type=\"hidden\" name=\"me\" value=\"" . $me . "\">\n";
-    $ret .= "<input class=\"btn\" type=\"submit\" name=\"submit\" value=\" Friends \">\n";
+    $ret .= "<input src=\"img/actions/friends.png\" type=\"image\" title=\"View friends\" name=\"submit\" value=\" Friends \">\n";
     $ret .= "</form></td>\n";
     $ret .= "</tr></table></p>\n";
 
