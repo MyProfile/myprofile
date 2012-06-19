@@ -301,6 +301,19 @@ function get_feed_by_hash($hash) {
     }
 }
 
+function count_msg_by_hash($hash) {
+    $query = "SELECT id FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($hash) . "' AND wall='1'";
+    $result = mysql_query($query);
+
+    if (!$result) {
+        return null;       
+    } else {
+        $total = mysql_num_rows($result);
+        mysql_free_result($result);
+        return $total;
+    }
+}
+
 // return a clean email address without mailto: component
 function clean_mail($email) {
     $ret = explode(':', $email);
@@ -689,6 +702,17 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
         $ret .= "</tr>\n";
     }
     
+    // sameAs
+    if ($me->get("owl:sameAs") != '[NULL]') {
+        $ret .= "<tr valign=\"top\">";
+        $ret .= "<td><h3 class=\"profileHeaders\">Additional profiles: </h3>";
+        foreach ($me->all("owl:sameAs") as $sameAs) {
+            $ret .= "<dd>" . $graph->resource($sameAs)->link() . "</dd>";
+        }
+        $ret .= "</td>";
+        $ret .= "</tr>\n";
+    }
+
     // homepage
     if ($me->get("foaf:homepage") != '[NULL]') {
         $ret .= "<tr valign=\"top\">";
