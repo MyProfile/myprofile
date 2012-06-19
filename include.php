@@ -152,18 +152,18 @@ if (isset($_SESSION['webid']) && $_SESSION['webid']) {
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'addfriend')) {
     // add friend and display confirmation
     $confirmation = $_SESSION['myprofile']->add_friend(urldecode($_REQUEST['uri']));
-    
+    // forcing reload of cache
     $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
-    $_SESSION['myprofile']->load();
+    $_SESSION['myprofile']->load(true);
 }
 
 // add a specific person as friend
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'delfriend')) {
     // remove friend and display confirmation    
     $confirmation = $_SESSION['myprofile']->del_friend(urldecode($_REQUEST['uri']));
-
+    // forcing reload of cache
     $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
-    $_SESSION['myprofile']->load();
+    $_SESSION['myprofile']->load(true);
 }
 
 // cast a YES vote for a given message and user
