@@ -42,5 +42,10 @@ function do_autocomplete (id) {
                 this.value = terms.join( "" );
                 return false;
             }
-        });
+        }).data("autocomplete")._renderItem = function( ul, item ) {return $( "<li></li>" )
+           .data( "item.autocomplete", item )
+           .append( item.label )
+           .appendTo( ul );
+       };
+ 
 }
