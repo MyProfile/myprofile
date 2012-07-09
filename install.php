@@ -244,8 +244,8 @@ if (isset($_REQUEST['submit'])) {
         $content .= 'define (\'DB_PASS\', \'' . $db_pass . '\');' . "\n";
         $content .= "\n";
         $content .= "/* SMTP config */\n";
-        $content .= 'define (\'SMTP_EMAIL\', ' . $smtp_email . ');' . "\n";
-        $content .= 'define (\'SMTP_AUTHENTICATION\', ' . $smtp_authentication . ');' . "\n";
+        $content .= 'define (\'SMTP_EMAIL\', \'' . $smtp_email . '\');' . "\n";
+        $content .= 'define (\'SMTP_AUTHENTICATION\', \'' . $smtp_authentication . '\');' . "\n";
         $content .= 'define (\'SMTP_SERVER\', \'' . $smtp_server . '\');' . "\n";
         $content .= 'define (\'SMTP_USERNAME\', \'' . $smtp_username . '\');' . "\n";
         $content .= 'define (\'SMTP_PASSWORD\', \'' . $smtp_passpasswod . '\');' . "\n";
