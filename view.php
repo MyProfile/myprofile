@@ -74,7 +74,7 @@ if (isset($_REQUEST['uri'])) {
     }
 
     // send messages using the pingback protocol 
-    if ($friend['pingback'] != '[NULL]') {
+    if ((isset($friend)) && ($friend['pingback'] != '[NULL]')) {
         $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
         $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
         $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $_REQUEST['uri'] . "\">\n";
