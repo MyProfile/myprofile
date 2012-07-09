@@ -132,14 +132,14 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
     if ((isset($_SESSION['webid'])) && (webid_is_local($_SESSION['webid']))) {
         if ($_SESSION['myprofile']->is_friend($webid)) {
         // remove friend
-            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"POST\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\">\n";
             $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
             $ret .= "<input src=\"img/actions/remove.png\" type=\"image\" title=\"Remove friend\" name=\"submit\" value=\" Remove \">\n";
             $ret .= "</form></td>\n";
         } else {
         // add friend
-            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"GET\">\n";
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends.php\" method=\"POST\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"addfriend\">\n";
             $ret .= "<input type=\"hidden\" name=\"uri\" value=\"" . $friend['webid'] . "\">\n";
             $ret .= "<input src=\"img/actions/add.png\" type=\"image\" title=\"Add friend\" name=\"submit\" value=\" Add \">\n";
@@ -149,7 +149,7 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
 
     // send messages using the pingback protocol 
     if ($friend['pingback'] != '[NULL]') {
-        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"GET\">\n";
+        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"POST\">\n";
         $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
         $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
         $ret .= "<input src=\"img/actions/message.png\" type=\"image\" title=\"Send a message\" name=\"submit\" value=\" Message \" onclick=\"this.form.target='_blank';return true;\">\n";
@@ -159,7 +159,7 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
     // more functions if the user has previously subscribed to the local services
     if ($is_subscribed) {
         // Post on the user's wall
-        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"GET\">\n";
+        $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"wall.php\" method=\"POST\">\n";
         $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . $friend['hash'] . "\">\n";
         $ret .= "<input src=\"img/actions/wall.png\" type=\"image\" title=\"View posts\" name=\"submit\" value=\" Wall \" onclick=\"this.form.target='_blank';return true;\">\n";
         $ret .= "</form></td>\n";
@@ -224,6 +224,39 @@ function error($text) {
     $ret .= "</div></div>\n";
 
     return $ret;
+}
+
+// compute and return an etag for Wall
+function compute_etag($time) {
+    return md5($time);    
+}
+
+// update all etags for a given hash (wall or users)
+function update_etags($time, $to_hash) {
+    $query = "UPDATE pingback_messages SET etag='" . mysql_real_escape_string(compute_etag($time)) . "' " .
+                "WHERE to_hash='" . mysql_real_escape_string($to_hash) . "'";
+    $result = mysql_query($query);
+    if (!$result) {
+        return error("Cannot update etags for user " . $to_hash . ".");
+    } else {
+        mysql_free_result($result);
+        return ''; // tbd
+    }
+}
+
+// get latest date and etag corresponding to the given user (wall or users)
+function get_etag($to_hash) {
+    $time = time();
+
+    $query = "SELECT max(updated) AS date, etag FROM pingback_messages WHERE to_hash='" . mysql_real_escape_string($to_hash) . "'";
+        $result = mysql_query($query);
+    if (!$result) {
+        return null;
+    } else {
+        $row = mysql_fetch_assoc($result);
+        mysql_free_result($result);
+        return $row;
+    }
 }
 
 // return true if user has subscribed to local services
