@@ -59,7 +59,7 @@ require_once 'lib/feeds/FeedWriter.php';
 
 // RDF stuff
 require_once 'lib/EasyRdf.php';
-require_once 'lib/graphite.php';
+require_once 'lib/Graphite.php';
 require_once 'lib/sparqllib.php';
 
 // Get the current document URI
