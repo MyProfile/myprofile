@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS `pingback` (
 CREATE TABLE IF NOT EXISTS `pingback_messages` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `date` bigint(20) NOT NULL,
+  `updated` bigint(20) NOT NULL,
+  `etag` varchar(32),
   `from_uri` varchar(512) NOT NULL,
   `to_hash` varchar(8) DEFAULT NULL,
   `to_uri` varchar(512) NOT NULL,
