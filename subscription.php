@@ -70,7 +70,7 @@ else {
         $check_email = 'checked';
  
     $ret .= "<div class=\"clear\"><p></p></div>\n";
-    $ret .= "<p><font style=\"font-size: 1.3em;\">The URI for your Wall is <a href=\"" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "\">" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "</a></font></p>\n";
+    $ret .= "<p><font style=\"font-size: 1.3em;\">The URI for your Wall is <a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">" . $base_uri . "/wall.php?user=" . $_SESSION['user_hash'] . "</a></font></p>\n";
 
     $ret .= "<form method=\"POST\" action=\"\">\n";
     $ret .= "<table border=\"0\">\n";
