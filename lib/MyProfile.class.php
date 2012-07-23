@@ -19,7 +19,6 @@ if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file dire
  * form() - returns html form for managing user profile data
 */ 
 class MyProfile {
-
     private $sparql;
     private $endpoint;
     private $ttl;
@@ -339,7 +338,7 @@ class MyProfile {
         $graph = new EasyRdf_Graph($this->webid);
         $graph->load();
         $person = $graph->resource($this->webid);
-        $graph->delete($person, 'foaf:knows', $uri);
+        $graph->deleteResource($person, 'foaf:knows', $uri);
         
         // write profile to file
         $data = $graph->serialise($format);
