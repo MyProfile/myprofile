@@ -78,8 +78,6 @@ class EasyRdf_Parser_RdfPhp extends EasyRdf_Parser
         // Reset the bnode mapping
         $this->resetBnodeMap();
 
-        # FIXME: validate the data (?)
-
         foreach ($data as $subject => $properties) {
             if (substr($subject, 0, 2) === '_:') {
                 $subject = $this->remapBnode($graph, $subject);
@@ -87,9 +85,9 @@ class EasyRdf_Parser_RdfPhp extends EasyRdf_Parser
                 # Cope with invalid RDF/JSON serialisations that
                 # put the node name in, without the _: prefix
                 # (such as net.fortytwo.sesametools.rdfjson)
-                $subject = $this->remapBnode($graph, $subject);            
+                $subject = $this->remapBnode($graph, $subject);
             }
-            
+
             foreach ($properties as $property => $objects) {
                 foreach ($objects as $object) {
                     if ($object['type'] === 'bnode') {
