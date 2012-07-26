@@ -1,5 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN" "http://www.w3.org/MarkUp/DTD/xhtml-rdfa-1.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
+        xml:lang="en" 
         xmlns:sioc="http://rdfs.org/sioc/ns#"
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
@@ -7,7 +8,9 @@
         xmlns:dcterms="http://purl.org/dc/terms/">
 
 <head>
+    <meta charset="utf-8">
     <title>MyProfile</title>
+    <meta name="author" content="Andrei Sambra">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -16,10 +19,9 @@
   
     <!-- Styles --> 
     <link type="text/css" href="css/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
-    <link type="text/css" href="css/bootstrap.css" rel="stylesheet" />
-    <link type="text/css" href="css/bootstrap-responsive.css" rel="stylesheet" />
-    <link type="text/css" href="css/demo.css" rel="stylesheet" />
-
+    <link type="text/css" href="css/bootstrap.css" rel="stylesheet">
+    <link type="text/css" href="css/bootstrap-responsive.css" rel="stylesheet">
+    <link type="text/css" href="css/demo.css" rel="stylesheet">
     <style type="text/css">
       /* Override some defaults */
       html, body {
@@ -71,11 +73,11 @@
         border: 0;
       }
     </style>
+
 <link rel="SHORTCUT ICON" href="favicon.png" />
 </head>
 
 <body>
-<!--scripts-->
 
 <!-- Local scripts -->
 <script type="text/javascript" src="js/form.js"></script>
@@ -87,25 +89,23 @@
 <script type="text/javascript" src="js/autocomplete.js"></script>
 <script type="text/javascript" src="js/jquery-ui.min.js"></script>
 
-<div class="navbar navbar-classic" id="navbar-example" align="center">
+<div class="navbar navbar-classic" align="center">
   <div class="navbar-inner" style="height: 40px; width: 900px;">
     <div class="container">
-    <h3>
-        <a class="brand" href="wall.php">
-        <img alt="MyProfile Wall" title="MyProfile Wall" height="22" src="img/myprofile-logo.png" style="height: 22px; float:left; display:inline; margin-right:10px;" />
-        MyProfile
-        </a>
-    </h3>
+    <h3><a class="brand" href="wall.php"><img alt="MyProfile Wall" title="MyProfile Wall" height="22" src="img/myprofile-logo.png" style="height: 22px; float:left; display:inline; margin-right:10px;" />MyProfile</a></h3>
     <ul class="nav">
         <?php
-            if (isset($_SESSION['user_hash']))
+            if (isset($_SESSION['webid']))
+                echo "<li><a href=\"wall.php?activity=1\">News feed</a></li>\n";
+            if (isset($_SESSION['user_hash'])) {
                 echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">My wall</a></li>\n";
-            else
+            } else {
                 echo "<li><a href=\"profile.php\">Get a WebID!</a></li>\n";
+            }
         ?>
         <li><a href="friends.php">Friends</a></li>
         <li><a href="lookup.php">Lookup</a></li>
-        <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">Additional Features <b class="caret"></b></a>
+        <li class="dropdown"><a data-toggle="dropdown" class="dropdown-toggle" href="#menu1">More<b class="caret"></b></a>
             <ul class="dropdown-menu">
             <?php
                 if (isset($_SESSION['webid']))
@@ -113,6 +113,9 @@
             ?>
             <li><a href="certgen.php">Issue certificate</a></li>
             </ul>
+        </li>
+        <li>
+            <a href="http://flattr.com/thing/715474/MyProfile" target="_blank"><img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>
         </li>
     </ul>
     <ul class="nav pull-right">
@@ -129,12 +132,13 @@
 		echo "<ul class=\"dropdown-menu\">\n";
 		echo "<li><a href=\"messages.php\">";
 		echo "<div class=\"rounded\" style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $pbg . "\">" . $private_msg . "</div><div align=\"left\">Message";
-        // add plural if more than 1 message or less than one message (0 messages)
-        echo ($private_msg != 1) ? 's' : '';
-		echo "</div>\n";
+        // add plural if more than one or less than one message (0 messages)
+        echo ($private_msg != 1) ? 's': '';
+        echo "</div>\n";
 		echo "</a></li>\n";
 		echo "<li><a href=\"wall.php?user=" . $_SESSION['user_hash'] . "\">";
 		echo "<div class=\"rounded\" style=\"float: left; margin-right: 5px; padding: 0px 7px 0px 7px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</div><div align=\"left\">Wall messages</div>\n";
+//		echo " <table><tr><td style=\"float: left; padding: 2px 9px 2px 9px; color: white; background-color: " . $wbg . "\">" . $wall_msg . "</td><td style=\"float: left; padding: 5px 0px 0px 5px;\">Wall messages</td></tr></table>\n";
 		echo "</a></li>\n";
 		echo "<li class=\"divider\"></li>\n";
 		echo "<li><a href=\"messages.php?new=true\">Send message</a></li>\n";
@@ -142,10 +146,10 @@
 		echo "</li>\n";
 
         // User info
-        $username = (strlen($_SESSION['usr']) > 30) ? substr($_SESSION['usr'], 0, 30) . '...' : $_SESSION['usr'];
-        echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu3\"><img id=\"rounded\" alt=\"" . $_SESSION['usr'] . "\" src=\"" . $_SESSION['img'] . "\" style=\"height: 22px; float:left; display:inline; margin: 0px 10px 0px 10px;\" /> " . $username . " <b class=\"caret\"></b></a>";
+        $username = (strlen($_SESSION['usr']) > 18) ? substr($_SESSION['usr'], 0, 18) . '...' : $_SESSION['usr'];
+        echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu3\"><img class=\"rounded\" alt=\"" . $_SESSION['usr'] . "\" src=\"" . $_SESSION['img'] . "\" style=\"height: 22px; float:left; display:inline; margin: 0px 10px 0px 10px;\" /> " . $username . " <b class=\"caret\"></b></a>";
         echo "<ul class=\"dropdown-menu\">\n";
-        echo "<li><a href=\"view.php?uri=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
+        echo "<li><a href=\"view.php?webid=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
         if (webid_is_local($_SESSION['webid'])) {
             echo "<li><a href=\"profile.php?action=edit\">Edit profile</a></li>\n";
             echo "<li><a href=\"account.php\">Manage account</a></li>";
@@ -153,11 +157,11 @@
         }
         echo "<li><a href=\"subscription.php\">Subscriptions</a></li>\n";
         echo "<li class=\"divider\"></li>\n";
-        echo "<li><a href=\"index.php?logoff\">Log out?</a></li>";
+        echo "<li><a href=\"index.php?logout\">Log out?</a></li>";
         echo "</ul>\n";
         echo "</li>\n";
     } else {
-        echo "<li><a href=\"" . IDP . "" . $_SESSION['page_uri'] . "\" style=\"\padding-top: 8px;\">\n";
+        echo "<li><a href=\"" . IDP . "" . $page_uri . "\" style=\"\padding-top: 8px;\">\n";
         echo "  <img alt=\"WebID Login\" title=\"WebID Login\" src=\"img/webid.png\" style=\"height: 22px; \" />";
         echo "</a></li>\n";
     }

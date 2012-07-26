@@ -5,7 +5,7 @@
  *
  * LICENSE
  *
- * Copyright (c) 2009-2010 Nicholas J Humfrey.  All rights reserved.
+ * Copyright (c) 2009-2012 Nicholas J Humfrey.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2010 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  * @version    $Id$
  */
@@ -40,7 +40,7 @@
  * A namespace registry and manipulation class.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2010 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  */
 class EasyRdf_Namespace
@@ -49,13 +49,13 @@ class EasyRdf_Namespace
     private static $_namespaces = array(
       'bibo' => 'http://purl.org/ontology/bibo/',
       'cc' => 'http://creativecommons.org/ns#',
+      'cert' => 'http://www.w3.org/ns/auth/cert#',
       'dc' => 'http://purl.org/dc/terms/',
       'dc11' => 'http://purl.org/dc/elements/1.1/',
       'doap' => 'http://usefulinc.com/ns/doap#',
       'exif' => 'http://www.w3.org/2003/12/exif/ns#',
       'foaf' => 'http://xmlns.com/foaf/0.1/',
       'geo' => 'http://www.w3.org/2003/01/geo/wgs84_pos#',
-      'http' => 'http://www.w3.org/2006/http#',
       'owl' => 'http://www.w3.org/2002/07/owl#',
       'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
       'rdfs' => 'http://www.w3.org/2000/01/rdf-schema#',
@@ -65,10 +65,7 @@ class EasyRdf_Namespace
       'synd' => 'http://purl.org/rss/1.0/modules/syndication/',
       'wot' => 'http://xmlns.com/wot/0.1/',
       'xhtml' => 'http://www.w3.org/1999/xhtml/vocab#',
-      'xsd' => 'http://www.w3.org/2001/XMLSchema#',
-      'rsa' => 'http://www.w3.org/ns/auth/rsa#',
-      'cert' => 'http://www.w3.org/ns/auth/cert#',
-      'pingback' => 'http://purl.org/net/pingback/',
+      'xsd' => 'http://www.w3.org/2001/XMLSchema#'
     );
 
     /** Counter for numbering anonymous namespaces */
@@ -92,7 +89,7 @@ class EasyRdf_Namespace
       */
     public static function get($prefix)
     {
-        if (!is_string($prefix) or $prefix == null or $prefix == '') {
+        if (!is_string($prefix) or $prefix === null or $prefix === '') {
             throw new InvalidArgumentException(
                 "\$prefix should be a string and cannot be null or empty"
             );
@@ -120,7 +117,7 @@ class EasyRdf_Namespace
       */
     public static function set($prefix, $long)
     {
-        if (!is_string($prefix) or $prefix == null or $prefix == '') {
+        if (!is_string($prefix) or $prefix === null or $prefix === '') {
             throw new InvalidArgumentException(
                 "\$prefix should be a string and cannot be null or empty"
             );
@@ -132,7 +129,7 @@ class EasyRdf_Namespace
             );
         }
 
-        if (!is_string($long) or $long == null or $long == '') {
+        if (!is_string($long) or $long === null or $long === '') {
             throw new InvalidArgumentException(
                 "\$long should be a string and cannot be null or empty"
             );
@@ -149,7 +146,7 @@ class EasyRdf_Namespace
       */
     public static function delete($prefix)
     {
-        if (!is_string($prefix) or $prefix == null or $prefix == '') {
+        if (!is_string($prefix) or $prefix === null or $prefix === '') {
             throw new InvalidArgumentException(
                 "\$prefix should be a string and cannot be null or empty"
             );
@@ -181,7 +178,7 @@ class EasyRdf_Namespace
     public static function prefixOfUri($uri)
     {
         # FIXME: sort out code duplication with shorten()
-        if ($uri == null or $uri == '') {
+        if ($uri === null or $uri === '') {
             throw new InvalidArgumentException(
                 "\$uri cannot be null or empty"
             );
@@ -207,7 +204,7 @@ class EasyRdf_Namespace
     /**
       * Shorten a URI by substituting in the namespace prefix.
       *
-      * If $createNamespace is true, and the URI isn't part of an existing 
+      * If $createNamespace is true, and the URI isn't part of an existing
       * namespace, then EasyRdf will attempt to create a new namespace and
       * use that namespace to shorten the URI (for example ns0:term).
       *
@@ -219,7 +216,7 @@ class EasyRdf_Namespace
       */
     public static function shorten($uri, $createNamespace=false)
     {
-        if ($uri == null or $uri == '') {
+        if ($uri === null or $uri === '') {
             throw new InvalidArgumentException(
                 "\$uri cannot be null or empty"
             );
@@ -263,7 +260,7 @@ class EasyRdf_Namespace
       */
     public static function expand($shortUri)
     {
-        if (!is_string($shortUri) or $shortUri == null or $shortUri == '') {
+        if (!is_string($shortUri) or $shortUri === null or $shortUri === '') {
             throw new InvalidArgumentException(
                 "\$shortUri should be a string and cannot be null or empty"
             );

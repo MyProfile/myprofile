@@ -29,11 +29,12 @@ class MyProfile {
     private $primarytopic;
     private $graph;
     private $profile;
-    private $name;
+    private $fullName;
     private $picture;
     private $feed_hash;
     private $user_hash;
     private $email;
+    private $count;
 
     // Build the selectors for adding more form content (default ttl is 24h)
     function __construct($webid, $base_uri, $endpoint, $ttl = 86400) {
@@ -53,20 +54,22 @@ class MyProfile {
     
     // Cache user data into a SPARQL triplestore
     function sparql_cache() {
+        // Insert only real WebIDs (i.e. skip bnodes)
         $db = sparql_connect($this->endpoint);
         // first delete previous data for the graph
         $sql = "CLEAR GRAPH <" . $this->webid . ">";
-        $res = sparql_query($sql);
+        $res = $db->query($sql);
             
         // Load URI into the triple store
         $sql = "LOAD <" . $this->webid . ">";
-        $res = sparql_query($sql);
+        $res = $db->query($sql);
         
         // Add the timestamp for the date at which it was inserted
         $time = time();
         $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
-        $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> {<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
-        $res = sparql_query($sql);
+        $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> ' .
+                '{<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
+        $res = $db->query($sql);
     
         return true;
     }   
@@ -79,36 +82,40 @@ class MyProfile {
         $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
         
         $db = sparql_connect($this->endpoint);
-        $query = 'SELECT * FROM <' . $this->webid . '> WHERE {?person dc:date ?date . FILTER (?date > "' . $date . '"^^xsd:dateTime)}';
-        $result = sparql_query($query);
+        $query = 'SELECT * FROM <' . $this->webid . '> WHERE { ' . 
+                '?person dc:date ?date . ' . 
+                'FILTER (?date > "' . $date . '"^^xsd:dateTime)}';
+        $result = $db->query($query);
 
-        // fallback to Graphite if there's a problem with the SPARQL endpoint
+        // fallback to EasyRdf if there's a problem with the SPARQL endpoint
         if (!$result) {
             $this->direct_graph();
         } else {
             // cache data into the triple store if it's the first time we see it
-            $count = sparql_num_rows($result);
+            $count = $result->num_rows($result);
 
             // force refresh of data if cache expired
             if ($count == 0)
                 $this->sparql_cache();
 
-            $query = "CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <" . $this->webid . "> { ?s ?p ?o } . }";
-            $graph = new Graphite();
-            $graph->loadSPARQL($this->endpoint, $query);
-            
+            $query = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> ";
+            $query .= "PREFIX cert: <http://www.w3.org/ns/auth/cert#> ";
+            $query .= "CONSTRUCT { ?s ?p ?o } WHERE { GRAPH <" . $this->webid . "> { ?s ?p ?o } }";
+     
+            $sparql = new EasyRdf_Sparql_Client($this->endpoint); 
+            $graph = $sparql->query($query);            
+
             $this->graph = $graph;
         }
         return true;
     }
     
-    // Load profile data using Graphite
+    // Load profile data using EasyRdf 
     // returns true
     function direct_graph() {
         // Load the RDF graph data
-        $graph = new Graphite();
+        $graph = new EasyRdf_Graph();
         $graph->load($this->webid);
-        $graph->cacheDir($this->cache_dir);
 
         $this->graph = $graph;
 
@@ -122,56 +129,56 @@ class MyProfile {
             // force a cache refresh
             if ($refresh == true)
                 $this->sparql_cache();
-            // use the SPARQL endpoint
+            // use the SPARQL endpoint 
             $this->sparql_graph();
         } else {
-            // use the direct method (Graphite)
+            // use the direct method (EasyRdf)
             $this->direct_graph();
         }
         
         // try to get primary topic, else go with default uri (some people don't use #)
         $pt = $this->graph->resource('foaf:PersonalProfileDocument');
         $this->primarytopic = $pt->get('foaf:primaryTopic');
-        if ($this->primarytopic != '[NULL]') 
+        if ($this->primarytopic != null) 
             $profile = $this->graph->resource($this->primarytopic);
         else
             $profile = $this->graph->resource($this->webid);
-
+        
         $this->profile = $profile;
         
         // get user's name and picture info for display purposes    
-        $this->name = $profile->get('foaf:name');
-        if ($this->name == '[NULL]')
-        // combine firstname and lastname if name is null
-        if ($this->name == '[NULL]') {
+        $this->fullName = $profile->get('foaf:name');
+
+        if ($this->fullName == null) {
             $first = $profile->get('foaf:givenName');
             $last = $profile->get('foaf:familyName');
 
             $name = ''; 
-            if ($first != '[NULL]')
+            if ($first != null)
                 $name .= $first . ' ';
-            if ($last != '[NULL]')
+            if ($last != null)
                 $name .= $last;
             if (strlen($name) > 0)
-                $this->name = $name;
+                $this->fullName = $name;
             else
-                $this->name = 'Anonymous';
+                $this->fullName = 'Anonymous';
         }
 
         // get the user's picture
-        if ($profile->get('foaf:img') != '[NULL]')
+        if ($profile->get('foaf:img') != null)
             $this->picture = $profile->get('foaf:img'); 
-        else if ($profile->get('foaf:depiction') != '[NULL]')
+        else if ($profile->get('foaf:depiction') != null)
             $this->picture = $profile->get('foaf:depiction');
         else
             $this->picture = 'img/nouser.png'; // default image
         
         // get the user's first email address
-        if ($profile->get('foaf:mbox') != '[NULL]')
+        if ($profile->get('foaf:mbox') != null)
             $this->email = $profile->get('foaf:mbox');
             
         // get user hash and feed hash
-        $result = mysql_query("SELECT feed_hash, user_hash FROM pingback WHERE webid='" . mysql_real_escape_string($this->webid) . "'");
+        $result = mysql_query("SELECT feed_hash, user_hash FROM pingback WHERE " . 
+                                "webid='" . mysql_real_escape_string($this->webid) . "'");
         if (!$result) {
             die('Unable to connect to the database!');
         } else if (mysql_num_rows($result) > 0) {
@@ -181,6 +188,10 @@ class MyProfile {
             mysql_free_result($result);
         }
         return true;
+    }
+    
+    function get_count() {
+        return $this->count;
     }
     
     // get the user's raw graph object
@@ -210,7 +221,7 @@ class MyProfile {
     
     // get the user's full name
     function get_name() {
-        return $this->name;
+        return $this->fullName;
     }
     
     // get the user's nickname
@@ -227,6 +238,11 @@ class MyProfile {
     function get_email() {
         return $this->email;
     } 
+    
+    // get the user's pingback endpoint
+    function get_pingback() {
+        return $this->profile->get("http://purl.org/net/pingback/to");
+    }
        
     // check if the given webid is in the user's list of foaf:knows
     function is_friend($webid) {
@@ -234,7 +250,7 @@ class MyProfile {
             $this->load();
         }
         $profile = $this->profile;        
-        $friends = explode(',', $profile->all('foaf:knows')->join(','));
+        $friends = $profile->all('foaf:knows');
         if (in_array($webid, $friends))
             return true;
         else
@@ -275,7 +291,7 @@ class MyProfile {
         $graph = new EasyRdf_Graph($this->webid);
         $graph->load();
         $me = $graph->resource($this->webid);
-        $me->add('foaf:knows', trim($uri));
+        $graph->addResource($me, 'foaf:knows', $uri);
         
         // reserialize graph
         $data = $graph->serialise($format);
@@ -291,9 +307,13 @@ class MyProfile {
         $pf = fopen($path . '/foaf.txt', 'w') or error('Cannot open profile PHP file!');
         fwrite($pf, $data);
         fclose($pf);
+        
+        // cache the user's data if possible
+        $friend = new MyProfile($uri, $this->base_uri, SPARQL_ENDPOINT);
+        $friend->load();
 
         // everything is fine
-        return success("You have just added " . $uri . " to your friends.");
+        return success("You have just added " . $friend->get_name() . " to your list of friends.");
     }
     
     // remove a foaf:knows relation
@@ -305,7 +325,8 @@ class MyProfile {
         // Create the new graph object in which we store data
         $graph = new EasyRdf_Graph($this->webid);
         $graph->load();
-        $graph->delete($graph->resource($this->webid), 'foaf:knows', trim($uri));
+        $person = $graph->resource($this->webid);
+        $graph->deleteResource($person, 'foaf:knows', $uri);
         
         // write profile to file
         $data = $graph->serialise($format);
@@ -318,12 +339,16 @@ class MyProfile {
         fwrite($pf, $data);
         fclose($pf);    
         
-        $pf = fopen($path . '/foaf.txt', 'w') or die('Cannot open profile PHP file!');
+        $pf = fopen($path . '/foaf.txt', 'w') or die('Cannot open profile TXT file!');
         fwrite($pf, $data);
         fclose($pf);
 
+        // get the user's name
+        $friend = new MyProfile($uri, $this->base_uri, SPARQL_ENDPOINT);
+        $friend->load();
+        
         // everything is fine
-        return success("You have just removed " . $uri . " from your friends.");
+        return success("You have just removed " . $friend->get_name() . " from your list of friends.");
     }
     
     // delete user from database
@@ -331,6 +356,7 @@ class MyProfile {
     function delete_account() {
         $webid = mysql_real_escape_string($this->webid);
         
+        // delete the WebID from subscriptions
         $result = mysql_query("DELETE FROM pingback WHERE webid='" . $webid . "'");
         if (!$result) {
             return false;       
@@ -338,7 +364,17 @@ class MyProfile {
             mysql_free_result($result);
         }
         
+        // delete all messages sent by the user
         $result = mysql_query("DELETE FROM pingback_messages WHERE from_uri='" . $webid . "'");
+        if (!$result) {
+            return false;       
+        } else {
+            mysql_free_result($result);
+        }
+        return true;
+        
+        // delete all votes cast by the user
+        $result = mysql_query("DELETE FROM votes WHERE webid='" . $webid . "'");
         if (!$result) {
             return false;       
         } else {
@@ -358,7 +394,10 @@ class MyProfile {
         $this->user_hash = $user_hash;        
                 
         // write webid uri to database
-        $query = "INSERT INTO pingback SET webid='" . mysql_real_escape_string($webid) . "', feed_hash='" . mysql_real_escape_string($feed_hash) . "', user_hash='" . mysql_real_escape_string($user_hash) . "'";
+        $query = "INSERT INTO pingback SET " .
+                "webid='" . mysql_real_escape_string($webid) . "', " .
+                "feed_hash='" . mysql_real_escape_string($feed_hash) . "', " . 
+                "user_hash='" . mysql_real_escape_string($user_hash) . "'";
         $result = mysql_query($query);
 
         if (!$result) {

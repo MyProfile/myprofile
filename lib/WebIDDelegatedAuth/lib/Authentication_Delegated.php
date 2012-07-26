@@ -1,40 +1,43 @@
 <?php
 
-//-----------------------------------------------------------------------------------------------------------------------------------
-//
-// Filename   : Authentication_FoafSSLDelegate.php
-// Date       : 14th Feb 2010
-//
-// See Also   : https://foaf.me/testLibAuthentication.php
-//
-// Copyright 2008-2010 foaf.me
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
-//
-// "Everything should be made as simple as possible, but no simpler."
-// -- Albert Einstein
-//
-//-----------------------------------------------------------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------
+ *
+ * Filename   : Authentication_Delegated.php
+ * Date       : 11th July 2012
+ *
+ * Copyright (C) 2012 Melvin Carvalho, Akbar Hossain, László Török
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal 
+ * in the Software without restriction, including without limitation the rights 
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+ * copies of the Software, and to permit persons to whom the Software is furnished 
+ * to do so, subject to the following conditions:
+
+ * The above copyright notice and this permission notice shall be included in all 
+ * copies or substantial portions of the Software.
+
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+ * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION 
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Everything should be made as simple as possible, but no simpler."
+ * -- Albert Einstein
+ */
+//-------------------------------------------------------------------------------------
 require_once(dirname(__FILE__)."/Authentication_URL.php");
 require_once(dirname(__FILE__)."/Authentication_X509CertRepo.php");
 require_once(dirname(__FILE__)."/Authentication_Session.php");
 /**
- * Implements FoafSSL Authentication using an Identity Provider
+ * Implements WebID Delegated Authentication using an Identity Provider
  *
  * @author Akbar Hossain
+ * @modified Andrei Sambra
  */
-class Authentication_FoafSSLDelegate {
+class Authentication_Delegated {
     /**
      * After succesful authentication contains the webid
      * (e.g. http://foaf.me/tl73#me)
@@ -59,7 +62,7 @@ class Authentication_FoafSSLDelegate {
     "Authenticated via a session";
     
     const STATUS_DELEGATED_LOGIN_OK =
-    "Delegated FOAF Login response has been authenticated";
+    "Delegated WebID Login response has been authenticated";
     
     const STATUS_SIGNATURE_VERIFICATION_ERR =
     "Signature on response could not be verified";
@@ -78,7 +81,7 @@ class Authentication_FoafSSLDelegate {
 
     const SIG_ALG_RSA_SHA1 = 'rsa-sha1';
     /**
-     * Perform delegated FOAF+SSL authentication relying on an Identity Provider
+     * Perform delegated WebID authentication relying on an Identity Provider
      * @param Authentication_SignedURL $request (if not specified infered from _GET)
      * @param Authentication_X509CertRepo $certRepository (if not default is used)
      * @param bool $createSession
@@ -92,9 +95,11 @@ class Authentication_FoafSSLDelegate {
                                 $sigAlg = self::SIG_ALG_RSA_SHA1,
                                 $allowedTimeWindow = 300)
     {
-        if ($createSession) {
+        if ($createSession)
+        {
             $session = new Authentication_Session();
-            if ($session->isAuthenticated) {
+            if ($session->isAuthenticated)
+            {
                 $this->webid = $session->webid;
                 $this->isAuthenticated = $session->isAuthenticated;
                 $this->authnDiagnostic = self::STATUS_AUTH_VIA_SESSION;
@@ -102,10 +107,10 @@ class Authentication_FoafSSLDelegate {
             }
         }
 
-        if (!$certRepository)
+        if ( ! $certRepository)
             $certRepository = new Authentication_X509CertRepo();
 
-        if (!$request) {
+        if ( ! $request) {
             $request = Authentication_SignedURL::parse(
                     ((isset($_SERVER["HTTPS"]) && ($_SERVER["HTTPS"] == "on")) ? "https" : "http")
                     . "://".$_SERVER["SERVER_NAME"]
@@ -120,73 +125,80 @@ class Authentication_FoafSSLDelegate {
         $sig = null;
         $ts = null;
 
-        if (isset($_GET["error"])) {
-            $error = $_GET["error"];
-        }
-        if (isset($_GET["sig"])) {
-            $sig = $_GET["sig"];
-        }
-        if (isset($_GET["ts"])) {
-            $ts = $_GET["ts"];
-        }
+        isset($_GET["error"]) and $error = $_GET["error"];
+        
+        isset($_GET["sig"]) and $sig = $_GET["sig"];
+        
+        isset($_GET["ts"]) and $ts = $_GET["ts"];
 
         $error = $request->getQueryParameter('error', $error);
         $sig = $request->getQueryParameter('sig', $sig);
         $ts = $request->getQueryParameter('ts', $ts);
 
-        $this->requestURI        = $request;
-        if (NULL != $referer) {
-            $this->referer = $referer->parsedURL;
-        } else if (isset($_GET["referer"])) {
+        $this->requestURI = $request;
+        if (NULL != $referer)
+        {
+            $this->referer = $referer;
+        }
+        else if (isset($_GET["referer"]))
+        {
             $this->referer = Authentication_URL::parse($_GET["referer"]);
-        } else {
+        }
+        else
+        {
             $this->referer = new Authentication_URL();
         }
-        $this->ts                = $ts;
+        $this->ts = $ts;
 
         $webid = null;
-        if (isset($_GET["webid"])) {
-            $webid = $_GET["webid"];
-        }
+        isset($_GET["webid"]) and $webid = $_GET["webid"];
+        
         $this->webid             = $request->getQueryParameter('webid', $webid);
         $this->allowedTimeWindow = $allowedTimeWindow;
-
-        $this->elapsedTime = time() - strtotime($ts);
+        $this->elapsedTime       = time() - strtotime($ts);
 
         /*
          * Loads the trusted certificate of the IdP: its public key is used to
          * verify the integrity of the signed assertion.
          */
         $idpCertificate = $certRepository->getIdpCertificate($this->referer->host);
-        if (!$idpCertificate) {
+        if ( ! $idpCertificate)
+        {
            $this->isAuthenticated = 0;
            $this->authnDiagnostic = self::STATUS_IDP_CERTIFICATE_MISSING;
 
-        } else if ( ($this->elapsedTime < $this->allowedTimeWindow) && (!isset($error)) ) {
+        }
+        else if (($this->elapsedTime < $this->allowedTimeWindow) && ( ! isset($error)))
+        {
 
             $signedInfo = $this->requestURI->urlWithoutSignature();
             // Extracts the signature
             $signature = $this->requestURI->digitalSignature();
             // TODO this may be removed in the future
-            if (!$signature)
+            if ( ! $signature)
                 $signature = $sig;
 
             // Only rsa-sha1 is supported at the moment.
-            if ($sigAlg == self::SIG_ALG_RSA_SHA1) {
+            if ($sigAlg == self::SIG_ALG_RSA_SHA1)
+            {
                     $pubKeyId = openssl_get_publickey($idpCertificate);
 
                     // Verifies the signature
                     $verified = openssl_verify($signedInfo, $signature, $pubKeyId);
-                    if ($verified == 1) {
+                    if ($verified == 1)
+                    {
                         // The verification was successful.
                         $this->isAuthenticated = 1;
                         $this->authnDiagnostic = self::STATUS_DELEGATED_LOGIN_OK;
                     }
-                    elseif ($verified == 0) {
+                    else if ($verified == 0)
+                    {
                         // The signature didn't match.
                         $this->isAuthenticated = 0;
                         $this->authnDiagnostic = self::STATUS_SIGNATURE_VERIFICATION_ERR;
-                    } else {
+                    } 
+                    else
+                    {
                         // Error during the verification.
                         $this->isAuthenticated = 0;
                         $this->authnDiagnostic = self::STATUS_OPENSSL_VERIFICATION_ERR;
@@ -194,13 +206,16 @@ class Authentication_FoafSSLDelegate {
 
                     openssl_free_key($pubKeyId);
 
-            } else {
+            }
+            else 
+            {
                 // Unsupported signature algorithm.
                 $this->isAuthenticated = 0;
                 $this->authnDiagnostic = self::STATUS_UNSUPPORTED_SIGNATURE_ALG_ERR;
             }
         }
-        else {
+        else
+        {
             $this->isAuthenticated = 0;
             if (isset($error))
                 $this->authnDiagnostic = $error;
@@ -208,7 +223,8 @@ class Authentication_FoafSSLDelegate {
                 $this->authnDiagnostic = self::STATUS_IDP_RESPONSE_TIMEOUT_ERR;
         }
 
-        if ($createSession) {
+        if ($createSession)
+        {
             if ($this->isAuthenticated)
                 $session->setAuthenticatedWebid($this->webid);
             else
@@ -220,13 +236,15 @@ class Authentication_FoafSSLDelegate {
      * Is the current user authenticated?
      * @return bool
      */
-    public function isAuthenticated() {
+    public function isAuthenticated()
+    {
         return $this->isAuthenticated;
     }
     /**
      * Leave the authenticated session
      */
-    public function logout() {
+    public function logout()
+    {
         $this->isAuthenticated = 0;
         $this->session->unsetAuthenticatedWebid();
     }

@@ -25,7 +25,7 @@ require_once 'include.php';
 
 // load a specific webid instead of the logged user
 if (isset($_REQUEST['webid'])) {
-    $person = new MyProfile(urldecode($_REQUEST['webid']), $base_uri, SPARQL_ENDPOINT);
+    $person = new MyProfile(urldecode($_REQUEST['webid']), BASE_URI, SPARQL_ENDPOINT);
     $person->load();
     $profile = $person->get_profile();
 } else {
@@ -36,8 +36,7 @@ if (isset($_REQUEST['webid'])) {
 
 $user = $profile->get("foaf:name");
 
-if (isset($_REQUEST['search']))
-    $search = $_REQUEST['search'];
+$search = (isset($_REQUEST['search'])) ? $_REQUEST['search'] : '';
     
 $form = "";
 $form .= "<div>\n";
@@ -57,7 +56,7 @@ if (isset($confirmation)) {
 }
 
 // call ajax script here to load each friend's data
-$friends = $profile->all('foaf:knows')->join(',');
+$friends = implode(',', $profile->all('foaf:knows'));
 
 // show something if there are friends for this webid
 if (strlen($friends) > 0) {
