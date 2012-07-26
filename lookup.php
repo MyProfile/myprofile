@@ -26,7 +26,7 @@ include 'header.php';
 if (isset($_REQUEST['search']))
     $search = $_REQUEST['search'];
 
-$ret = "<div><form action=\"\" method=\"GET\">\n";
+$ret = "<div><form action=\"\" method=\"POST\">\n";
 $ret .= "Looking for someone? <input type=\"text\" name=\"search\" placeholder=\"name, nickname or WebID\" value=\"" . $search . "\" style=\"width: 400px;\">\n";
 $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" View \">\n";
 $ret .= "</form></div>\n";
@@ -38,13 +38,13 @@ if (isset($confirmation))
 if (isset($_REQUEST['search'])) {
     $ret .= '<div>';
 	$ret .= "<h3 class=\"profileHeaders\">Search results for: ";
-	if (strlen($_REQUEST['uri']) > 50)
+	if (strlen($_REQUEST['search']) > 50)
     	$ret .= substr(urldecode($_REQUEST['search']), 0, 47) . '...';
     else
         $ret .= urldecode($_REQUEST['search']);
     $ret .= "</h3>\n";
 
-    $ret .= sparql_lookup(trim($_REQUEST['search']), $base_uri, SPARQL_ENDPOINT);
+    $ret .= sparql_lookup(trim($_REQUEST['search']), BASE_URI, SPARQL_ENDPOINT);
 
 }
 
