@@ -75,7 +75,8 @@ class EasyRdf_Literal_HexBinary extends EasyRdf_Literal
      */
     public function toHex()
     {
-        return strtoupper(bin2hex($this->_value));
+        return ($this->checkbinary($this->_value) !== true) ? $this->_value :
+                 strtoupper(bin2hex($this->_value));
     }
 
     /** Magic method to return the value as a hexadecimal string
@@ -85,6 +86,15 @@ class EasyRdf_Literal_HexBinary extends EasyRdf_Literal
     public function __toString()
     {
         return $this->toHex();
+    }
+
+    /** Check if a variable contains binary data or not 
+     *
+     * @retun true/false
+     */
+    function checkbinary($bin)
+    {
+        return preg_match('#^[01]+$#', $bin);
     }
 }
 

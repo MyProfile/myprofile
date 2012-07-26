@@ -122,6 +122,13 @@ if (isset($_REQUEST['doit']))  {
                     $graph->addResource($me, 'foaf:mbox_sha1sum', trim($val));
             }
         }
+        // sameAs
+        if (isset($_REQUEST['owl:sameAs'])) {
+            foreach($_REQUEST['owl:sameAs'] as $key => $val) {
+                if (strlen($val) > 0)
+                    $graph->addResource($me, 'owl:sameAs', trim($val));
+            }
+        }
         // homepage
         if (isset($_REQUEST['foaf:homepage'])) {
             foreach($_REQUEST['foaf:homepage'] as $key => $val) {
@@ -332,30 +339,30 @@ $ret .= $alert;
 if ($_REQUEST['action'] == 'edit') {
     $graph = $_SESSION['myprofile']->get_graph();
     $profile = $_SESSION['myprofile']->get_profile();
-    
+    $ret .= "<!-- " . print_r($graph, true) . " -->\n";    
     // Set variables
     // Full name
-    $name = ($profile->get('foaf:name') != '[NULL]') ? $profile->get('foaf:name') : '';
+    $name = ($profile->get('foaf:name') != null) ? $profile->get('foaf:name') : '';
 
     // First name
-    $firstname = ($profile->get('foaf:givenName') != '[NULL]') ? $profile->get('foaf:givenName') : '';
+    $firstname = ($profile->get('foaf:givenName') != null) ? $profile->get('foaf:givenName') : '';
 
     // Lastname
-    $familyname = ($profile->get('foaf:familyName')  != '[NULL]') ? $profile->get('foaf:familyName') : '';
+    $familyname = ($profile->get('foaf:familyName')  != null) ? $profile->get('foaf:familyName') : '';
 
     // Picture
     $picture = $_SESSION['myprofile']->get_picture();
 
     // Nickname
-    $nick = ($profile->get('foaf:nick') != '[NULL]') ? $profile->get('foaf:nick') : '';
+    $nick = ($profile->get('foaf:nick') != null) ? $profile->get('foaf:nick') : '';
 
     // Pingback endpoint
-    $pingback = ($profile->get('pingback:to') != '[NULL]') ? $profile->get('pingback:to') : '';
+    $pingback = ($profile->get('pingback:to') != null) ? $profile->get('pingback:to') : '';
 
     // Multiple values 
     // Email addresses
     $emails = '';
-    if ($profile->get('foaf:mbox') != '[NULL]') {
+    if ($profile->get('foaf:mbox') != null) {
         foreach ($profile->all('foaf:mbox') as $email) {
             $emails .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . clean_mail($email) . "\" name=\"foaf:mbox[]\"></td></tr>\n";
         }
@@ -366,56 +373,63 @@ if ($_REQUEST['action'] == 'edit') {
     
     // SHA1 sums
     $sha1sums = '';
-    if ($profile->get('foaf:mbox_sha1sum') != '[NULL]') {
+    if ($profile->get('foaf:mbox_sha1sum') != null) {
         foreach ($profile->all('foaf:mbox_sha1sum') as $sha1)
             $sha1sums .= "<tr><td>Email SHA1SUM: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $sha1 . "\" name=\"foaf:mbox_sha1sum[]\"></td></tr>\n";
     } 
     
+    // sameAs
+    $sameAs = '';
+    if ($profile->get('owl:sameAs') != null) {
+         foreach ($profile->all('owl:sameAs') as $same)
+            $sameAs .= "<tr><td>Additional profile: </td><td><input type=\"text\" size=\"50\" value=\"" . $same . "\" name=\"owl:sameAs[]\"></td></tr>\n";
+    } 
+    
     // Homepages
     $homepages = '';
-    if ($profile->get('foaf:homepage') != '[NULL]') {
+    if ($profile->get('foaf:homepage') != null) {
          foreach ($profile->all('foaf:homepage') as $homepage)
             $homepages .= "<tr><td>Homepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $homepage . "\" name=\"foaf:homepage[]\"></td></tr>\n";
     } 
     
     // Blogs
     $blogs = '';
-    if ($profile->get('foaf:weblog') != '[NULL]') {
+    if ($profile->get('foaf:weblog') != null) {
          foreach ($profile->all('foaf:weblog') as $blog)
             $blogs .= "<tr><td>Blog: </td><td><input type=\"text\" size=\"50\" value=\"" . $blog . "\" name=\"foaf:weblog[]\"></td></tr>\n";
     } 
     
     // Work Homepages
     $workHPS = '';
-    if ($profile->get('foaf:workplaceHomepage') != '[NULL]') {
+    if ($profile->get('foaf:workplaceHomepage') != null) {
          foreach ($profile->all('foaf:workplaceHomepage') as $workHP)
             $workHPS .= "<tr><td>WorkplaceHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $workHP . "\" name=\"foaf:workplaceHomepage[]\"></td></tr>\n";
     } 
     
     // School Homepages
     $schoolHPS = '';
-    if ($profile->get('foaf:schoolHomepage') != '[NULL]') {
+    if ($profile->get('foaf:schoolHomepage') != null) {
          foreach ($profile->all('foaf:schoolHomepage') as $schoolHP)
             $schoolHPS .= "<tr><td>SchoolHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $schoolHP . "\" name=\"foaf:schoolHomepage[]\"></td></tr>\n";
     } 
     
     // Current Projects
     $curprojs = '';
-    if ($profile->get('foaf:currentProject') != '[NULL]') {
+    if ($profile->get('foaf:currentProject') != null) {
          foreach ($profile->all('foaf:currentProject') as $curproj)
             $curprojs .= "<tr><td>CurrentProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $curproj . "\" name=\"foaf:currentProject[]\"></td></tr>\n";
     } 
     
     // Past Projects
     $pastprojs = '';
-    if ($profile->get('foaf:pastProject') != '[NULL]') {
+    if ($profile->get('foaf:pastProject') != null) {
          foreach ($profile->all('foaf:pastProject') as $pastproj)
             $pastprojs .= "<tr><td>PastProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $pastproj . "\" name=\"foaf:pastProject[]\"></td></tr>\n";
     } 
 
     // Friends
     $knows = '';
-    if ($profile->get('foaf:knows') != '[NULL]') {
+    if ($profile->get('foaf:knows') != null) {
          foreach ($profile->all('foaf:knows') as $friend)
             $knows .= "<tr><td>Person: </td><td><input type=\"text\" size=\"70\" value=\"" . $friend . "\" name=\"foaf:knows[]\"></td></tr>\n";
     } else {
@@ -424,7 +438,7 @@ if ($_REQUEST['action'] == 'edit') {
     
     // Certs
     $certs = '';
-    if ($profile->get('cert:key') != '[NULL]') {
+    if ($profile->get('cert:key') != null) {
         foreach ($graph->allOfType('cert:RSAPublicKey') as $cert) {
             $hex = preg_replace('/\s+/', '', strtolower($cert->get('cert:modulus')));
             $int = $cert->get('cert:exponent');
@@ -432,6 +446,7 @@ if ($_REQUEST['action'] == 'edit') {
             $certs .= "<tr>\n";
             $certs .= "   <td>Modulus: </td>\n";
             $certs .= "   <td>\n";
+            $certs .= " <!-- hex=" . $cert->get('cert:modulus') . " -->\n";
             $certs .= "       <table>\n";
             $certs .= "       <tr>\n";
             $certs .= "          <td><textarea style=\"height: 130px;\" onfocus=\"textAreaResize(this)\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
@@ -448,8 +463,9 @@ if ($_REQUEST['action'] == 'edit') {
 }
 
 // rdf types for Person
-$values_person = array('foaf:mbox' => 'Email',
+$values_person = array('foaf:mbox' => 'Email (mbox)',
                 'foaf:mbox_sha1sum' => 'Email SHA1',
+                'owl:sameAs' => 'Additional profile (sameAs)',
                 'foaf:homepage' => 'Homepage',
                 'foaf:weblog' => 'Blog',
                 'foaf:workplaceHomepage' => 'Workplace homepage',
@@ -548,6 +564,7 @@ $ret .= "</tr>\n";
 // Add more personal info
 $ret .= $emails;
 $ret .= $sha1sums;
+$ret .= $sameAs;
 $ret .= $homepages;
 $ret .= $blogs;
 $ret .= $workHPS;

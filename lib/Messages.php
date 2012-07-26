@@ -12,8 +12,8 @@ function preg_get_handle_by_webid($array) {
     $nick = $person->get_nick();
     
     $ret = '';
-    $ret .= ' <a href="view.php?uri=' . urlencode($webid) . '">';
-    $ret .= ($nick != '[NULL]') ? '@' . $nick : '@' . $name;
+    $ret .= ' <a href="view.php?webid=' . urlencode($webid) . '">';
+    $ret .= ($nick != null) ? '@' . $nick : '@' . $name;
     $ret .= '</a>';
     return $ret;
 }
@@ -45,7 +45,7 @@ function sendPing ($to, $message, $base_uri, $verbose = false) {
     $triples = $parser->getTriples();
 
     // proceed only if the user has defined a pingback:to relation    
-    if ($pingback_service != '[NULL]') {
+    if ($pingback_service != null) {
         if (sizeof($triples) > 0) {
             //echo "<pre>" . print_r($triples, true) . "</pre>\n";
             foreach ($triples as $triple) {
@@ -129,7 +129,7 @@ function add_vote_buttons($message_id) {
         } else if ($vote == 0) {
             $no_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
         }
-
+    
         $ret .= $yes_link . "<img src=\"img/yes-vote.png\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span></a>\n";
         $ret .= " | ";
         $ret .= $no_link . "<img src=\"img/no-vote.png\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span></a>\n";

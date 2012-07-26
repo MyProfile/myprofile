@@ -52,14 +52,15 @@ require_once 'lib/Mail/mime.php';
 require_once 'lib/logger.php';
 
 // WebID auth
-require_once 'lib/libAuthentication/Authentication.php';
+require_once 'lib/WebIDDelegatedAuth/lib/Authentication.php';
 
 // Feed stuff
+require_once 'lib/feeds/FeedItem.php';
 require_once 'lib/feeds/FeedWriter.php';
 
 // RDF stuff
+require_once 'lib/arc/ARC2.php';
 require_once 'lib/EasyRdf.php';
-require_once 'lib/Graphite.php';
 require_once 'lib/sparqllib.php';
 
 // Get the current document URI
@@ -83,7 +84,7 @@ session_set_cookie_params(24*60*60);
 // Create session
 if (!isset($_SESSION)) {
     session_start();
-    $auth = new Authentication_FoafSSLDelegate();
+    $auth = new Authentication_Delegated();
     $log = new KLogger( "logs/log.txt" , KLogger::DEBUG );
 
     $_SESSION['base_uri'] = $base_uri;
@@ -120,7 +121,7 @@ if (strlen($auth->webid) > 0) {
         if (!isset($_SESSION['myprofile'])) {
             $_SESSION['webid'] = $webid;
 
-            $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
+            $_SESSION['myprofile'] = new MyProfile($webid, BASE_URI, SPARQL_ENDPOINT);
             // load rest of data only if we can load the profile
             if ($_SESSION['myprofile']->load()) {
                 $_SESSION['usr'] = $_SESSION['myprofile']->get_name();
@@ -151,8 +152,8 @@ if (isset($_SESSION['webid']) && $_SESSION['webid']) {
 // add a specific person as friend
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'addfriend')) {
     // add friend and display confirmation
-    $confirmation = $_SESSION['myprofile']->add_friend(urldecode($_REQUEST['uri']));
-    // forcing reload of cache
+    $confirmation = $_SESSION['myprofile']->add_friend($_REQUEST['uri']);
+    
     $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load(true);
 }
@@ -160,8 +161,8 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
 // add a specific person as friend
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'delfriend')) {
     // remove friend and display confirmation    
-    $confirmation = $_SESSION['myprofile']->del_friend(urldecode($_REQUEST['uri']));
-    // forcing reload of cache
+    $confirmation = $_SESSION['myprofile']->del_friend($_REQUEST['uri']);
+
     $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load(true);
 }

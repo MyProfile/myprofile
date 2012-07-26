@@ -174,12 +174,12 @@ if (isset($_SESSION['webid'])) {
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
-    $form_area .= "   <td style=\"width: 90px\"><p><a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
+    $form_area .= "   <td style=\"width: 90px\"><p><a href=\"view.php?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
     $form_area .= "       <img class=\"rounded\" title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" />\n";
     $form_area .= "   </a></p></td>\n";
     $form_area .= "   <td>\n";
     $form_area .= "       <table border=\"0\">\n"; 
-    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?uri=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
+    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
     $form_area .= "       <tr><td><textarea id=\"comment\" name=\"comment\" onfocus=\"textAreaResize(this)\" class=\"textarea-wall\"></textarea></td></tr>\n";
     $form_area .= "       <tr><td><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \" /></td></tr>\n";
     $form_area .= "       </table>\n";
@@ -227,16 +227,19 @@ if ((isset($_SESSION['webid'])) && (isset($_REQUEST['activity']))) {
             
         $result = mysql_query($query);
 
-        if (!$result) 
+        if ( ! $result) 
             $ret .= error('Unable to connect to the database, to display Activity Stream!');
         else
             $rows = mysql_num_rows($result);
-
-        $title = 'News Feed';
     }
+    $title = 'News Feed';
 } else {
     // get the last 50 wall messages for a user
-    $query = 'SELECT * FROM pingback_messages WHERE to_hash=\'' . mysql_real_escape_string($owner_hash) . '\' AND wall=\'1\' ORDER by date DESC LIMIT ' . $limit;
+    $query = 'SELECT * FROM pingback_messages WHERE ' . 
+                'to_hash=\''.mysql_real_escape_string($owner_hash).'\' ' .
+                'AND wall=\'1\' ' . 
+                'ORDER by date DESC ' .
+                'LIMIT ' . $limit;
     // Contains the offset value for fetching wall messages
     if (isset($offset))
         $query .= ' OFFSET ' . mysql_real_escape_string($offset);   
@@ -275,7 +278,7 @@ $ret .= $form_area;
 // Display warning if the user isn't allowed to view a certain wall
 if (isset($warning)) {
     $ret .= "<h3>You are not allowed to see this page because you are not a friend of ";
-    $ret .= "<a href=\"view.php?uri=" . urlencode($owner_webid) . "\">" . $profile->get_name() . ".</a></h3>";
+    $ret .= "<a href=\"view.php?webid=" . urlencode($owner_webid) . "\">" . $profile->get_name() . ".</a></h3>";
 } else if ($rows == 0){
     // There are no messages on the wall
     $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
@@ -293,8 +296,6 @@ if (isset($warning)) {
     while ($row = mysql_fetch_assoc($result)) {
         // get name
         $name = $row['name'];
-        if ($name == '[NULL]')
-            $name = $row['name'];
         // get picture
         $pic = $row['pic'];
         // get the date and multiply by 1000 for milliseconds, otherwise moment.js breaks
@@ -323,14 +324,14 @@ if (isset($warning)) {
         $ret .= "<tr valign=\"top\">\n";
         $ret .= "<td width=\"80\" align=\"center\">\n";
         // image
-        $ret .= "<a class=\"avatar-link\" href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" property=\"sioc:avatar\"/></a>\n";
+        $ret .= "<a class=\"avatar-link\" href=\"view.php?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" property=\"sioc:avatar\"/></a>\n";
         $ret .= "</td>\n";
         $ret .= "<td>";
         $ret .= "<table border=\"0\" class=\"table-wall\">\n";
         $ret .= "<tr valign=\"top\" class=\"wall-post\">\n";
         $ret .= "<td class=\"wall-post\">\n";
         // author's name
-        $ret .= "<b><a href=\"view.php?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
+        $ret .= "<b><a href=\"view.php?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
         $ret .= "   <span property=\"sioc:UserAccount\">" . $name . "</span>";
         $ret .= "</a></b> wrote ";       
         // activity stream

@@ -1,5 +1,4 @@
 <?php
-
 if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file directly');
 
 // Return a list of WebIDs (people) I am friend of
@@ -39,7 +38,8 @@ function sparql_lookup($string, $base_uri, $endpoint) {
                     ?webid foaf:nick ?nick .
                     FILTER (regex(?name, "' . $string . '", "i") || regex(?nick, "' . $string . '", "i") || regex(?webid, "' . $string . '", "i"))
                     MINUS { ?webid a foaf:Person .
-                           FILTER (regex(?webid, "nodeID", "i")) }
+                           FILTER (regex(?webid, "nodeID", "i")) .
+                           FILTER (regex(?webid, "_:", "i")) }
                     }';
         $result = $sparql->query($query);
 
@@ -68,11 +68,9 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
     $profile = $person->get_profile();
 
     // find if he has me in his list of foaf:knows!
-    $all = (string)$profile->all("foaf:knows")->join(',');
-    $array = explode(',', $all);
-    $has_me = '[NULL]';
-    if (in_array($me, $array))
-        $has_me = 'true';
+    $has_me = false;
+    if (in_array($me, $profile->all('foaf:knows')))
+        $has_me = true;
       
     // check if the user has subscribed to local messages
     $is_subscribed = (strlen($person->get_hash()) > 0) ? true : false;
@@ -96,33 +94,33 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
     $ret .= "<tr bgcolor=\"\"><td>\n";
     $ret .= "<table><tr>\n";
     $ret .= "<td width=\"70\" style=\"vertical-align: top; padding: 10px;\">\n";
-    $ret .= "<div align=\"left\"><a href=\"view.php?uri=" . urlencode($friend['webid']) . "\" target=\"_blank\">";
+    $ret .= "<div align=\"left\"><a href=\"view.php?webid=" . urlencode($friend['webid']) . "\" target=\"_blank\">";
     $ret .= "<img title=\"" . $friend['name'] . "\" alt=\"" . $friend['name'] . ".\" width=\"64\" src=\"" . $friend['img'] . "\" />";
     $ret .= "</a></div>\n";
     $ret .= "</td>\n";
 
     $ret .= "<td><table>\n";
-    if ($friend['name'] != '[NULL]')
+    if ($friend['name'] != null)
         $ret .= "<tr><td><strong>" . $friend['name'] . "</strong>\n";
     else
         $ret .= "<tr><td><strong>Anonymous</strong>\n";
             
-    if ($friend['nick'] != '[NULL]')
+    if ($friend['nick'] != null)
         $ret .= "''" . $friend['nick'] . "''";
     $ret .= "</td></tr>\n";
 
-    if ($friend['hasme'] != '[NULL]') 
+    if ($friend['hasme'] == true) 
         $ret .= "<tr><td><div style=\"color:#60be60;\">Has you as friend.</div></td></tr>\n";
 
     //$ret .= "<tr><td>&nbsp;</td></tr>\n";
 
-    if ($friend['email'] != '[NULL]')
+    if ($friend['email'] != null)
         $ret .= "<tr><td>Email: <a href=\"" . $friend['email'] . "\">" . clean_mail($friend['email']) . "</a></td></tr>\n";
 
-    if ($friend['blog'] != '[NULL]')
+    if ($friend['blog'] != null)
         $ret .= "<tr><td>Blog:<a href=\"" . $friend['blog'] . "\">" . $friend['blog'] . "</a></td></tr>\n";
 
-    $ret .= "<tr><td>WebID: <a href=\"view.php?uri=" . urlencode($friend['webid']) . "\">" . $friend['webid'] . "</a></td></tr>\n";
+    $ret .= "<tr><td>WebID: <a href=\"view.php?webid=" . urlencode($friend['webid']) . "\">" . $friend['webid'] . "</a></td></tr>\n";
     $ret .= "</table>\n";
 
     $ret .= "<br/><table>\n";
@@ -148,7 +146,7 @@ function viewShortInfo ($webid, $me, $base_uri, $endpoint) {
     }
 
     // send messages using the pingback protocol 
-    if ($friend['pingback'] != '[NULL]') {
+    if ($friend['pingback'] != null) {
         $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"messages.php\" method=\"POST\">\n";
         $ret .= "<input type=\"hidden\" name=\"new\" value=\"true\">\n";
         $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $friend['webid'] . "\">\n";
@@ -371,7 +369,7 @@ function check_auth($idp, $url) {
 // return an array with all feeds belonging to a person
 function get_rss_links($person, $graph) {
     $feeds = array();
-    if ($person->get("foaf:rssFeed") != '[NULL]') {
+    if ($person->get("foaf:rssFeed") != null) {
         foreach ($person->all('foaf:rssFeed') as $rss) {
             // each feed is a separate resource
             $contres = $graph->resource($rss);
@@ -601,8 +599,8 @@ function getPrimaryTopic ($graph) {
 // Uses Ajax calls to load a user's list of friends asynchronously
 function viewFriends($me) {
     // foaf:knows
-    if ($me->get("foaf:knows") != '[NULL]') {
-        $friends = $me->all('foaf:knows')->join(',');
+    if ($me->get("foaf:knows") != null) {
+        $friends = implode(',', $profile->all('foaf:knows'));        
 
         // show something if there are friends for this webid
         if (strlen($friends) > 0) {
@@ -641,7 +639,11 @@ function viewFriends($me) {
 }
 
 // Print the profile page in a prettier way
-function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {   
+// @graph - an EasyRdf object
+// @me - the user requesting the view
+// @webid - the webid of the user we're viewing
+// @base_uri - local host FQDN
+function viewProfile($graph, $profile, $webid, $base_uri) {
     // main table with one row which holds data in the left cell, and pics in the right cell
     $ret = "";
     $ret .= "<table align=\"center\" border=\"0\">\n";
@@ -660,16 +662,16 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     $ret .= "<tr valign=\"top\">";
     $ret .= "<td><h3 class=\"profileHeaders\">Full name: </h3>";
     $ret .= "";
-    if ($me->get("foaf:name") != '[NULL]') {
-        $ret .= $me->get("foaf:name");
+    if ($profile->get("foaf:name") != null) {
+        $ret .= $profile->get("foaf:name");
     } else {
-        $first = $me->get('foaf:givenName');
-        $last = $me->get('foaf:familyName');
+        $first = $profile->get('foaf:givenName');
+        $last = $profile->get('foaf:familyName');
 
         $name = ''; 
-        if ($first != '[NULL]')
+        if ($first != null)
             $name .= $first . ' ';
-        if ($last != '[NULL]')
+        if ($last != null)
             $name .= $last;
         if (strlen($name) == 0)
             $ret .= $name;
@@ -681,27 +683,27 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     $ret .= "</tr>\n";
     
     // nickname
-    if ($me->get("foaf:nick") != '[NULL]') {
+    if ($profile->get("foaf:nick") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Nickname: </h3>";
-        $ret .= "<dd>" . $me->get("foaf:nick") . "</dd>";
+        $ret .= "<dd>" . $profile->get("foaf:nick") . "</dd>";
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }    
 
     // b-day    
-    if ($me->get("foaf:birthday") != '[NULL]') {
+    if ($profile->get("foaf:birthday") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Birthday: </h3>";
-        $ret .= "<dd>" . $me->get("foaf:birthday") . "</dd>";
+        $ret .= "<dd>" . $profile->get("foaf:birthday") . "</dd>";
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
     
     // contact info
-    if ($me->get("http://www.w3.org/2000/10/swap/pim/contact#home") != '[NULL]') {
+    if ($profile->get("http://www.w3.org/2000/10/swap/pim/contact#home") != null) {
         $ret .= "<tr valign=\"top\">";
-        foreach ($me->all('http://www.w3.org/2000/10/swap/pim/contact#home') as $cont) {
+        foreach ($profile->all('http://www.w3.org/2000/10/swap/pim/contact#home') as $cont) {
             $ret .= "<td><h3 class=\"profileHeaders\">Contact info: </h3>";
             $contres = $graph->resource($cont);
             $address = $graph->resource($contres->get('http://www.w3.org/2000/10/swap/pim/contact#address'));
@@ -717,113 +719,113 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     }
     
     // email   
-    if ($me->get("foaf:mbox") != '[NULL]') {
+    if ($profile->get("foaf:mbox") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Email: </h3>";
-        foreach ($me->all("foaf:mbox") as $mail)
+        foreach ($profile->all("foaf:mbox") as $mail)
             $ret .= "<dd>" . clean_mail($mail) . "</dd>";
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
     
     // mbox_sha1   
-    if ($me->get("foaf:mbox_sha1sum") != '[NULL]') {
+    if ($profile->get("foaf:mbox_sha1sum") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">mbox sha1sum: </h3>";
-        $ret .= "<dd>" . $me->all("foaf:mbox_sha1sum")->join( "<br>" ) . "</dd>";
+        $ret .= "<dd>" . $profile->join("foaf:mbox_sha1sum", "<br>") . "</dd>";
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
     
     // sameAs
-    if ($me->get("owl:sameAs") != '[NULL]') {
+    if ($profile->get("owl:sameAs") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Additional profiles: </h3>";
-        foreach ($me->all("owl:sameAs") as $sameAs) {
-            $ret .= "<dd>" . $graph->resource($sameAs)->link() . "</dd>";
+        foreach ($profile->all("owl:sameAs") as $sameAs) {
+            $ret .= "<dd>" . $graph->resource($sameAs) . "</dd>";
         }
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
 
     // homepage
-    if ($me->get("foaf:homepage") != '[NULL]') {
+    if ($profile->get("foaf:homepage") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Homepage: </h3>";
-        foreach ($me->all("foaf:homepage") as $homepage) {
-            $ret .= "<dd>" . $graph->resource($homepage)->link() . "</dd>";
+        foreach ($profile->all("foaf:homepage") as $homepage) {
+            $ret .= "<dd>" . $graph->resource($homepage) . "</dd>";
         }
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
     
     // blogs
-    if ($me->get("foaf:weblog") != '[NULL]') {
+    if ($profile->get("foaf:weblog") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Blog: </h3>";
-        foreach ($me->all("foaf:weblog") as $blog) {
-            $ret .= "<dd>" . $graph->resource($blog)->link() . "</dd>";
+        foreach ($profile->all("foaf:weblog") as $blog) {
+            $ret .= "<dd>" . $graph->resource($blog) . "</dd>";
         }
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
         
     // workplaceHomepage  
-    if ($me->get("foaf:workplaceHomepage") != '[NULL]') {
+    if ($profile->get("foaf:workplaceHomepage") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Workplace Homepage: </h3>";
-        foreach ($me->all("foaf:workplaceHomepage") as $workpage) {
-            $ret .= "<dd>" . $graph->resource($workpage)->link() . "</dd>";
+        foreach ($profile->all("foaf:workplaceHomepage") as $workpage) {
+            $ret .= "<dd>" . $graph->resource($workpage) . "</dd>";
         }
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
     
     // schoolHomepage
-    if ($me->get("foaf:schoolHomepage") != '[NULL]') {
+    if ($profile->get("foaf:schoolHomepage") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">School Homepage: </h3>";
-        foreach ($me->all("foaf:schoolHomepage") as $schoolpage) {
-            $ret .= "<dd>" . $graph->resource($schoolpage)->link() . "</dd>";
+        foreach ($profile->all("foaf:schoolHomepage") as $schoolpage) {
+            $ret .= "<dd>" . $graph->resource($schoolpage) . "</dd>";
         }
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
         
     // current proj
-    if ($me->get("foaf:currentProject") != '[NULL]') {
+    if ($profile->get("foaf:currentProject") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Current projects: </h3>";
-        foreach ($me->all("foaf:currentProject") as $currproj) {
-            $ret .= "<dd>" . $graph->resource($currproj)->link() . "</dd>";
+        foreach ($profile->all("foaf:currentProject") as $currproj) {
+            $ret .= "<dd>" . $graph->resource($currproj) . "</dd>";
         }
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
     
     // past proj
-    if ($me->get("foaf:pastProject") != '[NULL]') {
+    if ($profile->get("foaf:pastProject") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Past projects: </h3>";
-        foreach ($me->all("foaf:pastProject") as $pastproj) {
-            $ret .= "<dd>" . $graph->resource($pastproj)->link() . "</dd>";
+        foreach ($profile->all("foaf:pastProject") as $pastproj) {
+            $ret .= "<dd>" . $graph->resource($pastproj) . "</dd>";
         }
         $ret .= "</td>";
         $ret .= "</tr>\n";
     }
 
     // rss feeds
-    if ($me->get("foaf:rssFeed") != '[NULL]') {
+    if ($profile->get("foaf:rssFeed") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">RSS feeds: </h3>";
-        foreach ($me->all('foaf:rssFeed') as $rss) {
+        foreach ($profile->all('foaf:rssFeed') as $rss) {
 			// each feed is a separate resource
             $contres = $graph->resource($rss);
-            if ($contres->get('http://purl.org/rss/1.0/title') != '[NULL]')          
+            if ($contres->get('http://purl.org/rss/1.0/title') != null)          
                 $ret .= "<dd><h3 class=\"profileHeaders\">Title</h3> " . $contres->get('http://purl.org/rss/1.0/title') . "</dd>\n";
-            if ($contres->get('http://purl.org/rss/1.0/link') != '[NULL]')
+            if ($contres->get('http://purl.org/rss/1.0/link') != null)
                 $ret .= "<dd><h3 class=\"profileHeaders\">Link</h3> <a href=\"" . $contres->get('http://purl.org/rss/1.0/link') . "\">" . $contres->get('http://purl.org/rss/1.0/link') . "</a></dd>\n";
-            if ($contres->get('http://purl.org/rss/1.0/description') != '[NULL]')
+            if ($contres->get('http://purl.org/rss/1.0/description') != null)
                 $ret .= "<dd><h3 class=\"profileHeaders\">Description</h3> " . $contres->get('http://purl.org/rss/1.0/description') . "</dd>\n";
             $ret .= "<br/>\n";
         }
@@ -832,18 +834,18 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     }
 
     // holds account
-    if ($me->get("foaf:holdsAccount") != '[NULL]') {
+    if ($profile->get("foaf:holdsAccount") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Holds account: </h3>";
-        foreach ($me->all('foaf:holdsAccount') as $accounts) {
+        foreach ($profile->all('foaf:holdsAccount') as $accounts) {
             // each account is a separate resource
             $account = $graph->resource($accounts);
-            if ($account->get("rdfs:label") != '[NULL]')
+            if ($account->get("rdfs:label") != null)
             $ret .= "<dd>" . $account->get("rdfs:label") . "</dd>";
-            if ($account->get("foaf:accountProfilePage") != '[NULL]')
-                $ret .= "<dd>" . $account->get("foaf:accountProfilePage")->link() . "</dd>\n";
-            if ($account->get("foaf:accountServiceHomepage") != '[NULL]')
-                $ret .= "<dd>" . $account->get("foaf:accountServiceHomepage")->link() . "</dd>";
+            if ($account->get("foaf:accountProfilePage") != null)
+                $ret .= "<dd>" . $account->get("foaf:accountProfilePage") . "</dd>\n";
+            if ($account->get("foaf:accountServiceHomepage") != null)
+                $ret .= "<dd>" . $account->get("foaf:accountServiceHomepage") . "</dd>";
             $ret .= "<br/>";
         }
         $ret .= "</td>";
@@ -851,13 +853,13 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     }
     
     // interests
-    if ($me->get("foaf:interest") != '[NULL]') {
+    if ($profile->get("foaf:interest") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Interests: </h3>";
-        foreach ($me->all('foaf:interest') as $interests) {
+        foreach ($profile->all('foaf:interest') as $interests) {
             // each interest is a separate resource
             $interest = $graph->resource($interests);
-            $label = ($interest->label() == '[NULL]') ? $interest->toString() : $interest->label();
+            $label = ($interest->label() == null) ? $interest->toString() : $interest->label();
             $ret .= "<dd><a href=\"" . $interest->toString() . "\">" . $label . "</a></dd>\n";
         }
         $ret .= "</td>";
@@ -865,15 +867,15 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     }
     
     // foaf:knows
-    if ($me->get("foaf:knows") != '[NULL]') {
+    if ($profile->get("foaf:knows") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td align=\"left\"><h3 class=\"profileHeaders\">Knows: </h3></td>";
         $ret .= "</tr>\n";
         $ret .= "<tr>\n";
         $ret .= "<td id=\"knows\">\n";
-        
-        $friends = $me->all('foaf:knows')->join(',');
-
+       
+        $friends = implode(',', $profile->all('foaf:knows'));
+ 
         // show something if there are friends for this webid
         if (strlen($friends) > 0) {
 	        $ret .= '<script type="text/javascript">
@@ -912,16 +914,16 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     }
     
     // public keys
-    if ($me->get("wot:hasKey") != '[NULL]') {
+    if ($profile->get("wot:hasKey") != null) {
         $ret .= "<tr valign=\"top\">";
         $ret .= "<td><h3 class=\"profileHeaders\">Public key: </h3>";
-        foreach ($me->all('wot:hasKey') as $keys) {
+        foreach ($profile->all('wot:hasKey') as $keys) {
             // each key is a separate resource
             $key = $graph->resource($keys);
     
-            if ($key->get("wot:fingerprint") != '[NULL]')
+            if ($key->get("wot:fingerprint") != null)
                 $ret .= "<dd><h3 class=\"profileHeaders\">Fingerprint:</h3></dd><dd>" . $key->get("wot:fingerprint") . "</dd>\n";
-            if ($key->get("wot:hex_id") != '[NULL]')
+            if ($key->get("wot:hex_id") != null)
                 $ret .= "<dd><h3 class=\"profileHeaders\">Hex ID:</h3></dd><dd>" . $key->get("wot:hex_id") . "</dd>";
             $ret .= "<br/>";
         }
@@ -932,39 +934,20 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     // certificates
     $ret .= "<tr valign=\"top\">";
     $ret .= "<td><h3 class=\"profileHeaders\">Certificates: </h3>";
-    foreach ($graph->allOfType('http://www.w3.org/ns/auth/cert#RSAPublicKey') as $certs) {
-
+    foreach ($graph->allOfType('http://www.w3.org/ns/auth/cert#RSAPublicKey') as $cert) {
         // get corresponding resources for modulus and exponent
-        if (substr($certs->get('http://www.w3.org/ns/auth/cert#modulus'), 0, 2) == '_:') {
-            $mod = $graph->resource($certs->get('http://www.w3.org/ns/auth/cert#modulus'));
-            $hex = (string)$mod->get('http://www.w3.org/ns/auth/cert#hex');
-        } else {
-           $hex = (string)$certs->get('http://www.w3.org/ns/auth/cert#modulus');
+        if ($cert->isBnode() == true) {
+            $bnode = $graph->resource($cert);
+ 
+            $hex = $bnode->getLiteral('http://www.w3.org/ns/auth/cert#modulus');
+            $exp = $bnode->getLiteral('http://www.w3.org/ns/auth/cert#exponent');
+        } else { 
+            $hex = $cert->get('http://www.w3.org/ns/auth/cert#modulus');
+            $exp = $cert->get('http://www.w3.org/ns/auth/cert#exponent');
         }
 
-        if (substr($certs->get('http://www.w3.org/ns/auth/cert#exponent'), 0, 2) == '_:') {
-            $exp = $graph->resource($certs->get('http://www.w3.org/ns/auth/cert#exponent'));
-            if ($exp->get('http://www.w3.org/ns/auth/cert#decimal') != '[NULL]')
-                $exponent = $exp->get('http://www.w3.org/ns/auth/cert#decimal');
-            else if ($exp->get('http://www.w3.org/ns/auth/cert#integer') != '[NULL]')
-                $exponent = $exp->get('http://www.w3.org/ns/auth/cert#integer');
-            else
-                $exponent = 'NULL';
-        } else {
-            $exponent = $certs->get('http://www.w3.org/ns/auth/cert#exponent');
-        }
-
-        if (is_array($hex)) {
-            foreach ($hex as $modulus) {
-                if (is_array($modulus))
-                    $modulus = (string)$modulus[0];
-
-                $ret .= "<dd><h3 class=\"profileHeaders\">Modulus:</h3></dd><dd>" . wordwrap($modulus, 70, "<br />\n", 1) . "</dd><br/>\n";
-            }
-        } else {
-            $ret .= "<dd><h3 class=\"profileHeaders\">Modulus:</h3></dd><dd>" . wordwrap($hex, 70, "<br />\n", 1) . "</dd><br/>\n";
-        }
-        $ret .= "<dd><h3 class=\"profileHeaders\">Public exponent:</h3></dd><dd>" . $exponent . "</dd>\n";
+        $ret .= "<dd><h3 class=\"profileHeaders\">Modulus:</h3></dd><dd>" . wordwrap($hex, 70, "<br />\n", 1) . "</dd><br/>\n";
+        $ret .= "<dd><h3 class=\"profileHeaders\">Public exponent:</h3></dd><dd>" . $exp . "</dd>\n";
         $ret .= "<br/>\n";
     }
 
@@ -974,15 +957,15 @@ function viewProfile($graph, $me, $webid, $base_uri, $endpoint) {
     // load all pictures
     $ret .= "</td>";
     $ret .= "<td valign=\"top\">";
-    foreach ($me->all("foaf:img") as $picture) {
+    foreach ($profile->all("foaf:img") as $picture) {
         $ret .= "<img width=\"200\" src=\"" . $picture . "\"></img>\n";
         $ret .= "<br/><br/>\n";
     }
-    foreach ($me->all("foaf:depiction") as $picture) {
+    foreach ($profile->all("foaf:depiction") as $picture) {
         $ret .= "<img width=\"200\" src=\"" . $picture . "\"></img>\n";
         $ret .= "<br/><br/>\n";
     }
-    foreach ($me->all("foaf:logo") as $logo) {
+    foreach ($profile->all("foaf:logo") as $logo) {
         $ret .= "<img width=\"200\" src=\"" . $logo . "\"></img>\n";
         $ret .= "<br/><br/>\n";
     }

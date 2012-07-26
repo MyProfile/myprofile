@@ -118,8 +118,6 @@ if (isset($_REQUEST['new'])) {
         while ($row = mysql_fetch_assoc($result)) {  
             $id = $row['id'];        
             $name = $row['name'];
-            if ($name == '[NULL]')
-                $name = $row['name'];
             // Get picture
             $pic = $row['pic'];
             $new = $row['new'];
