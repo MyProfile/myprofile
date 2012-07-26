@@ -5,7 +5,7 @@
  *
  * LICENSE
  *
- * Copyright (c) 2009-2011 Nicholas J Humfrey.  All rights reserved.
+ * Copyright (c) 2009-2012 Nicholas J Humfrey.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2010 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  * @version    $Id$
  */
@@ -40,7 +40,7 @@
  * Container for collection of EasyRdf_Resources.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2010 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  */
 class EasyRdf_Graph
@@ -218,6 +218,26 @@ class EasyRdf_Graph
     }
 
     /**
+     * Parse a file containing RDF data into the graph object.
+     *
+     * @param  string  $filename The path of the file to load
+     * @param  string  $format   Optional format of the file
+     * @param  string  $uri      The URI of the file to load
+     */
+    public function parseFile($filename, $format=null, $uri=null)
+    {
+        if ($uri === null) {
+            $uri = "file://$filename";
+        }
+
+        return $this->parse(
+            file_get_contents($filename),
+            $format,
+            $uri
+        );
+    }
+
+    /**
      * Load RDF data into the graph.
      *
      * If a URI is supplied, but no data then the data will
@@ -255,8 +275,9 @@ class EasyRdf_Graph
 
             $data = $response->getBody();
             if (!$format) {
-                $format = $response->getHeader('Content-Type');
-                $format = preg_replace('/;(.+)$/', '', $format);
+                list($format, $params) = EasyRdf_Utils::parseMimeType(
+                    $response->getHeader('Content-Type')
+                );
             }
         }
 
@@ -390,7 +411,7 @@ class EasyRdf_Graph
      */
     protected function checkValueParam(&$value)
     {
-        if ($value) {
+        if (isset($value)) {
             if (is_object($value)) {
                 if (method_exists($value, 'toArray')) {
                     $value = $value->toArray();
@@ -399,17 +420,47 @@ class EasyRdf_Graph
                         "\$value should respond to the method toArray()"
                     );
                 }
-            } else if (!is_array($value)) {
+            } else if (is_array($value)) {
+                if (!isset($value['type'])) {
+                    throw new InvalidArgumentException(
+                        "\$value is missing a 'type' key"
+                    );
+                }
+
+                if (!isset($value['value'])) {
+                    throw new InvalidArgumentException(
+                        "\$value is missing a 'value' key"
+                    );
+                }
+
+                // Fix ordering and remove unknown keys
+                $value = array(
+                    'type' => strval($value['type']),
+                    'value' => strval($value['value']),
+                    'lang' => isset($value['lang']) ? strval($value['lang']) : null,
+                    'datatype' => isset($value['datatype']) ? strval($value['datatype']) : null
+                );
+            } else {
                 $value = array(
                     'type' => 'literal',
-                    'value' => $value,
+                    'value' => strval($value),
                     'datatype' => EasyRdf_Literal::getDatatypeForValue($value)
+                );
+            }
+            if (!in_array($value['type'], array('uri', 'bnode', 'literal'), true)) {
+                throw new InvalidArgumentException(
+                    "\$value does not have a valid type (".$value['type'].")"
                 );
             }
             if (empty($value['datatype']))
                 unset($value['datatype']);
             if (empty($value['lang']))
                 unset($value['lang']);
+            if (isset($value['lang']) and isset($value['datatype'])) {
+                throw new InvalidArgumentException(
+                    "\$value cannot have both and language and a datatype"
+                );
+            }
         }
     }
 
@@ -627,6 +678,19 @@ class EasyRdf_Graph
         return $this->all($type, '^rdf:type');
     }
 
+    /** Count all values for a property of a resource
+     *
+     * @param  string  $resource The URI of the resource (e.g. http://example.com/joe#me)
+     * @param  string  $property The name of the property (e.g. foaf:name)
+     * @param  string  $type     The type of value to filter by (e.g. literal)
+     * @param  string  $lang     The language to filter by (e.g. en)
+     * @return integer           The number of values for this property
+     */
+    public function count($resource, $property, $type=null, $lang=null)
+    {
+        return count($this->all($resource, $property, $type, $lang));
+    }
+
     /** Concatenate all values for a property of a resource into a string.
      *
      * The default is to join the values together with a space character.
@@ -780,7 +844,7 @@ class EasyRdf_Graph
      *
      * @param  string  $property The name of the property (e.g. foaf:name)
      * @param  object  $value The value to delete (null to delete all values)
-     * @return null
+     * @return integer The number of values deleted
      */
     public function delete($resource, $property, $value=null)
     {
@@ -788,23 +852,77 @@ class EasyRdf_Graph
         $this->checkPropertyParam($property, $inverse);
         $this->checkValueParam($value);
 
+        $count = 0;
         $property = EasyRdf_Namespace::expand($property);
         if (isset($this->_index[$resource][$property])) {
             foreach ($this->_index[$resource][$property] as $k => $v) {
                 if (!$value or $v == $value) {
                     unset($this->_index[$resource][$property][$k]);
+                    $count++;
                     if ($v['type'] == 'uri' or $v['type'] == 'bnode') {
                         $this->deleteInverse($v['value'], $property, $resource);
                     }
                 }
             }
-            if (count($this->_index[$resource][$property]) == 0)
-                unset($this->_index[$resource][$property]);
-            if (count($this->_index[$resource]) == 0)
-                unset($this->_index[$resource]);
+
+            // Clean up the indexes - remove empty properties and resources
+            if ($count) {
+                if (count($this->_index[$resource][$property]) == 0)
+                    unset($this->_index[$resource][$property]);
+                if (count($this->_index[$resource]) == 0)
+                    unset($this->_index[$resource]);
+            }
         }
 
-        return null;
+        return $count;
+    }
+
+    /** Delete a resource from a property of another resource
+     *
+     * The resource can either be a resource or the URI of a resource.
+     *
+     * Example:
+     *   $graph->delete("http://example.com/bob", 'foaf:knows', 'http://example.com/alice');
+     *
+     * @param  mixed $resource   The resource to delete data from
+     * @param  mixed $property   The property name
+     * @param  mixed $resource2  The resource value of the property to be deleted
+     */
+    public function deleteResource($resource, $property, $resource2)
+    {
+        $this->checkResourceParam($resource);
+        $this->checkPropertyParam($property, $inverse);
+        $this->checkResourceParam($resource2);
+
+        return $this->delete(
+            $resource, $property, array(
+                'type' => substr($resource2, 0, 2) == '_:' ? 'bnode' : 'uri',
+                'value' => $resource2
+            )
+        );
+    }
+
+    /** Delete a literal value from a property of a resource
+     *
+     * Example:
+     *   $graph->delete("http://www.example.com", 'dc:title', 'Title of Page');
+     *
+     * @param  mixed  $resource  The resource to add data to
+     * @param  mixed  $property  The property name
+     * @param  mixed  $value     The value of the property
+     * @param  string $lang      The language of the literal
+     */
+    public function deleteLiteral($resource, $property, $value, $lang=null)
+    {
+        $this->checkResourceParam($resource);
+        $this->checkPropertyParam($property, $inverse);
+        $this->checkValueParam($value);
+
+        if ($lang) {
+            $value['lang'] = $lang;
+        }
+
+        return $this->delete($resource, $property, $value);
     }
 
     /** This function is for internal use only.

@@ -105,6 +105,11 @@ require_once "EasyRdf/Literal/DateTime.php";
 require_once "EasyRdf/Literal/Decimal.php";
 
 /**
+ * @see EasyRdf_Literal_HexBinary
+ */
+require_once "EasyRdf/Literal/HexBinary.php";
+
+/**
  * @see EasyRdf_Literal_Integer
  */
 require_once "EasyRdf/Literal/Integer.php";
@@ -133,6 +138,11 @@ require_once "EasyRdf/Parser/Json.php";
  * @see EasyRdf_Parser_RdfXml
  */
 require_once "EasyRdf/Parser/RdfXml.php";
+
+/**
+ * @see EasyRdf_Parser_Turtle
+ */
+require_once "EasyRdf/Parser/Turtle.php";
 
 /**
  * @see EasyRdf_Resource
