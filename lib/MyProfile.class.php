@@ -66,7 +66,7 @@ class MyProfile {
         
         if( !$res ) { return sparql_errno() . ": " . sparql_error(). "\n"; exit; }
 
-        if ($db->num_rows($result) > 0) { 
+        if ($res->num_rows($res) > 0) { 
             // Add the timestamp for the date at which it was inserted
             $time = time();
             $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
