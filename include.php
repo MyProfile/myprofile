@@ -152,7 +152,7 @@ if (isset($_SESSION['webid']) && $_SESSION['webid']) {
 // add a specific person as friend
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'addfriend')) {
     // add friend and display confirmation
-    $confirmation = $_SESSION['myprofile']->add_friend($_REQUEST['uri']);
+    $confirmation = $_SESSION['myprofile']->add_friend($_REQUEST['webid']);
     
     $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load(true);
@@ -161,7 +161,7 @@ if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)
 // add a specific person as friend
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'delfriend')) {
     // remove friend and display confirmation    
-    $confirmation = $_SESSION['myprofile']->del_friend($_REQUEST['uri']);
+    $confirmation = $_SESSION['myprofile']->del_friend($_REQUEST['webid']);
 
     $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load(true);
