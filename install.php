@@ -328,7 +328,7 @@ if (isset($_REQUEST['submit'])) {
     $ret .= "<tr><td>OpenSSL config file: </td><td><input type=\"text\" name=\"openssl\" size=\"50\" placeholder=\"/etc/ssl/private/CA.key\" value=\"\"></td></tr>\n";
 
     $ret .= "<tr><td colspan=\"2\"><br/><p><strong>Delegated authentication</strong></p><br/></td></tr>\n";
-    $ret .= "<tr><td>IdP address: </td><td><input type=\"text\" name=\"idp\" size=\"50\" value=\"https://auth.my-profile.eu/auth/index.php?authreqissuer=\"></td></tr>\n";
+    $ret .= "<tr><td>IdP address: </td><td><input type=\"text\" name=\"idp\" size=\"50\" value=\"https://auth.my-profile.eu/auth/?authreqissuer=\"></td></tr>\n";
     $ret .= "<tr><td colspan=\"2\"><font color=\"grey\">Important note regarding using a different IdP: if you want to use a different IdP, you will have to manually edit the file <i>lib/libAuthentication/Authentication_X509CertRepo.php</i> and add the IdP's certificate in (PEM form) to the array of IdPs.</font></td></tr>\n";
 
     $ret .= "<tr><td colspan=\"2\"><br/><p><strong>SPARQL endpoint</strong></p><br/></td></tr>\n";
