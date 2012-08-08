@@ -77,9 +77,9 @@ if (isset($_REQUEST['doit']))  {
 
         // create primary topic
         $pt = $graph->resource($webid_base, 'foaf:PersonalProfileDocument');
-        $pt->set('foaf:maker', $webid);
-        $pt->set('foaf:primaryTopic', $webid);
-        $pt->set('foaf:title', $_REQUEST['foaf:name'] . "'s profile.");
+        $graph->addResource($pt, 'foaf:maker', $webid);
+        $graph->addResource($pt, 'foaf:primaryTopic', $webid);
+        $pt->set('foaf:title', urldecode($_REQUEST['foaf:name']) . "'s profile.");
 
 // ----- foaf:Person ----- //
         // create the Person graph
@@ -99,11 +99,12 @@ if (isset($_REQUEST['doit']))  {
             $me->set('foaf:title', trim($_REQUEST['foaf:title']));
         // picture (use the uploaded one if it exists)
         if (isset($local_img))
-            $me->set('foaf:img', trim($local_img));
+            $img = trim($local_img);
         else if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0)) 
-            $me->set('foaf:img', $_REQUEST['foaf:img']);
+            $img = trim($_REQUEST['foaf:img']);
         else
-            $me->set('foaf:img', 'img/nouser.png');
+            $img = 'img/nouser.png';
+        $graph->addResource($me, 'foaf:img', $img);
         // nickname
         if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
             $me->set('foaf:nick', trim($_REQUEST['foaf:nick']));
