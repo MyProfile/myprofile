@@ -272,11 +272,8 @@ if (isset($_REQUEST['doit']))  {
             $rw .= "AddType \"application/rdf+xml\" .rdf\n";
             $rw .= "RewriteEngine On\n";
             $rw .= "RewriteBase /" . $user_dir . "/\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml.*(text/html|application/xhtml\+xml)\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} text/html [OR]\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} application/xhtml\+xml [OR]\n";
-            $rw .= "RewriteCond %{HTTP_USER_AGENT} ^Mozilla/.*\n";
-            $rw .= "RewriteRule ^card$ foaf.txt [R=303]\n";
+            $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml\n";
+            $rw .= "RewriteRule ^card$ " . BASE_URI . "/view.php?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
             $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
             $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
             // finally write content to file
