@@ -155,11 +155,11 @@
             echo "<li><a href=\"account.php\">Manage account</a></li>";
             echo "<li><a href=\"export.php\">Export profile</a></li>\n";
         }
-        echo "<li><a href=\"subscription.php\">Subscriptions</a></li>\n";
-        echo "<li class=\"divider\"></li>\n";
-        echo "<li><a href=\"index.php?logout\">Log out?</a></li>";
+        echo "<li><a href=\"".BASE_URI."/subscriptions\">Subscriptions</a></li>\n";
         echo "</ul>\n";
         echo "</li>\n";
+        echo "<li class=\"divider\"></li>\n";
+        echo "<li><a href=\"".BASE_URI."/?logout=1\"><img title=\"Sign out\" alt=\"Sign out\" src=\"".BASE_URI."/img/signout.png\"></a></li>";
     } else {
         echo "<li><a href=\"" . IDP . "" . $page_uri . "\" style=\"\padding-top: 8px;\">\n";
         echo "  <img alt=\"WebID Login\" title=\"WebID Login\" src=\"img/webid.png\" style=\"height: 22px; \" />";
