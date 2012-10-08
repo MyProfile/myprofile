@@ -1,3 +1,21 @@
+// clear authenticated certificate from browser (only for FF/IE)
+function logout(elem) {
+   if (document.all == null) {
+      if (window.crypto) {
+          try{
+              window.crypto.logout();
+              return false; //firefox ok -- no need to follow the link
+          } catch (err) {//Safari, Opera, Chrome -- try with tis session breaking
+          }
+      } else { //also try with session breaking
+      }
+   } else { // MSIE 6+
+      document.execCommand('ClearAuthenticationCache');
+      return false;
+   };
+   return true
+}
+
 // resize a textarea element
 function textAreaResize(o) {
   o.style.height = "1px";
