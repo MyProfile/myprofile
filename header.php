@@ -146,7 +146,7 @@
 		echo "</li>\n";
 
         // User info
-        $username = (strlen($_SESSION['usr']) > 18) ? substr($_SESSION['usr'], 0, 18) . '...' : $_SESSION['usr'];
+        $username = (strlen($_SESSION['usr']) > 16) ? substr($_SESSION['usr'], 0, 16) . '...' : $_SESSION['usr'];
         echo "<li class=\"dropdown\"><a data-toggle=\"dropdown\" class=\"dropdown-toggle\" href=\"#menu3\"><img class=\"rounded\" alt=\"" . $_SESSION['usr'] . "\" src=\"" . $_SESSION['img'] . "\" style=\"height: 22px; float:left; display:inline; margin: 0px 10px 0px 10px;\" /> " . $username . " <b class=\"caret\"></b></a>";
         echo "<ul class=\"dropdown-menu\">\n";
         echo "<li><a href=\"view.php?webid=" . urlencode($_SESSION['webid']) . "\">View my profile</a></li>\n";
@@ -155,11 +155,13 @@
             echo "<li><a href=\"account.php\">Manage account</a></li>";
             echo "<li><a href=\"export.php\">Export profile</a></li>\n";
         }
-        echo "<li><a href=\"".BASE_URI."/subscriptions\">Subscriptions</a></li>\n";
-        echo "</ul>\n";
+        echo "<li><a href=\"subscription.php\">Subscriptions</a></li>\n";
+        echo "</ul>";
         echo "</li>\n";
         echo "<li class=\"divider\"></li>\n";
-        echo "<li><a href=\"".BASE_URI."/?logout=1\"><img title=\"Sign out\" alt=\"Sign out\" src=\"".BASE_URI."/img/signout.png\"></a></li>";
+        echo "<li><a href=\"".BASE_URI."?logoff\"  onclick=\"logout();\">Log out?</a>";
+        echo "<img title=\"Sign out\" alt=\"Sign out\" src=\"".BASE_URI."/img/signout.png\"></a>";
+        echo "</li>\n";
     } else {
         echo "<li><a href=\"" . IDP . "" . $page_uri . "\" style=\"\padding-top: 8px;\">\n";
         echo "  <img alt=\"WebID Login\" title=\"WebID Login\" src=\"img/webid.png\" style=\"height: 22px; \" />";
