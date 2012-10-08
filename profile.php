@@ -77,9 +77,9 @@ if (isset($_REQUEST['doit']))  {
 
         // create primary topic
         $pt = $graph->resource($webid_base, 'foaf:PersonalProfileDocument');
-        $pt->set('foaf:maker', $webid);
-        $pt->set('foaf:primaryTopic', $webid);
-        $pt->set('foaf:title', $_REQUEST['foaf:name'] . "'s profile.");
+        $graph->addResource($pt, 'foaf:maker', $webid);
+        $graph->addResource($pt, 'foaf:primaryTopic', $webid);
+        $pt->set('foaf:title', urldecode($_REQUEST['foaf:name']) . "'s profile.");
 
 // ----- foaf:Person ----- //
         // create the Person graph
@@ -99,11 +99,12 @@ if (isset($_REQUEST['doit']))  {
             $me->set('foaf:title', trim($_REQUEST['foaf:title']));
         // picture (use the uploaded one if it exists)
         if (isset($local_img))
-            $me->set('foaf:img', trim($local_img));
+            $img = trim($local_img);
         else if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0)) 
-            $me->set('foaf:img', $_REQUEST['foaf:img']);
+            $img = trim($_REQUEST['foaf:img']);
         else
-            $me->set('foaf:img', 'img/nouser.png');
+            $img = 'img/nouser.png';
+        $graph->addResource($me, 'foaf:img', $img);
         // nickname
         if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
             $me->set('foaf:nick', trim($_REQUEST['foaf:nick']));
@@ -271,11 +272,8 @@ if (isset($_REQUEST['doit']))  {
             $rw .= "AddType \"application/rdf+xml\" .rdf\n";
             $rw .= "RewriteEngine On\n";
             $rw .= "RewriteBase /" . $user_dir . "/\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml.*(text/html|application/xhtml\+xml)\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} text/html [OR]\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} application/xhtml\+xml [OR]\n";
-            $rw .= "RewriteCond %{HTTP_USER_AGENT} ^Mozilla/.*\n";
-            $rw .= "RewriteRule ^card$ " . BASE_URI . "/view.php?uri=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
+            $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml\n";
+            $rw .= "RewriteRule ^card$ " . BASE_URI . "/view.php?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
             $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
             $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
             // finally write content to file

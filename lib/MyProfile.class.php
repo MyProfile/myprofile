@@ -64,14 +64,20 @@ class MyProfile {
         $sql = "LOAD <" . $this->webid . ">";
         $res = $db->query($sql);
         
-        // Add the timestamp for the date at which it was inserted
-        $time = time();
-        $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
-        $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> ' .
-                '{<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
-        $res = $db->query($sql);
-    
-        return true;
+        if( !$res ) { return sparql_errno() . ": " . sparql_error(). "\n"; exit; }
+
+        if ($res->num_rows($res) > 0) { 
+            // Add the timestamp for the date at which it was inserted
+            $time = time();
+            $date = date("Y", $time) . '-' . date("m", $time) . '-' . date("d", $time) . 'T' . date("H", $time) . ':' . date("i", $time) . ':' . date("s", $time);
+            $sql = 'INSERT DATA INTO GRAPH IDENTIFIED BY <' . $this->webid . '> ' .
+                    '{<' . $this->webid . '> dc:date "' . $date . '"^^xsd:dateTime . }';
+            $res = $db->query($sql);
+                
+            return true;
+        } else {
+            return false;
+        } 
     }   
     
     // Load profile data using SPARQL
