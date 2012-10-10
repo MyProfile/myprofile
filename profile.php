@@ -231,84 +231,86 @@ if (isset($_REQUEST['doit']))  {
     	    $pubkey			        = $_REQUEST["pubkey"];
 
     	    // Create a x509 SSL certificate in DER format
-        	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, SSL_CONF, CA_PASS);
-            $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
-          	$output = explode('=', shell_exec($command));
+            $x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, SSL_CONF, CA_PASS);
+            if ($x509 != false) {
+                $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
+              	$output = explode('=', shell_exec($command));
             
-            // add public key elements to our new webid profile
-            $modulus = preg_replace('/\s+/', '', strtolower($output[1]));
-            $cert = $graph->newBNode('cert:RSAPublicKey');
-            $cert->add('cert:modulus', array(
+                // add public key elements to our new webid profile
+                $modulus = preg_replace('/\s+/', '', strtolower($output[1]));
+                $cert = $graph->newBNode('cert:RSAPublicKey');
+                $cert->add('cert:modulus', array(
                         'type' => 'literal',
                         'datatype' => 'http://www.w3.org/2001/XMLSchema#hexBinary',
                         'value' => $modulus)
-                      );
-            $cert->add('cert:exponent', array(
+                        );
+                $cert->add('cert:exponent', array(
                         'type' => 'literal',
                         'datatype' => 'http://www.w3.org/2001/XMLSchema#int',
                         'value' => '65537')
                         );
-            $me->add('cert:key', $cert);
+                $me->add('cert:key', $cert);
             
-            // autmatically subscribe to local services
-            $tiny = substr(md5(uniqid(microtime(true),true)),0,8);
-            $user_hash  = substr(md5($webid), 0, 8);
-		    $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
-            $result = mysql_query($query);
-            if (!$result) {
-                $alert .= error('Unable to write to the database!');
-            } else {
-                mysql_free_result($result);
-            }
+                // autmatically subscribe to local services
+                $tiny = substr(md5(uniqid(microtime(true),true)),0,8);
+                $user_hash  = substr(md5($webid), 0, 8);
+		        $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
+                $result = mysql_query($query);
+                if (!$result) {
+                    $alert .= error('Unable to write to the database!');
+                } else {
+                    mysql_free_result($result);
+                }
          
-            // create dirs
-            if (!mkdir($user_dir, 0775))
-                $alert .= ('Failed to create user profile directory! Check permissions.');
+                // create dirs
+                if (!mkdir($user_dir, 0775))
+                    $alert .= ('Failed to create user profile directory! Check permissions.');
     
-            // write Rewrite .htaccess file
-            $htaccess = fopen($user_dir . '/.htaccess', 'w') or die('Cannot create .htaccess file!');
-            // .htaccess content
-            $rw = "Options -MultiViews\n";
-            $rw .= "AddType \"application/rdf+xml\" .rdf\n";
-            $rw .= "RewriteEngine On\n";
-            $rw .= "RewriteBase /" . $user_dir . "/\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml\n";
-            $rw .= "RewriteRule ^card$ " . BASE_URI . "/view.php?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
-            $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
-            // finally write content to file
-            fwrite($htaccess, $rw);
-            fclose($htaccess);
-        }
+                // write Rewrite .htaccess file
+                $htaccess = fopen($user_dir . '/.htaccess', 'w') or die('Cannot create .htaccess file!');
+                // .htaccess content
+                $rw = "Options -MultiViews\n";
+                $rw .= "AddType \"application/rdf+xml\" .rdf\n";
+                $rw .= "RewriteEngine On\n";
+                $rw .= "RewriteBase /" . $user_dir . "/\n";
+                $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml\n";
+                $rw .= "RewriteRule ^card$ " . BASE_URI . "/view.php?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
+                $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
+                $rw .= "RewriteRule ^card$ foaf.rdf [R=303]\n";
+                // finally write content to file
+                fwrite($htaccess, $rw);
+                fclose($htaccess);
+                
+                // write profile to file
+                $data = $graph->serialise('rdfxml');
+                if (!is_scalar($data)) 
+                    $data = var_export($data, true);
 
-        // write profile to file
-        $data = $graph->serialise('rdfxml');
-        if (!is_scalar($data)) 
-            $data = var_export($data, true);
-
-        $pf = fopen($user_dir . '/foaf.rdf', 'w') or die('Cannot create profile RDF file in ' . $user_dir . '!');
-        fwrite($pf, $data);
-        fclose($pf);    
-        
-        $pf = fopen($user_dir . '/foaf.txt', 'w') or die('Cannot create profile PHP file!');
-        fwrite($pf, $data);
-        fclose($pf);
-      
-        // everything is fine
-        $ok = true;
-
-        // Send the X.509 SSL certificate to the script caller (user) as a file transfer
-        if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
-            download_identity_x509($x509, $webid);
-        } else {
-            if ($ok) {
-                $alert .= success('Your profile has been updated.');
-                // reload the profile information
-                $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
-                $_SESSION['myprofile']->load(true);
+                $pf = fopen($user_dir . '/foaf.rdf', 'w') or die('Cannot create profile RDF file in ' . $user_dir . '!');
+                fwrite($pf, $data);
+                fclose($pf);
+                
+                // Finally once everything is done, send the certificate back to the user
+                if (strlen($alert) == 0)
+                    download_identity_x509($x509, $webid);
             } else {
-                $alert .= error('Could not update your profile!');
+                // there was a problem creating the certificate
+                $alert .= success('There was a problem creating the WebID certificate.');
             }
+        } else {
+            // write profile to file
+            $data = $graph->serialise('rdfxml');
+            if (!is_scalar($data)) 
+                $data = var_export($data, true);
+
+            $pf = fopen($user_dir . '/foaf.rdf', 'w') or die('Cannot create profile RDF file in ' . $user_dir . '!');
+            fwrite($pf, $data);
+            fclose($pf);    
+
+            $alert .= success('Your profile has been updated.');
+            // reload the profile information
+            $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
+            $_SESSION['myprofile']->load(true);
        }
 }
 
