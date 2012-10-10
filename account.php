@@ -41,10 +41,10 @@ if (webid_is_local($_SESSION['webid'])) {
         
         // display confirmation
         if ($ok_del) {
-            $ret .= $_SESSION['myprofile']->success('Your profile has been deleted.');
+            $ret .= success('Your profile has been deleted.');
             $ret .= "<div><br/>Attention: do not forget to delete the corresponding certificate from your browser, since it is useless now.</div>\n";
         } else {
-            $ret .= $_SESSION['myprofile']->error('Could not remove your profile!');
+            $ret .= error('Could not remove your profile!');
         }
                     
         // log user out and clear WebID session	
