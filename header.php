@@ -159,7 +159,7 @@
         echo "</ul>";
         echo "</li>\n";
         echo "<li class=\"divider\"></li>\n";
-        echo "<li><a href=\"".BASE_URI."?logoff\"  onclick=\"logout();\">Log out?</a>";
+        echo "<li><a href=\"".BASE_URI."?logoff\"  onclick=\"logout();\">";
         echo "<img title=\"Sign out\" alt=\"Sign out\" src=\"".BASE_URI."/img/signout.png\"></a>";
         echo "</li>\n";
     } else {
