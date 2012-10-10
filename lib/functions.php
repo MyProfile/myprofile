@@ -530,11 +530,11 @@ function create_identity_x509($countryName,  $stateOrProvinceName, $localityName
 		echo "<pre>";
 		echo $output;
 		echo "</pre>";
-		// Remove unneeded files    
-        //unlink($tmpSPKACfname);
-        //unlink($tmpCERTfname);
+        // Remove unneeded files    
+        unlink($tmpSPKACfname);
+        unlink($tmpCERTfname);
 	
-		return;
+		return false;
 	} 
 	// Delete the temporary SPKAC file
 	unlink($tmpSPKACfname);
