@@ -295,7 +295,7 @@ if (isset($_REQUEST['doit']))  {
                     download_identity_x509($x509, $webid);
             } else {
                 // there was a problem creating the certificate
-                $alert .= success('There was a problem creating the WebID certificate.');
+                $alert .= error('There was a problem creating the WebID certificate.');
             }
         } else {
             // write profile to file
