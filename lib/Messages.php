@@ -6,16 +6,17 @@ if(!defined('INCLUDE_CHECK')) die('You are not allowed to execute this file dire
 // Returns a short handle based on a given WebID
 function preg_get_handle_by_webid($array) {
     $webid = urldecode($array[1]);
-    $person = new MyProfile($webid, BASE_URI, SPARQL_ENDPOINT);
-    $person->load();
-    $name = $person->get_name();
-    $nick = $person->get_nick();
-    
-    $ret = '';
-    $ret .= ' <a href="view.php?webid=' . urlencode($webid) . '">';
-    $ret .= ($nick != null) ? '@' . $nick : '@' . $name;
-    $ret .= '</a>';
-    return $ret;
+    if (preg_match('/^http(s?):/', $webid)) {
+        $person = new MyProfile($webid, BASE_URI, SPARQL_ENDPOINT);
+        $person->load();
+        $name = $person->get_name();
+        $nick = $person->get_nick();
+        
+        $ret = ' <a href="view.php?webid=' . urlencode($webid) . '">';
+        $ret .= ($nick != null) ? '@' . $nick : '@' . $name;
+        $ret .= '</a>';
+        return $ret;
+    }
 }
 
 // Attempt to ping someone using Semantic Pingback.
@@ -31,7 +32,7 @@ function sendPing ($to, $message, $base_uri, $verbose = false) {
     
     $to_name = $person->get_name();
     $to_email = $person->get_email();
-    $pingback_service = $profile->get("http://purl.org/net/pingback/to");
+    $pingback_service = $profile->get("pingback:to");
     
     // set form data
     $source = $_SESSION['webid'];
@@ -130,13 +131,13 @@ function add_vote_buttons($message_id) {
             $no_link = "<a style=\"text-decoration: none; cursor: pointer;\">";
         }
     
-        $ret .= $yes_link . "<img src=\"img/yes-vote.png\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span></a>\n";
+        $ret .= $yes_link . "<img src=\"img/like.png\" width=\"14\" alt=\"Like\" title=\"Like\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span></a>\n";
         $ret .= " | ";
-        $ret .= $no_link . "<img src=\"img/no-vote.png\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span></a>\n";
+        $ret .= $no_link . "<img src=\"img/dislike.png\" width=\"14\" alt=\"Dislike\" title=\"Dislike\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span></a>\n";
     } else {
-        $ret .= "<img src=\"img/yes-vote.png\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span>\n";
+        $ret .= "<img src=\"img/like.png\" width=\"14\"  alt=\"Like\" title=\"Like\" /> <span id=\"yes_" . $message_id . "\">" . $yes_votes . "</span>\n";
         $ret .= " | ";
-        $ret .= "<img src=\"img/no-vote.png\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span>\n";
+        $ret .= "<img src=\"img/dislike.png\" width=\"14\" alt=\"Dislike\" title=\"Dislike\" /> <span id=\"no_" . $message_id . "\">" . $no_votes . "</span>\n";
     }
     
     return $ret;
@@ -295,7 +296,7 @@ function delete_message($webid, $message_id) {
             $ok = 0;
             $reason = 'The message has NOT been deleted [SQL error 2].';
         } else {
-            $reason = 'The message has been successfully deleted.';
+            $reason = 'The message has been deleted.';
         }
         if ($result !== true && $result !== false) {
             mysql_free_result($result);

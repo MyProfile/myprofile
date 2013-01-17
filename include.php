@@ -25,8 +25,7 @@
 date_default_timezone_set('UTC');
 
 define('INCLUDE_CHECK',true);
-set_include_path(get_include_path() . PATH_SEPARATOR . '../');
-set_include_path(get_include_path() . PATH_SEPARATOR . 'lib/');
+set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__).'/');
 
 // check if it's a first install
 if (!file_exists('config.php')) {
@@ -99,7 +98,7 @@ if((isset($_SESSION['id'])) && (!isset($_COOKIE['tzRemember']))) {
 }
 
 // Logout
-if(isset($_REQUEST['logoff'])) {
+if(isset($_REQUEST['logout'])) {
     # clear WebID session	
     if ($_SESSION['webid'])
         $auth->logout;	
@@ -108,7 +107,7 @@ if(isset($_REQUEST['logoff'])) {
     $_SESSION = array();
     session_destroy();
 
-    header("Location: index.php");
+    header("Location: /");
     exit;
 }
 
@@ -144,26 +143,25 @@ if (strlen($auth->webid) > 0) {
 // Get the number of messages
 if (isset($_SESSION['webid']) && $_SESSION['webid']) {
     $messages = get_msg_count($_SESSION['webid']);
-    $private_msg = get_msg_count($_SESSION['webid'], 1, 0);
-    $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
 }
+
 
 // Bad place to add logic for adding/removing friends.
 // add a specific person as friend
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'addfriend')) {
     // add friend and display confirmation
-    $confirmation = $_SESSION['myprofile']->add_friend($_REQUEST['webid']);
+    $confirmation = $_SESSION['myprofile']->add_friend($_REQUEST['add_webid']);
     
-    $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
+    $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], BASE_URI, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load(true);
 }
 
-// add a specific person as friend
+// remove a specific person from friends
 if ((isset($_SESSION['myprofile'])) && ($_SESSION['myprofile']->is_local($webid)) && (isset($_REQUEST['action'])) && ($_REQUEST['action'] == 'delfriend')) {
     // remove friend and display confirmation    
-    $confirmation = $_SESSION['myprofile']->del_friend($_REQUEST['webid']);
+    $confirmation = $_SESSION['myprofile']->del_friend($_REQUEST['del_webid']);
 
-    $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], $base_uri, SPARQL_ENDPOINT);
+    $_SESSION['myprofile'] = new MyProfile($_SESSION['webid'], BASE_URI, SPARQL_ENDPOINT);
     $_SESSION['myprofile']->load(true);
 }
 
@@ -176,4 +174,3 @@ if ((isset($_REQUEST['vote'])) && ($_REQUEST['vote'] == 'no') && (isset($_SESSIO
     echo cast_vote ($_SESSION['webid'], $_REQUEST['message_id'], 0);
 }
 
-?>

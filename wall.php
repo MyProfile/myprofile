@@ -27,6 +27,7 @@ $notification = '';
 
 // fetch the WebID of the wall's owner
 if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST['user'] != 'local'))) {
+    $wall_on = 'wall-on';
     check_auth(IDP, $page_uri);
     
     $owner_webid = get_webid_by_hash(trim($_REQUEST['user']));
@@ -64,6 +65,8 @@ if ((isset($_REQUEST['user'])) && ((strlen($_REQUEST['user']) > 0) && ($_REQUEST
     }
 } else {
     // generic wall
+    $home_on = 'home-on';
+    
     $feed_hash = 'local';
     $owner_webid = 'local';
     $owner_hash = 'local';
@@ -115,6 +118,8 @@ if (isset($_REQUEST['comment'])) {
         if (!$result) {
             $ret  .= error('Database error while trying to insert new message!');
         } else {
+            // get last ID
+            $post_id = mysql_insert_id();
             mysql_free_result($result);
            
             // update etags
@@ -124,9 +129,12 @@ if (isset($_REQUEST['comment'])) {
             foreach ($webids as $to) {
                 $ping_msg = 'I have just mentioned you in a ';
                 $ping_msg .= ($owner_webid != 'local') ? 'private':'public';
-                $ping_msg .=' wall post. You can see it here: ' . $base_uri . '/wall.php?user=' . $to_hash;
+                $ping_msg .=' wall post. You can see it here: ' . $base_uri . '/wall';
+                if ($owner_webid != 'local')
+                    $ping_msg .= '?user=' . $to_hash;
+                $ping_msg .= '#'.$post_id;
                 // send only if the source != target
-                if ($_SESSION['webid'] != $to)
+                if (($_SESSION['webid'] != $to) && (preg_match('/^http(s?):/', $to)))
                     sendPing($to, $ping_msg, $base_uri, false);
             }
         }
@@ -169,26 +177,28 @@ if (isset($_REQUEST['comment'])) {
 
 // Form allowing to post messages on the wall
 if (isset($_SESSION['webid'])) {
-    $form_area = "<form name=\"write_wall\" method=\"POST\" action=\"" . htmlentities($_SERVER['PHP_SELF']) . "\">\n";
+    $form_area = "<div class=\"wall-new r5\">\n";
+    $form_area .= "<form method=\"post\" action=\"" . htmlentities($_SERVER['PHP_SELF']) . "\">\n";
     $form_area .= "<input type=\"hidden\" name=\"user\" value=\"" . $owner_hash . "\" />\n";
     $form_area .= "<input type=\"hidden\" name=\"new\" value=\"1\" />\n";
     $form_area .= "<table border=\"0\">\n";
     $form_area .= "<tr valign=\"top\">\n";
-    $form_area .= "   <td style=\"width: 90px\"><p><a href=\"view.php?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
-    $form_area .= "       <img class=\"rounded\" title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" />\n";
+    $form_area .= "   <td style=\"width: 80px\"><p><a href=\"view?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
+    $form_area .= "       <img class=\"r5\" title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" />\n";
     $form_area .= "   </a></p></td>\n";
     $form_area .= "   <td>\n";
     $form_area .= "       <table border=\"0\">\n"; 
-    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view.php?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
+    $form_area .= "       <tr><td><p><b>What's on your mind, <a href=\"view?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">" . $_SESSION['usr'] . "</a>?</b></p></td></tr>\n";
     $form_area .= "       <tr><td><textarea id=\"comment\" name=\"comment\" onfocus=\"textAreaResize(this)\" class=\"textarea-wall\"></textarea></td></tr>\n";
-    $form_area .= "       <tr><td><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Post \" /></td></tr>\n";
+    $form_area .= "       <tr><td><br/><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Write \" /></td></tr>\n";
     $form_area .= "       </table>\n";
     $form_area .= "   </td>\n";
     $form_area .= "</tr>\n";
     $form_area .= "</table>\n";
     $form_area .= "</form>\n";
+    $form_area .= "</div>\n";
 } else {
-    $form_area = "<p><font style=\"font-size: 1.3em;\"><a href=\"" . IDP . "" . $page_uri . "\">Login</a> with your WebID to post messages.</font></p>\n";
+    $form_area = "<div class=\"wall-new\"><p><font style=\"font-size: 1.3em;\"><a href=\"" . IDP . $page_uri . "\">Login</a> with your WebID to post messages.</font></p></div>\n";
 }
 
 // By default there are no posts to display
@@ -212,6 +222,9 @@ else
 
 // display news feed for a certain user
 if ((isset($_SESSION['webid'])) && (isset($_REQUEST['activity']))) {
+    $news_on = 'news-on';
+    $home_on = '';
+    
     $webids = sparql_get_people_im_friend_of($_SESSION['webid'], SPARQL_ENDPOINT);
     // Prepare the activity stream SQL query only if the user has friends (foaf:knows)
     if (sizeof($webids) > 0) {
@@ -255,18 +268,19 @@ if ((isset($_SESSION['webid'])) && (isset($_REQUEST['activity']))) {
     if ((isset($owner_name)) && (strlen($owner_name) > 0))
         $title = $owner_name . "'s Wall";
     else
-        $title = "MyProfile Public Wall";
+        $title = "Home";
 
 }
 
+$ret .= "<div class=\"content relative shadow clearfix main\">\n";
+
 // Page title (User's Wall)
 $ret .= "<div>";
-$ret .= "<p><font align=\"left\" style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . $title . "</font></p>\n";
-$ret .= "<p>Subscribe now using this <a href=\"" . $base_uri . "/atom.php?id=" . $owner_hash . "\">Atom feed</a>.</p>\n";
+$ret .= "   <p>Subscribe to the current wall using <a href=\"" . $base_uri . "/atom.php?id=" . $owner_hash . "\">this Atom feed</a>.</p>\n";
 $ret .= "</div>";
 
-// main page
-$ret .= "<div class=\"container\">\n";
+// page content
+$ret .= "<div>\n";
 
 // Add notification message
 if (strlen($notification) > 0)
@@ -278,16 +292,13 @@ $ret .= $form_area;
 // Display warning if the user isn't allowed to view a certain wall
 if (isset($warning)) {
     $ret .= "<h3>You are not allowed to see this page because you are not a friend of ";
-    $ret .= "<a href=\"view.php?webid=" . urlencode($owner_webid) . "\">" . $profile->get_name() . ".</a></h3>";
+    $ret .= "<a href=\"view?webid=" . urlencode($owner_webid) . "\">" . $profile->get_name() . ".</a></h3>";
 } else if ($rows == 0){
     // There are no messages on the wall
     $ret .= "<p><font style=\"font-size: 1.3em;\">There are no messages.</font></p>\n";
 } else {
     // Display messages
-    $ret .= "<form method=\"GET\" action=\"\">\n";
-    $ret .= "<input type=\"hidden\" name=\"user\" value=\"" . htmlspecialchars($owner_hash) . "\" />\n";    
-    
-    
+
     // Get total number of messages specific to the given hash
     $total = count_msg_by_hash($owner_hash);
     
@@ -309,34 +320,30 @@ if (isset($warning)) {
         } else {
             $to_name = 'MyProfile';
         }
-
+        $msg = htmlentities($row['msg']);
         // replace WebIDs with actual names and links to the WebID
-        $msg = preg_replace_callback("/<(.*)>/Ui", "preg_get_handle_by_webid", $row["msg"]);
+        $msg = preg_replace_callback("/&lt;(.*)&gt;/Ui", "preg_get_handle_by_webid", $msg);
 
         // store everything in this table
-        $ret .= "<table border=\"0\">\n";
-
-        // add horizontal line to separate messages
-        $ret .= "<tr><td></td><td>\n";
-        $ret .= "<a name=\"post_" . $row['id'] . "\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/></a>\n";
-        $ret .= "</td></tr>\n";
-        
+        $ret .= "<a class=\"anchor\" name=\"post_" . $row['id'] . "\"></a>\n";
+        $ret .= "<div class=\"wall-box shadow r3 clearfix\">\n";
+        $ret .= "<table border=\"0\" class=\"wall-message\" >\n";
         $ret .= "<tr valign=\"top\">\n";
-        $ret .= "<td width=\"80\" align=\"center\">\n";
+        $ret .= "<td align=\"left\" class=\"speaker\">\n";
         // image
-        $ret .= "<a class=\"avatar-link\" href=\"view.php?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"rounded\" property=\"sioc:avatar\"/></a>\n";
+        $ret .= "<a class=\"avatar-link\" href=\"view?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"50\" src=\"" . $pic . "\" class=\"r5 image\" /></a>\n";
         $ret .= "</td>\n";
         $ret .= "<td>";
-        $ret .= "<table border=\"0\" class=\"table-wall\">\n";
-        $ret .= "<tr valign=\"top\" class=\"wall-post\">\n";
-        $ret .= "<td class=\"wall-post\">\n";
+        $ret .= "<table border=\"0\">\n";
+        $ret .= "<tr valign=\"top\">\n";
+        $ret .= "<td>\n";
         // author's name
-        $ret .= "<b><a href=\"view.php?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
-        $ret .= "   <span property=\"sioc:UserAccount\">" . $name . "</span>";
+        $ret .= "<b><a href=\"view?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">";
+        $ret .= "   <span>" . $name . "</span>";
         $ret .= "</a></b> wrote ";       
         // activity stream
         if (isset($_REQUEST['activity'])) {
-            $ret .= "on <a href=\"wall.php?user=" . $row['to_hash'] . "\" target=\"_blank\" style=\"font-color: black;\">";
+            $ret .= "on <a href=\"wall?user=" . $row['to_hash'] . "\" target=\"_blank\" style=\"font-color: black;\">";
             $ret .= $to_name . "'s Wall ";
             $ret .= "</a>";
         }
@@ -345,17 +352,22 @@ if (isset($warning)) {
         $ret .= "<span id=\"date_" . $row['id'] . "\">";
         $ret .= "<script type=\"text/javascript\">$('#date_" . $row['id'] . "').text(moment(" . $timestamp . ").from());</script>";
         $ret .= "</span></font>\n";
+        
+        $ret .= "<span class=\"pull-right\"><a href=\"#post_" . $row['id'] . "\">Link to this post.</a></span>\n";
         $ret .= "</td>\n";
         $ret .= "</tr>\n";
         // message
-        $ret .= "<tr class=\"wall-post\">\n";
-        $ret .= "<td class=\"wall-post\"><pre id=\"message_" . $row['id'] . "\"><span property=\"sioc:Post\" id=\"message_text_" . $row['id'] . "\">\n";
+        $ret .= "<tr>\n";
+        $ret .= "<td><div id=\"message_" . $row['id'] . "\"><pre class=\"wall-message\" id=\"message_text_" . $row['id'] . "\">\n";
         $ret .= put_links($msg);
-        $ret .= "</span></pre></td>\n";
+/*
+        $ret .= put_links(preg_replace('/(.*?)(<.*?>|$)/se', 'html_entity_decode("$1").htmlentities("$2")', $row['msg'])); 
+  */    
+        $ret .= "</pre></div></td>\n";
         $ret .= "</tr>\n";
         // show options only if we are the source of the post
-        $ret .= "<tr class=\"wall-post\">\n";
-        $ret .= "<td class=\"wall-post\"><small>";
+        $ret .= "<tr>\n";
+        $ret .= "<td class=\"options\">";
         if (
             isset($_SESSION['webid'])
             && (
@@ -369,27 +381,29 @@ if (isset($warning)) {
         ) {
             $add = '?user=' . $owner_hash;
             // add option to edit post
-            $ret .= "<a onClick=\"updateWall('message_text_" . $row['id'] . "', 'wall.php" . $add . "', '" . $row['id'] . "')\" style=\"cursor: pointer;\">Edit</a>";
+            $ret .= "<a onClick=\"updateWall('message_text_" . $row['id'] . "', 'wall" . $add . "', '" . $row['id'] . "')\" style=\"cursor: pointer;\">Edit</a>";
             // add option to delete post
-            $ret .= " <a href=\"wall.php" . $add . "&del=" . $row['id'] . "\">Delete</a>\n";
+            $ret .= " | <a href=\"wall" . $add . "&del=" . $row['id'] . "\">Delete</a>\n";
         }
         
         // show vote counters and buttons for logged users
-        $ret .= add_vote_buttons($row['id']);
+        $ret .= "<div class=\"options-vote\">".add_vote_buttons($row['id'])."</div>\n";
         
-        $ret .= "</small></td>\n";
+        $ret .= "</td>\n";
         $ret .= "</tr>\n";
         $ret .= "</table>\n";
         $ret .= "</td>\n";
         $ret .= "</tr>\n";
         $ret .= "</table>\n";
+        $ret .= "</div>\n";
     $i++;
     }
     mysql_free_result($result);
 
-    $ret .= "</form>\n";
+  
     $ret .= "</div>\n";
 }
+$ret .= "</div>\n";
 
 // prepare etag
 $etag_array = get_etag($owner_hash);
@@ -410,7 +424,4 @@ if (($ifmod || $iftag) && ($ifmod !== false && $iftag !== false)) {
 require 'header.php';
 echo $ret;
 include 'footer.php';
-?>
-<script>
-$(document).ready(do_autocomplete("comment"));
-</script>  
+

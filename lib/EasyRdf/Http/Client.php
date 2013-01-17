@@ -464,6 +464,11 @@ class EasyRdf_Http_Client
                 // end of some headers (See ZF-11283)
                 $location = trim($location);
 
+                // Some servers return relative URLs in the location header
+                // resolve it in relation to previous request
+                $baseUri = new EasyRdf_ParsedUri($this->_uri);
+                $location = $baseUri->resolve($location)->toString();
+
                 // If it is a 303 then drop the parameters and send a GET request
                 if ($response->getStatus() == 303) {
                     $this->resetParameters();

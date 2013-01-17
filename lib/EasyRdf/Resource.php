@@ -5,7 +5,7 @@
  *
  * LICENSE
  *
- * Copyright (c) 2009-2011 Nicholas J Humfrey.  All rights reserved.
+ * Copyright (c) 2009-2012 Nicholas J Humfrey.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2011 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  * @version    $Id$
  */
@@ -40,7 +40,7 @@
  * Class that represents an RDF resource
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2011 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  */
 class EasyRdf_Resource
@@ -70,8 +70,14 @@ class EasyRdf_Resource
 
         $this->_uri = $uri;
 
-        # FIXME: check that $graph is an EasyRdf_Graph object
-        $this->_graph = $graph;
+        # Check that $graph is an EasyRdf_Graph object
+        if (is_object($graph) and $graph instanceof EasyRdf_Graph) {
+            $this->_graph = $graph;
+        } else if (!is_null($graph)) {
+            throw new InvalidArgumentException(
+                "\$graph should be an EasyRdf_Graph object"
+            );
+        }
     }
 
     /** Returns the URI for the resource.
@@ -135,6 +141,53 @@ class EasyRdf_Resource
         return EasyRdf_Namespace::shorten($this->_uri);
     }
 
+    /** Gets the local name of the URI of this resource
+     *
+     * The local name is defined as the part of the URI string
+     * after the last occurrence of the '#', ':' or '/' character.
+     *
+     * @return string The local name
+     */
+    public function localName()
+    {
+        if (preg_match("|([^#:/]+)$|", $this->_uri, $matches)) {
+            return $matches[1];
+        }
+    }
+
+    /** Parse the URI of the resource and return as a ParsedUri object
+     *
+     * @return EasyRdf_ParsedUri
+     */
+    public function parseUri()
+    {
+        return new EasyRdf_ParsedUri($this->_uri);
+    }
+
+    /** Generates an HTML anchor tag, linking to this resource.
+     *
+     * If no text is given, then the URI also uses as the link text.
+     *
+     * @param  string  $text    Text for the link.
+     * @param  array   $options Associative array of attributes for the anchor tag
+     * @return string  The HTML link string
+     */
+    public function htmlLink($text=NULL, $options=array())
+    {
+        $options = array_merge(array('href' => $this->_uri), $options);
+        if ($text === NULL)
+            $text = $this->_uri;
+
+        $html = "<a";
+        foreach ($options as $key => $value) {
+            $html .= " ".htmlspecialchars($key)."=\"".
+                         htmlspecialchars($value)."\"";
+        }
+        $html .= ">".htmlspecialchars($text)."</a>";
+
+        return $html;
+    }
+
     /** Returns the properties of the resource as an associative array
      *
      * For example:
@@ -184,21 +237,17 @@ class EasyRdf_Resource
         }
     }
 
-    /** Set value(s) for a property
+    /** Perform a load (download of remote URI) of the resource into the graph
      *
-     * The new value(s) will replace the existing values for the property.
-     * The name of the property should be a string.
-     * If you set a property to null or an empty array, then the property
-     * will be deleted.
+     * The document type is optional but should be specified if it
+     * can't be guessed or got from the HTTP headers.
      *
-     * @param  string  $property The name of the property (e.g. foaf:name)
-     * @param  mixed   $values   The value(s) for the property.
-     * @return array             Array of new values for this property.
+     * @param  string  $format  Optional format of the data (eg. rdfxml)
      */
-    public function set($property, $values)
+    public function load($format=null)
     {
         $this->checkHasGraph();
-        return $this->_graph->set($this->_uri, $property, $values);
+        return $this->_graph->load($this->_uri, $format);
     }
 
     /** Delete a property (or optionally just a specific value)
@@ -215,20 +264,18 @@ class EasyRdf_Resource
 
     /** Add values to for a property of the resource
      *
-     * The value can either be a single value or an array of values.
-     *
      * Example:
      *   $resource->add('prefix:property', 'value');
      *
      * @param  mixed $resource   The resource to add data to
      * @param  mixed $property   The property name
      * @param  mixed $value      The value for the property
-     * @return array             Array of all values associated with property.
+     * @return integer           The number of values added (1 or 0)
      */
-    public function add($property, $values=null)
+    public function add($property, $value)
     {
         $this->checkHasGraph();
-        return $this->_graph->add($this->_uri, $property, $values);
+        return $this->_graph->add($this->_uri, $property, $value);
     }
 
     /** Add a literal value as a property of the resource
@@ -241,6 +288,7 @@ class EasyRdf_Resource
      * @param  mixed  $property  The property name
      * @param  mixed  $value     The value or values for the property
      * @param  string $lang      The language of the literal
+     * @return integer           The number of values added
      */
     public function addLiteral($property, $values, $lang=null)
     {
@@ -255,11 +303,29 @@ class EasyRdf_Resource
      *
      * @param  mixed $property   The property name
      * @param  mixed $resource2  The resource to be value of the property
+     * @return integer           The number of values added (1 or 0)
      */
     public function addResource($property, $values)
     {
         $this->checkHasGraph();
         return $this->_graph->addResource($this->_uri, $property, $values);
+    }
+
+    /** Set value for a property
+     *
+     * The new value(s) will replace the existing values for the property.
+     * The name of the property should be a string.
+     * If you set a property to null or an empty array, then the property
+     * will be deleted.
+     *
+     * @param  string  $property The name of the property (e.g. foaf:name)
+     * @param  mixed   $value    The value for the property.
+     * @return integer           The number of values added (1 or 0)
+     */
+    public function set($property, $value)
+    {
+        $this->checkHasGraph();
+        return $this->_graph->set($this->_uri, $property, $value);
     }
 
     /** Get a single value for a property
@@ -360,6 +426,21 @@ class EasyRdf_Resource
     {
         $this->checkHasGraph();
         return $this->_graph->all($this->_uri, $property, 'resource');
+    }
+
+    /** Count the number of values for a property of a resource
+     *
+     * This method will return 0 if the property does not exist.
+     *
+     * @param  string  $property The name of the property (e.g. foaf:name)
+     * @param  string  $type     The type of value to filter by (e.g. literal)
+     * @param  string  $lang     The language to filter by (e.g. en)
+     * @return integer           The number of values associated with the property
+     */
+    public function count($property, $type=null, $lang=null)
+    {
+        $this->checkHasGraph();
+        return $this->_graph->count($this->_uri, $property, $type, $lang);
     }
 
     /** Concatenate all values for a property into a string.
@@ -481,6 +562,7 @@ class EasyRdf_Resource
     /** Add one or more rdf:type properties to the resource
      *
      * @param  string  $type     The new type (e.g. foaf:Person)
+     * @return integer           The number of types added
      */
     public function addType($types)
     {
@@ -493,6 +575,7 @@ class EasyRdf_Resource
      * Note that the PHP class of the resource will not change.
      *
      * @param  string  $type     The new type (e.g. foaf:Person)
+     * @return integer           The number of types added
      */
     public function setType($type)
     {
@@ -540,5 +623,66 @@ class EasyRdf_Resource
         $this->checkHasGraph();
         return $this->_graph->dumpResource($this->_uri, $html);
     }
-}
 
+    /** Magic method to get a property of a resource
+     *
+     * Note that only properties in the default namespace can be accessed in this way.
+     *
+     * Example:
+     *   $value = $resource->title;
+     *
+     * @see EasyRdf_Namespace::setDefault()
+     * @param  string $name The name of the property
+     * @return string       A single value for the named property
+     */
+    public function __get($name)
+    {
+        return $this->_graph->get($this->_uri, $name);
+    }
+
+    /** Magic method to set the value for a property of a resource
+     *
+     * Note that only properties in the default namespace can be accessed in this way.
+     *
+     * Example:
+     *   $resource->title = 'Title';
+     *
+     * @see EasyRdf_Namespace::setDefault()
+     * @param  string $name The name of the property
+     * @param  string $value The value for the property
+     */
+    public function __set($name, $value)
+    {
+        return $this->_graph->set($this->_uri, $name, $value);
+    }
+
+    /** Magic method to check if a property exists
+     *
+     * Note that only properties in the default namespace can be accessed in this way.
+     *
+     * Example:
+     *   if (isset($resource->title)) { blah(); }
+     *
+     * @see EasyRdf_Namespace::setDefault()
+     * @param string $name The name of the property
+     */
+    public function __isset($name)
+    {
+        return $this->_graph->hasProperty($this->_uri, $name);
+    }
+
+    /** Magic method to delete a property of the resource
+     *
+     * Note that only properties in the default namespace can be accessed in this way.
+     *
+     * Example:
+     *   unset($resource->title);
+     *
+     * @see EasyRdf_Namespace::setDefault()
+     * @param string $name The name of the property
+     */
+    public function __unset($name)
+    {
+        return $this->_graph->delete($this->_uri, $name);
+    }
+}

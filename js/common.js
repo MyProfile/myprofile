@@ -1,4 +1,3 @@
-// clear authenticated certificate from browser (only for FF/IE)
 function logout(elem) {
    if (document.all == null) {
       if (window.crypto) {
@@ -166,7 +165,7 @@ function removeElement (id) {
     $('#' + id).remove();
 }
 
-// vote on a message
+// Vote on a message
 function setVote (base, vote, message_id) {
     var other_base = '';
     var other_vote = '';
@@ -182,14 +181,14 @@ function setVote (base, vote, message_id) {
         // disable the link for the current vote button
         $('#' + base).parent().removeAttr('onclick');
         $('#' + base).parent().removeAttr('style');
+        $('#' + base).parent().attr('style', 'text-decoration: none; cursor: pointer;');
         $('#' + base).empty().append(data);
         
         // enable the link for the other vote button
         $('#' + other_base).parent().attr('onClick', "setVote('" + other_vote + "_" + message_id + "', '" + other_vote + "', '" + message_id + "')");
-        $('#' + other_base).parent().attr('style', 'cursor: pointer;');
+        $('#' + other_base).parent().attr('style', 'text-decoration: none; cursor: pointer;');
         
-        // substract one vote from the other vote type (no -> yes / yes -> no)
-        
+        // substract one vote from the other vote type (no -> yes / yes -> no)      
         var new_val = parseInt($('#' + other_base).text());
         if (new_val > 0) {
             new_val = new_val - 1;
@@ -197,7 +196,6 @@ function setVote (base, vote, message_id) {
         }
     });
 }
-
 
 // Update a wall post
 function updateWall (base, action, postId) {
@@ -208,7 +206,7 @@ function updateWall (base, action, postId) {
     var form = '<div id="form_' + postId + '">';
     form = form + '<form action="' + action + '&#post_' + postId + '" method="post">';
     form = form + '<input type="hidden" name="edit" value="' + postId + '">';
-    form = form + '<p><textarea name="comment" onfocus="textAreaResize(this)">' + text + '</textarea></p>';
+    form = form + '<p><textarea name="comment" class="textarea-wall" onfocus="textAreaResize(this)">' + text + '</textarea></p>';
     form = form + '<p>';
     form = form + '<input class="btn btn-primary" type="submit" name="update" value="Update"> ';
     form = form + '<a onClick="cancelUpdateWall(\'' + base + '\', \'' + postId + '\')">';
@@ -437,26 +435,7 @@ function addSecurity (type, table) {
         // append label to left cell
         var label = document.createTextNode("Modulus: ");
         var exponent = document.createTextNode(" Exponent: ");
-        var id_label = document.createTextNode("Identity (WebID URI): ");
         
-        // create URI field
-        var identity = document.createElement("input");
-        //Assign different attributes to the element.
-        identity.setAttribute("type", 'text');
-        identity.setAttribute("size", '32');
-        identity.setAttribute("value", '');
-        identity.setAttribute("name", 'identity[]');
-
-        // append input field to right table cell
-        cell_l.appendChild(id_label);
-        cell_r.appendChild(identity);
-        // append cells to row
-        row.appendChild(cell_l);
-        row.appendChild(cell_r);
-        var foo = document.getElementById(table);
-        // append row to table
-        foo.appendChild(row);
-
         //Create textarea for certificate modulus.
         var modulus = document.createElement("textarea");
         //Assign different attributes to the element.

@@ -5,7 +5,7 @@
  *
  * LICENSE
  *
- * Copyright (c) 2009-2011 Nicholas J Humfrey.  All rights reserved.
+ * Copyright (c) 2009-2012 Nicholas J Humfrey.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2011 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  * @version    $Id$
  */
@@ -40,7 +40,7 @@
  * Class that represents an RDF Literal
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2011 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  */
 class EasyRdf_Literal
@@ -51,14 +51,14 @@ class EasyRdf_Literal
     /** @ignore A mapping from class name to datatype URI */
     private static $_classMap = array();
 
-    /** @ignore The value for this literal */
-    protected $_value = null;
+    /** @ignore The string value for this literal */
+    protected $_value = NULL;
 
     /** @ignore The language of the literal (e.g. 'en') */
-    protected $_lang = null;
+    protected $_lang = NULL;
 
     /** @ignore The datatype URI of the literal */
-    protected $_datatype = null;
+    protected $_datatype = NULL;
 
 
     /** Create a new literal object
@@ -73,11 +73,11 @@ class EasyRdf_Literal
      * Literals cannot have both a language and a datatype.
      *
      * @param  mixed  $value     The value of the literal or an associative array
-     * @param  string $lang      The natural language of the literal or null (e.g. 'en')
-     * @param  string $datatype  The datatype of the literal or null (e.g. 'xsd:integer')
+     * @param  string $lang      The natural language of the literal or NULL (e.g. 'en')
+     * @param  string $datatype  The datatype of the literal or NULL (e.g. 'xsd:integer')
      * @return object EasyRdf_Literal (or subclass of EasyRdf_Literal)
      */
-    public static function create($value, $lang=null, $datatype=null)
+    public static function create($value, $lang=NULL, $datatype=NULL)
     {
         if (EasyRdf_Utils::isAssociativeArray($value)) {
             if (isset($value['xml:lang'])) {
@@ -88,14 +88,16 @@ class EasyRdf_Literal
             if (isset($value['datatype'])) {
                $datatype = $value['datatype'];
             }
-            $value = isset($value['value']) ? $value['value'] : null;
+            $value = isset($value['value']) ? $value['value'] : NULL;
         }
 
-        if ($datatype == null) {
-            if ($lang == null) {
+        if (empty($datatype)) {
+            if (empty($lang)) {
                 // Automatic datatype selection
                 $datatype = self::getDatatypeForValue($value);
             }
+        } elseif (is_object($datatype)) {
+            $datatype = strval($datatype);
         } else {
             // Expand shortened URIs (qnames)
             $datatype = EasyRdf_Namespace::expand($datatype);
@@ -126,15 +128,15 @@ class EasyRdf_Literal
      */
     public static function setDatatypeMapping($datatype, $class)
     {
-        if (!is_string($datatype) or $datatype == null or $datatype == '') {
+        if (!is_string($datatype) or $datatype == NULL or $datatype == '') {
             throw new InvalidArgumentException(
-                "\$datatype should be a string and cannot be null or empty"
+                "\$datatype should be a string and cannot be NULL or empty"
             );
         }
 
-        if (!is_string($class) or $class == null or $class == '') {
+        if (!is_string($class) or $class == NULL or $class == '') {
             throw new InvalidArgumentException(
-                "\$class should be a string and cannot be null or empty"
+                "\$class should be a string and cannot be NULL or empty"
             );
         }
 
@@ -149,9 +151,9 @@ class EasyRdf_Literal
      */
     public static function deleteDatatypeMapping($datatype)
     {
-        if (!is_string($datatype) or $datatype == null or $datatype == '') {
+        if (!is_string($datatype) or $datatype == NULL or $datatype == '') {
             throw new InvalidArgumentException(
-                "\$datatype should be a string and cannot be null or empty"
+                "\$datatype should be a string and cannot be NULL or empty"
             );
         }
 
@@ -180,8 +182,10 @@ class EasyRdf_Literal
             return 'http://www.w3.org/2001/XMLSchema#integer';
         } else if (is_bool($value)) {
             return 'http://www.w3.org/2001/XMLSchema#boolean';
+        } else if (is_object($value) and $value instanceof DateTime) {
+            return 'http://www.w3.org/2001/XMLSchema#dateTime';
         } else {
-            return null;
+            return NULL;
         }
     }
 
@@ -190,35 +194,38 @@ class EasyRdf_Literal
     /** Constructor for creating a new literal
      *
      * @param  string $value     The value of the literal
-     * @param  string $lang      The natural language of the literal or null (e.g. 'en')
-     * @param  string $datatype  The datatype of the literal or null (e.g. 'xsd:string')
+     * @param  string $lang      The natural language of the literal or NULL (e.g. 'en')
+     * @param  string $datatype  The datatype of the literal or NULL (e.g. 'xsd:string')
      * @return object EasyRdf_Literal
      */
-    public function __construct($value, $lang=null, $datatype=null)
+    public function __construct($value, $lang=NULL, $datatype=NULL)
     {
         $this->_value = $value;
-        $this->_lang = $lang ? $lang : null;
-        $this->_datatype = $datatype ? $datatype : null;
+        $this->_lang = $lang ? $lang : NULL;
+        $this->_datatype = $datatype ? $datatype : NULL;
 
         if ($this->_datatype) {
-            // Expand shortened URIs (qnames)
-            $this->_datatype = EasyRdf_Namespace::expand($this->_datatype);
+            if (is_object($this->_datatype)) {
+                // Convert objects to strings
+                $this->_datatype = strval($this->_datatype);
+            } else {
+                // Expand shortened URIs (CURIEs)
+                $this->_datatype = EasyRdf_Namespace::expand($this->_datatype);
+            }
 
             // Literals can not have both a language and a datatype
-            $this->_lang = null;
+            $this->_lang = NULL;
         } else {
             // Set the datatype based on the subclass
             $class = get_class($this);
             if (isset(self::$_classMap[$class])) {
                 $this->_datatype = self::$_classMap[$class];
-                $this->_lang = null;
+                $this->_lang = NULL;
             }
         }
 
-        // Cast to string if it is a string
-        if ($this->_lang or !$this->_datatype or $this->_datatype == 'http://www.w3.org/2001/XMLSchema#string') {
-            settype($this->_value, 'string');
-        }
+        // Cast value to string
+        settype($this->_value, 'string');
     }
 
     /** Returns the value of the literal.
@@ -248,7 +255,7 @@ class EasyRdf_Literal
         if ($this->_datatype) {
             return EasyRdf_Namespace::shorten($this->_datatype);
         } else {
-            return null;
+            return NULL;
         }
     }
 
@@ -272,7 +279,7 @@ class EasyRdf_Literal
     {
         $array = array(
             'type' => 'literal',
-            'value' => strval($this)
+            'value' => $this->_value
         );
 
         if ($this->_datatype)
@@ -284,13 +291,13 @@ class EasyRdf_Literal
         return $array;
     }
 
-    /** Magic method to return the value of a literal when casted to string
+    /** Magic method to return the value of a literal as a string
      *
      * @return string The value of the literal
      */
     public function __toString()
     {
-        return isset($this->_value) ? strval($this->_value) : '';
+        return isset($this->_value) ? $this->_value : '';
     }
 
     /** Return pretty-print view of the literal

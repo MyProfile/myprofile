@@ -7,7 +7,7 @@ function extractLast(term) {
     return split(term).pop();
 }
 
-function do_autocomplete (id) {
+function do_autocomplete (id, handle) {
     $("#"+id)
         // don't navigate away from the field on tab when selecting an item
         .bind( "keydown", function( event ) {
@@ -21,7 +21,13 @@ function do_autocomplete (id) {
             source: function( request, response ) {
                 var term = request.term;
                 var results = [];
-                if (term.indexOf("@") >= 0) {
+                if (handle != null) {
+                    if (term.indexOf(handle) >= 0) {
+                        $.getJSON( "shorthandle.php", {
+                            term: extractLast( request.term )
+                        }, response );
+                    }
+                } else {
                     $.getJSON( "shorthandle.php", {
                         term: extractLast( request.term )
                     }, response );
@@ -36,16 +42,16 @@ function do_autocomplete (id) {
                 // remove the current input
                 terms.pop();
                 // add the selected item
-                terms.push( ui.item.value );
-                // add placeholder to get the comma-and-space at the end
+                if (handle != null) {
+                    terms.push( '<'+ui.item.value+'>' );
+                } else {
+                    terms.push( ui.item.value );
+                }
+                // add placeholder to get the space at the end
                 terms.push( " " );
                 this.value = terms.join( "" );
                 return false;
             }
-        }).data("autocomplete")._renderItem = function( ul, item ) {return $( "<li></li>" )
-           .data( "item.autocomplete", item )
-           .append( item.label )
-           .appendTo( ul );
-       };
- 
+        });
 }
+

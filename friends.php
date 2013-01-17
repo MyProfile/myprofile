@@ -21,7 +21,8 @@
  */
  
 require_once 'include.php';
-
+$title = 'Friends';
+$friends_on = 'friends-on';
 
 // load a specific webid instead of the logged user
 if (isset($_REQUEST['webid'])) {
@@ -38,7 +39,7 @@ $user = $profile->get("foaf:name");
 
 $search = (isset($_REQUEST['search'])) ? $_REQUEST['search'] : '';
     
-$form = "";
+$form = "<div id=\"friends\" class=\"content relative shadow clearfix main\">";
 $form .= "<div>\n";
 $form .= "<form action=\"lookup.php\" method=\"GET\">\n";
 $form .= "Looking for someone? <input type=\"text\" name=\"search\" placeholder=\"name, nickname or WebID\" value=\"" . $search . "\" style=\"width: 400px;\">\n";
@@ -67,7 +68,7 @@ if (strlen($friends) > 0) {
         // Create placeholders for each contact info
         for (i = 0; i < uris.length; i++) {
             var webid = uris[i];
-            $("#content").append("<div id=\"person_"+i+"\"></div>");
+            $("#friends").append("<div id=\"person_"+i+"\"></div>");
         }
         </script>';
         
@@ -91,6 +92,7 @@ if (strlen($friends) > 0) {
 } else {
 	$ret .= "The user does not have any friends.<br/>\n";
 }
+$ret .= "</div>\n";
 include 'header.php';
 echo $form;
 echo $ret;

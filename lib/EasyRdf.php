@@ -115,6 +115,11 @@ require_once "EasyRdf/Literal/HexBinary.php";
 require_once "EasyRdf/Literal/Integer.php";
 
 /**
+ * @see EasyRdf_ParsedUri
+ */
+require_once "EasyRdf/ParsedUri.php";
+
+/**
  * @see EasyRdf_Parser
  */
 require_once "EasyRdf/Parser.php";
@@ -135,6 +140,11 @@ require_once "EasyRdf/Parser/Ntriples.php";
 require_once "EasyRdf/Parser/Json.php";
 
 /**
+ * @see EasyRdf_Parser_Rdfa
+ */
+require_once "EasyRdf/Parser/Rdfa.php";
+
+/**
  * @see EasyRdf_Parser_RdfXml
  */
 require_once "EasyRdf/Parser/RdfXml.php";
@@ -153,6 +163,11 @@ require_once "EasyRdf/Resource.php";
  * @see EasyRdf_Serialiser
  */
 require_once "EasyRdf/Serialiser.php";
+
+/**
+ * @see EasyRdf_Serialiser_GraphViz
+ */
+require_once "EasyRdf/Serialiser/GraphViz.php";
 
 /**
  * @see EasyRdf_Serialiser_RdfPhp

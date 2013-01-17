@@ -1,11 +1,13 @@
         </div>
-     </div>
-   </div>
-</div>
-<footer class="footer">
-    <div class="container" align="center">
-        © 2012 - <a href="http://myprofile-project.org">MyProfile</a> v.0.4-alpha (stable)
+        <!-- end wrapper -->
+        
+        <!-- footer -->
+        <div id="footer" class="footer">
+            <p class="info">&copy; 2013 | <a href="http://myprofile-project.org" target="_blank">MyProfile Project</a> - All rights reserved.</p>
+        </div>
     </div>
-</footer>
+   
 </body>
+
 </html>
+

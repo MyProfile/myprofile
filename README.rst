@@ -1,4 +1,4 @@
-.. image:: http://myprofile-project.org/img/myprofile.png
+.. image:: http://myprofile-project.org/images/myprofile.png
   :alt: MyProfile
     :align: right
 
@@ -47,9 +47,9 @@ EasyRdf - https://github.com/njh/easyrdf
 
 Graphite - http://graphite.ecs.soton.ac.uk/
 
-libAuthentication - https://github.com/melvincarvalho/libAuthentication
+WebIDDelegatedAuth - https://github.com/WebIDauth/WebIDDelegatedAuth
 
-Important note regarding libAuthentication: if you want to use a different IdP, you will have to edit the file `lib/libAuthentication/lib/Authentication_X509CertRepo.php' and add the IdP's certificate in (PEM form) to the array of IdPs.
+Important note regarding WebIDDelegatedAuth: if you want to use a different IdP, you will have to edit the file `lib/Authentication_X509CertRepo.php' and add the IdP's certificate in (PEM form) to the array of IdPs.
 
 Documentation
 -------------
