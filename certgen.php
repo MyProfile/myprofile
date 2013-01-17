@@ -27,32 +27,28 @@
  */
     
 require_once 'include.php';
-
 // form in html
 $form = '';
 
-$form .= "<div class=\"container\">\n";
+$form .= "<div class=\"content relative shadow clearfix main\">\n";
 $form .= "<font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">Generate a Simple WebID KEYGEN-based Client Certificate</font>\n";
-$form .= "<div class=\"clear\"></div>\n";
-$form .= "</div>\n";
 	
-$form .= "<div class=\"container\">\n";
 $form .= "<br/><form name=\"input\" action=\"certgen.php\" method=\"post\">\n";
 $form .= "<input type=\"hidden\" name=\"doit\" value=\"1\">\n";
 $form .= "<table>\n";
 $form .= "	<tr><td colspan=\"2\"><font style=\"font-size: 1em;\">If you already have a FOAF card, this form allows you to create a client certificate for it.</font><br/><br/></td></tr>\n";
-$form .= "	<tr><td><h3>FOAF address 1</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\" id=\"foaf1\" onKeyup=\"validateCert('foaf1', 'commonName', 'submit', 2)\"> (min 2 characters)</td></tr>\n";
-$form .= "	<tr><td><h3>FOAF address 2</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
-$form .= "	<tr><td><h3>FOAF address 3</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
-$form .= "	<tr><td><h3>Full name</h3></td><td><input type=\"text\" id=\"commonName\" name=\"commonName\" onKeyup=\"validateCert('foaf1', 'commonName', 'submit', 2)\"></font> (min 2 characters)</td></tr>\n";
-$form .= "	<tr><td><h3>Email address</h3></td><td><input type=\"text\" name=\"emailAddress\"></td></tr>\n";
-$form .= "	<tr><td><h3>KEYGEN Key Length</h3></td><td><keygen name=\"pubkey\" keytype=\"rsa\" challenge=\"randomchars\"></td></tr>\n";
+$form .= "	<tr><td><h3>WebID address</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\" id=\"foaf\" onkeypress=\"validateCert('foaf', 'commonName', 'submit', 2)\" value=\"".urldecode($_REQUEST['webid'])."\" /> (min 2 characters)</td></tr>\n";
+$form .= "	<tr><td><h3>Full name</h3></td><td><input type=\"text\" id=\"commonName\" size=\"40\" name=\"commonName\" onkeypress=\"validateCert('foaf', 'commonName', 'submit', 2)\" value=\"".urldecode($_REQUEST['name'])."\" /></font> (min 2 characters)</td></tr>\n";
+$form .= "	<tr><td><h3>Email address</h3></td><td><input type=\"text\" name=\"emailAddress\" value=\"".urldecode($_REQUEST['email'])."\" /></td></tr>\n";
+$form .= "	<tr hidden><td hidden><keygen name=\"pubkey\" keytype=\"rsa\" challenge=\"randomchars\"></td></tr>\n";
 $form .= "	<tr><td colspan=\"3\">&nbsp;</td></tr>\n";
 $form .= "	<tr><td></td><td><input type=\"submit\" class=\"btn btn-primary\" id=\"submit\" value=\"Install certificate\" disabled></td></tr>\n";
 $form .= "</table>\n";
 $form .= "</form>\n";
-$form .= "<div class=\"clear\"></div>\n";
 $form .= "</div>\n";
+$form .= "<script type=\"text/javascript\">\n";
+$form .= "validateCert('foaf', 'commonName', 'submit', 2)";
+$form .= "</script>\n";
 
 if ($_POST['doit'] == 1) {
 

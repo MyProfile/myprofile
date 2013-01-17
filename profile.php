@@ -22,6 +22,7 @@
 
 include_once 'include.php';
 
+
 if (isset($_REQUEST['doit']))  {
         // store here visual alert messages: error() or success()
         $alert = '';
@@ -40,10 +41,11 @@ if (isset($_REQUEST['doit']))  {
         
         // Check if the user uploaded a new picture
         if ((isset($_FILES['picture'])) && ($_FILES['picture']['error'] == 0)) {
-            // Allow only pictures with a size smaller than 500k
-            if ($_FILES['picture']['size'] <= 500000) {
+            // Allow only pictures with a size smaller than 100k
+            if ($_FILES['picture']['size'] <= 100000) {
                 // Using getimagesize() to avoid fake mime types 
                 $image_info = exif_imagetype($_FILES['picture']['tmp_name']);
+                $local_img = '';
                 switch ($image_info) {
                     case IMAGETYPE_GIF:
                             if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.gif'))
@@ -68,7 +70,7 @@ if (isset($_REQUEST['doit']))  {
                         break;
                 }
             } else {
-                $alert .= error('The image size is too large. The maximum allowed size is 30KB.');
+                $alert .= error('The image size is too large. The maximum allowed size is 100KB.');
             }
         }
         
@@ -172,7 +174,16 @@ if (isset($_REQUEST['doit']))  {
                     $graph->addResource($me, 'foaf:pastProject', trim($val));
             }
         }
-        
+
+// ----- socweb:webapp ----- //
+        // apps
+        if (isset($_REQUEST['socweb:webapp'])) {
+            foreach($_REQUEST['socweb:webapp'] as $key => $val) {
+                if (strlen($val) > 0)
+                    $graph->addResource($me, 'socweb:webapp', trim($val));
+            }
+        }
+
 // ----- foaf:knows ----- //
         if ((isset($_REQUEST['foaf:knows'])) && (strlen($_REQUEST['foaf:knows'][0]) > 0)) {
             foreach($_REQUEST['foaf:knows'] as $key => $person_uri) {
@@ -273,7 +284,7 @@ if (isset($_REQUEST['doit']))  {
             $rw .= "RewriteEngine On\n";
             $rw .= "RewriteBase /" . $user_dir . "/\n";
             $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml\n";
-            $rw .= "RewriteRule ^card$ " . BASE_URI . "/view.php?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
+            $rw .= "RewriteRule ^card$ " . BASE_URI . "/view?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
             $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
             $rw .= "RewriteRule ^card$ foaf.rdf [L]\n";
             // finally write content to file
@@ -313,9 +324,12 @@ if (isset($_REQUEST['doit']))  {
 }
 
 // Display form
+$title = 'Create / Edit Profile';
+$profile_on = 'profile-on';
 include 'header.php';
 
 $ret = '';
+$ret .= "<div class=\"content relative shadow clearfix main\">\n";
 
 // Display an error message if we got redirected here from an IdP
 if (isset($_REQUEST['error_message']))
@@ -325,13 +339,11 @@ if (isset($_REQUEST['error_message']))
 if (!isset($_REQUEST['action']))
     $_REQUEST['action'] = 'new';
 
-// Display action title
-$ret .= "<div class=\"container\">\n";
-$ret .= "   <font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . ucwords($_REQUEST['action']) . " Profile</font>\n";
-$ret .= "</div>\n";
-
 // Print any error messages here
 $ret .= $alert;
+
+// Display action title
+$ret .= "<font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">" . ucwords($_REQUEST['action']) . " Profile</font>\n";
 
 // Preload form fields with user's data (also reload data into the graph)
 if ($_REQUEST['action'] == 'edit') {
@@ -425,6 +437,13 @@ if ($_REQUEST['action'] == 'edit') {
             $pastprojs .= "<tr><td>PastProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $pastproj . "\" name=\"foaf:pastProject[]\"></td></tr>\n";
     } 
 
+    // Web apps
+    $webapps = '';
+    if ($profile->get('socweb:webapp') != null) {
+         foreach ($profile->all('socweb:webapp') as $webapp)
+            $webapps .= "<tr><td>Web app: </td><td><input type=\"text\" size=\"50\" value=\"" . $webapp . "\" name=\"socweb:webapp[]\"></td></tr>\n";
+    }
+ 
     // Friends
     $knows = '';
     if ($profile->get('foaf:knows') != null) {
@@ -444,14 +463,11 @@ if ($_REQUEST['action'] == 'edit') {
             $certs .= "<tr>\n";
             $certs .= "   <td>Modulus: </td>\n";
             $certs .= "   <td>\n";
-            $certs .= " <!-- hex=" . $cert->get('cert:modulus') . " -->\n";
-            $certs .= "       <table>\n";
-            $certs .= "       <tr>\n";
-            $certs .= "          <td><textarea style=\"height: 130px;\" onfocus=\"textAreaResize(this)\" name=\"modulus[]\">" . $hex . "</textarea></td>\n";
-            $certs .= "          <td> Exponent: <input type=\"text\" size=\"10\" value=\"" . $int . "\" name=\"exponent[]\"></td>\n";
-            $certs .= "       </tr>\n";
-            $certs .= "       </table>\n";
+            $certs .= "          <textarea class=\"textarea-profile\" name=\"modulus[]\">" . $hex . "</textarea>\n";
             $certs .= "   </td>\n";
+            $certs .= "</tr>\n";
+            $certs .= "<tr>\n";
+            $certs .= "   <td>Exponent:</td><td><input type=\"text\" size=\"10\" value=\"" . $int . "\" name=\"exponent[]\"></td>\n";
             $certs .= "</tr>\n";
         }
     }
@@ -469,7 +485,8 @@ $values_person = array('foaf:mbox' => 'Email (mbox)',
                 'foaf:workplaceHomepage' => 'Workplace homepage',
                 'foaf:schoolHomepage' => 'School homepage',
                 'foaf:currentProject' => 'Current project URL',
-                'foaf:pastProject' => 'Past project URL'
+                'foaf:pastProject' => 'Past project URL',
+                'socweb:webapp' => 'Web app'
                 );
 // rdf types for friends
 $values_friends = array('foaf:knows' => 'Friend\'s profile address');
@@ -494,24 +511,15 @@ $months = array('01' => 'January',
                 '12' => 'December',
                 );
 
-$ret .= "<div class=\"container\"><br/>\n";
+$ret .= "<div><br/>\n";
 if ($_REQUEST['action'] != 'edit')
     $ret .= "   <p><font style=\"font-size: 1em;\"><strong>Warning:</strong> do not try to refresh the page after submitting the form!</font></p>\n";
-$ret .= "   <form action=\"profile.php\" name=\"form_build\" method=\"post\" enctype=\"multipart/form-data\">\n";
+$ret .= "   <form name=\"form_build\" method=\"post\" enctype=\"multipart/form-data\">\n";
 $ret .= "   <input type=\"hidden\" name=\"action\" value=\"" . $_REQUEST['action'] . "\">\n";
 $ret .= "   <input type=\"hidden\" name=\"doit\" value=\"1\">\n";
 $ret .= "   <input type=\"hidden\" name=\"foaf:img\" value=\"" . $picture . "\">\n";
-$ret .= "   <div id=\"tabs\">\n";
-$ret .= "       <ul class=\"nav nav-tabs\">\n";
-$ret .= "           <li class=\"active\"><a data-toggle=\"tab\" href=\"#tabs-1\">Personal information</a></li>\n";
-// Interests tab is disabled for now
-//$ret .= "             <li><a href=\"#tabs-2\">Interests</a></li>\n";
-$ret .= "           <li><a data-toggle=\"tab\" href=\"#tabs-3\">Friends</a></li>\n";
-$ret .= "           <li><a data-toggle=\"tab\" href=\"#tabs-5\">Keys</a></li>\n";
-$ret .= "       </ul>\n";
+$ret .= "   <div>\n";
 
-$ret .= "<div class=\"tab-content\" style=\"padding-left: 2em;\">\n";
-$ret .= "   <div class=\"tab-pane active\" id=\"tabs-1\">\n";
 if ($_REQUEST['action'] == 'new') {
     $ret .= "<p>You must provide both username and full name. (accepted characters: a-z 0-9 _ . -)";
     $ret .= "<br/>Your WebID profile will be accessible at: <font color=\"#00BBFF\" style=\"font-size: 1.3em;\">" . $base_uri . "/people/</font>";
@@ -523,22 +531,22 @@ $ret .= "<table id=\"tab1\" border=\"0\" valign=\"middle\">\n";
 $ret .= "<tr><td>\n";
 $ret .= "<table id=\"info\">\n";
 // Display username only if we're creating a new profile
-if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
+if ($_REQUEST['action'] == 'new') {
     $ret .= "<tr valign=\"middle\">\n";
     $ret .= "<td>Local username: </td>\n";
-    $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" value=\"\" id=\"uri\" name=\"uri\" maxlength=\"32\" onBlur=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\">";
+    $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" value=\"\" id=\"uri\" name=\"uri\" maxlength=\"32\" onkeypress=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\">";
     $ret .= " <font color=\"" . $color . "\"> </font></td>\n";
     $ret .= "</tr>\n";
 }
 /* ----- Full name ------ */
 $ret .= "<tr><td>Full name: </td>\n";
-$ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $name . "\" id=\"fullname\" name=\"foaf:name\" onBlur=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\"></td>\n";
+$ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $name . "\" id=\"fullname\" name=\"foaf:name\" onkeypress=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\"></td>\n";
 $ret .= "</tr>\n";
 /* ----- KEYGEN ------ */
-if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
+if ($_REQUEST['action'] == 'new') {
     $ret .= "<tr hidden>\n";
     $ret .= "<td hidden>KEYGEN Key Length</td>\n";
-    $ret .= "<td hidden><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\" keytype=\"rsa\" style=\"border-color: red;\" hidden></td>\n";
+    $ret .= "<td hidden><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\" keytype=\"rsa\" hidden></td>\n";
     $ret .= "</tr>\n";
 }
 
@@ -571,6 +579,7 @@ $ret .= $workHPS;
 $ret .= $schoolHPS;
 $ret .= $curprojs;
 $ret .= $pastprojs;
+$ret .= $webapps;
 $ret .= "</table>\n";
 $ret .= "</td>\n";
 
@@ -580,52 +589,54 @@ $ret .= "<td width=\"100\"></td>\n";
 // Here we display the profile picture (avatar)
 $ret .= "<td valign=\"top\">\n";
 $ret .= "<img width=\"150\" src=\"" . $picture . "\"/>\n";
-$ret .= "<input name=\"picture\" type=\"file\" size=\"10\">\n";
+$ret .= "<br/><input name=\"picture\" type=\"file\" size=\"10\">\n";
 $ret .= "</td>\n";
 
 $ret .= "</tr>\n";    
 $ret .= "</table>\n";
 
-$ret .= "<p><select name=\"element_tab1\">\n";
-foreach($values_person as $key => $value)
-    $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
-$ret .= "</select>\n";
-$ret .= "<input type=\"button\" class=\"btn\" value=\"Add extra info\" onclick=\"addInfo(document.form_build.element_tab1.value, 'info')\"/></p>\n";
-$ret .= "</div>\n";
+// display only for editing
+if ($_REQUEST['action'] != 'new') {
+    $ret .= "<p><select name=\"element_tab1\">\n";
+    foreach($values_person as $key => $value)
+        $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
+    $ret .= "</select>\n";
+    $ret .= "<input type=\"button\" class=\"btn\" value=\"Add extra info\" onclick=\"addInfo(document.form_build.element_tab1.value, 'info')\"/></p>\n";
+    $ret .= "</div>\n";
 
-/* ----- KNOWS ------ */  
-$ret .= "<div class=\"tab-pane\" id=\"tabs-3\">\n";
-$ret .= "<p>Here you can add links to your friends profiles. <font color=\"grey\"><small>[click the button to add more]</small></font><br/>\n";
-$ret .= "<small><font color=\"grey\">If you don't have any friends yet, try adding Andrei: <strong>https://my-profile.eu/people/deiu/card#me</strong></font></small></p>\n";
-$ret .= "<table id=\"tab3\" border=\"0\">\n";
-$ret .= $knows;
-$ret .= "</table>\n";
-$ret .= "<p><select name=\"element_tab3\">\n";
-foreach($values_friends as $key => $value)
-    $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
-$ret .= "</select>\n";
-$ret .= " <input type=\"button\" class=\"btn\" value=\"Add element\" onclick=\"addFriends(document.form_build.element_tab3.value, 'tab3')\"/></p>\n";
-$ret .= "</div>\n";
-/* ----- Public keys ------ */
-$ret .= "<div class=\"tab-pane\" id=\"tabs-5\">\n";
-$ret .= "<p>Here you can provide your public keys and certificate information. <font color=\"grey\"><small>[click the button to add more]</small></font><br/>\n";
-$ret .= "<font color=\"grey\"><small>[for certificates: Modulus (hexa):<i>95 be 46 ff ...  61 d2 8a</i> Exponent (decimal):<i>65537</i></small></font></p>\n";
-$ret .= "<table id=\"tab5\" border=\"0\" valign=\"top\">\n";
-$ret .= $certs;
-$ret .= "</table>\n";
-$ret .= "<p><select name=\"element_tab5\">\n";
-foreach($values_security as $key => $value)
-    $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
-$ret .= "</select>\n";
-$ret .= "<input type=\"button\" class=\"btn\" value=\"Add element\" onclick=\"addSecurity(document.form_build.element_tab5.value, 'tab5')\"/></p>\n";
-$ret .= "</div>\n";
+    /* ----- KNOWS ------ */  
+    $ret .= "<div class=\"tab-pane\" id=\"tabs-3\">\n";
+    $ret .= "<p>Here you can add links to your friends profiles. <font color=\"grey\"><small>[click the button to add more]</small></font><br/>\n";
+    $ret .= "<small><font color=\"grey\">If you don't have any friends yet, try adding Andrei: <strong>https://my-profile.eu/people/deiu/card#me</strong></font></small></p>\n";
+    $ret .= "<table id=\"tab3\" border=\"0\">\n";
+    $ret .= $knows;
+    $ret .= "</table>\n";
+    $ret .= "<p><select name=\"element_tab3\">\n";
+    foreach($values_friends as $key => $value)
+        $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
+    $ret .= "</select>\n";
+    $ret .= " <input type=\"button\" class=\"btn\" value=\"Add element\" onclick=\"addFriends(document.form_build.element_tab3.value, 'tab3')\"/></p>\n";
+    $ret .= "</div>\n";
+    /* ----- Public keys ------ */
+    $ret .= "<div class=\"tab-pane\" id=\"tabs-5\">\n";
+    $ret .= "<p>Here you can provide your public keys and certificate information. <font color=\"grey\"><small>[click the button to add more]</small></font><br/>\n";
+    $ret .= "<font color=\"grey\"><small>[for certificates: Modulus (hexa):<i>95 be 46 ff ...  61 d2 8a</i> Exponent (decimal):<i>65537</i></small></font></p>\n";
+    $ret .= "<table id=\"tab5\" border=\"0\" valign=\"top\">\n";
+    $ret .= $certs;
+    $ret .= "</table><br/>\n";
+    $ret .= "<p><select name=\"element_tab5\">\n";
+    foreach($values_security as $key => $value)
+        $ret .= "<option value=\"" . $key . "\">" . $value . "</option>\n";
+    $ret .= "</select>\n";
+    $ret .= "<input type=\"button\" class=\"btn\" value=\"Add element\" onclick=\"addSecurity(document.form_build.element_tab5.value, 'tab5')\"/></p>\n";
+    $ret .= "</div>\n";
+}
 
-$ret .= "</div>\n"; // end of <div class="tab-content">
 $ret .= "</div>\n";
 $ret .= "<br/><br/>\n";
 $ret .= "<p><input class=\"btn btn-primary\" type=\"submit\" id=\"submit\" name=\"submit\" value=\"" . ucwords($_REQUEST['action']) . " profile\"";
 // Disable the submit button if we need to check if user already exists
-if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
+if ($_REQUEST['action'] == 'new') {
     $ret .= " disabled>\n";
     $ret .= "<font color=\"grey\">[Note: a certificate will also be issued and installed in your browser]</font></p>\n";
 } else {
@@ -633,7 +644,9 @@ if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
 }
 $ret .= "</form>\n";
 $ret .= "</div>\n";
+$ret .= "</div>\n";
 
+$ret .= "<script type=\"text/javascript\">validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')</script>\n";
 echo $ret;
 
 include 'footer.php';

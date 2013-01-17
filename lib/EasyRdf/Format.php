@@ -5,7 +5,7 @@
  *
  * LICENSE
  *
- * Copyright (c) 2009-2011 Nicholas J Humfrey.  All rights reserved.
+ * Copyright (c) 2009-2012 Nicholas J Humfrey.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2010 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  * @version    $Id$
  */
@@ -44,7 +44,7 @@
  * format.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2011 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  */
 class EasyRdf_Format
@@ -55,6 +55,7 @@ class EasyRdf_Format
     private $_label = null;
     private $_uri = null;
     private $_mimeTypes = array();
+    private $_extensions = array();
     private $_parserClass = null;
     private $_serialiserClass = null;
 
@@ -139,7 +140,8 @@ class EasyRdf_Format
         foreach (self::$_formats as $format) {
            if ($query == $format->_name or
                $query == $format->_uri or
-               array_key_exists($query, $format->_mimeTypes)) {
+               array_key_exists($query, $format->_mimeTypes) or
+               in_array($query, $format->_extensions)) {
                return $format;
            }
         }
@@ -152,14 +154,15 @@ class EasyRdf_Format
 
     /** Register a new format
      *
-     * @param  string  $name      The name of the format (e.g. ntriples)
-     * @param  string  $label     The label for the format (e.g. N-Triples)
-     * @param  string  $uri       The URI for the format
-     * @param  string  $mimeTypes One or more mime types for the format
-     * @return object             The new EasyRdf_Format object
+     * @param  string  $name       The name of the format (e.g. ntriples)
+     * @param  string  $label      The label for the format (e.g. N-Triples)
+     * @param  string  $uri        The URI for the format
+     * @param  string  $mimeTypes  One or more mime types for the format
+     * @param  string  $extensions One or more extensions (file suffix)
+     * @return object              The new EasyRdf_Format object
      */
     public static function register($name, $label=null, $uri=null,
-                                    $mimeTypes=array())
+                                    $mimeTypes=array(), $extensions=array())
     {
         if (!is_string($name) or $name == null or $name == '') {
             throw new InvalidArgumentException(
@@ -174,6 +177,7 @@ class EasyRdf_Format
         self::$_formats[$name]->setLabel($label);
         self::$_formats[$name]->setUri($uri);
         self::$_formats[$name]->setMimeTypes($mimeTypes);
+        self::$_formats[$name]->setExtensions($extensions);
         return self::$_formats[$name];
     }
 
@@ -217,36 +221,41 @@ class EasyRdf_Format
      * @param  string $data The document data
      * @return EasyRdf_Format The format object
      */
-    public static function guessFormat($data)
+    public static function guessFormat($data, $filename=NULL)
     {
         if (is_array($data)) {
             # Data has already been parsed into RDF/PHP
             return self::getFormat('php');
         }
 
-        $short = substr(trim($data), 0, 255);
-        if (preg_match("/^\{/", $short)) {
+        // First try and identify by the filename
+        if ($filename and preg_match("/\.(\w+)$/", $filename, $matches)) {
+            foreach (self::$_formats as $format) {
+               if (in_array($matches[1], $format->_extensions)) {
+                   return $format;
+               }
+            }
+        }
+
+        // Then try and guess by the first 255 bytes of content
+        $short = substr($data, 0, 255);
+        if (preg_match("/^\s*\{/", $short)) {
             return self::getFormat('json');
-        } else if (
-            preg_match("/<!DOCTYPE html/", $short) or
-            preg_match("/^<html/", $short)
-        ) {
-            # FIXME: might be erdf or something instead...
-            return self::getFormat('rdfa');
-        } else if (preg_match("/<rdf/", $short)) {
+        } elseif (preg_match("/<rdf:/i", $short)) {
             return self::getFormat('rdfxml');
-        } else if (preg_match("/^@prefix /", $short)) {
-            # FIXME: this could be improved
+        } elseif (preg_match("/@prefix\s|@base\s/", $short)) {
             return self::getFormat('turtle');
-        } else if (preg_match("/^<.+> <.+>/", $short)) {
+        } elseif (preg_match("/^\s*<.+> <.+>/m", $short)) {
             return self::getFormat('ntriples');
-        } else if (preg_match("|http://www.w3.org/2005/sparql-results|", $short)) {
+        } elseif (preg_match("|http://www.w3.org/2005/sparql-results|", $short)) {
             return self::getFormat('sparql-xml');
-        } else if (preg_match("/^<\?xml /", $short)) {
-            # FIXME: this could be improved
-            return self::getFormat('rdfxml');
+        } elseif (preg_match("/\WRDFa\W/i", $short)) {
+            return self::getFormat('rdfa');
+        } elseif (preg_match("/<!DOCTYPE html|<html/i", $short)) {
+            # We don't support any other microformats embedded in HTML
+            return self::getFormat('rdfa');
         } else {
-            return null;
+            return NULL;
         }
     }
 
@@ -360,6 +369,40 @@ class EasyRdf_Format
             $this->_mimeTypes = $mimeTypes;
         } else {
             $this->_mimeTypes = array();
+        }
+    }
+
+    /** Get the default registered file extension (filename suffix) for a format object
+     *
+     * @return string The default extension as a string.
+     */
+    public function getDefaultExtension()
+    {
+        return $this->_extensions[0];
+    }
+
+    /** Get all the registered file extensions (filename suffix) for a format object
+     *
+     * @return array One or more extensions as an array
+     */
+    public function getExtensions()
+    {
+        return $this->_extensions;
+    }
+
+    /** Set the file format extensions (filename suffix) for a format object
+     *
+     * @param array $mimeTypes  One or more file extensions
+     */
+    public function setExtensions($extensions)
+    {
+        if ($extensions) {
+            if (!is_array($extensions)) {
+                $extensions = array($extensions);
+            }
+            $this->_extensions = $extensions;
+        } else {
+            $this->_extensions = array();
         }
     }
 
@@ -477,7 +520,8 @@ EasyRdf_Format::register(
         'application/json' => 1.0,
         'text/json' => 0.9,
         'application/rdf+json' => 0.9
-    )
+    ),
+    array('json')
 );
 
 EasyRdf_Format::register(
@@ -489,7 +533,8 @@ EasyRdf_Format::register(
         'text/ntriples' => 0.9,
         'application/ntriples' => 0.9,
         'application/x-ntriples' => 0.9
-    )
+    ),
+    array('nt')
 );
 
 EasyRdf_Format::register(
@@ -500,7 +545,8 @@ EasyRdf_Format::register(
         'text/turtle' => 0.8,
         'application/turtle' => 0.7,
         'application/x-turtle' => 0.7
-    )
+    ),
+    array('ttl')
 );
 
 EasyRdf_Format::register(
@@ -509,7 +555,23 @@ EasyRdf_Format::register(
     'http://www.w3.org/TR/rdf-syntax-grammar',
     array(
         'application/rdf+xml' => 0.8
-    )
+    ),
+    array('rdf', 'xrdf')
+);
+
+EasyRdf_Format::register(
+    'dot',
+    'Graphviz',
+    'http://www.graphviz.org/doc/info/lang.html',
+    array(
+        'text/vnd.graphviz' => 0.8
+    ),
+    array('gv', 'dot')
+);
+
+EasyRdf_Format::register(
+    'json-triples',
+    'RDF/JSON Triples'
 );
 
 EasyRdf_Format::register(
@@ -519,17 +581,19 @@ EasyRdf_Format::register(
     array(
         'text/n3' => 0.5,
         'text/rdf+n3' => 0.5
-    )
+    ),
+    array('n3')
 );
 
 EasyRdf_Format::register(
     'rdfa',
-    'RDF/A',
-    'http://www.w3.org/TR/rdfa/',
+    'RDFa',
+    'http://www.w3.org/TR/rdfa-core/',
     array(
         'text/html' => 0.4,
         'application/xhtml+xml' => 0.4
-    )
+    ),
+    array('html')
 );
 
 EasyRdf_Format::register(
@@ -549,3 +613,57 @@ EasyRdf_Format::register(
         'application/sparql-results+json' => 1.0
     )
 );
+
+EasyRdf_Format::register(
+    'png',
+    'Portable Network Graphics (PNG)',
+    'http://www.w3.org/TR/PNG/',
+    array(
+        'image/png' => 0.3
+    ),
+    array('png')
+);
+
+EasyRdf_Format::register(
+    'gif',
+    'Graphics Interchange Format (GIF)',
+    'http://www.w3.org/Graphics/GIF/spec-gif89a.txt',
+    array(
+        'image/gif' => 0.2
+    ),
+    array('gif')
+);
+
+EasyRdf_Format::register(
+    'svg',
+    'Scalable Vector Graphics (SVG)',
+    'http://www.w3.org/TR/SVG/',
+    array(
+        'image/svg+xml' => 0.3
+    ),
+    array('svg')
+);
+
+
+/*
+   Register default set of parsers and serialisers
+*/
+
+EasyRdf_Format::registerParser('json', 'EasyRdf_Parser_Json');
+EasyRdf_Format::registerParser('ntriples', 'EasyRdf_Parser_Ntriples');
+EasyRdf_Format::registerParser('php', 'EasyRdf_Parser_RdfPhp');
+EasyRdf_Format::registerParser('rdfxml', 'EasyRdf_Parser_RdfXml');
+EasyRdf_Format::registerParser('turtle', 'EasyRdf_Parser_Turtle');
+EasyRdf_Format::registerParser('rdfa', 'EasyRdf_Parser_Rdfa');
+
+EasyRdf_Format::registerSerialiser('json', 'EasyRdf_Serialiser_Json');
+EasyRdf_Format::registerSerialiser('n3', 'EasyRdf_Serialiser_Turtle');
+EasyRdf_Format::registerSerialiser('ntriples', 'EasyRdf_Serialiser_Ntriples');
+EasyRdf_Format::registerSerialiser('php', 'EasyRdf_Serialiser_RdfPhp');
+EasyRdf_Format::registerSerialiser('rdfxml', 'EasyRdf_Serialiser_RdfXml');
+EasyRdf_Format::registerSerialiser('turtle', 'EasyRdf_Serialiser_Turtle');
+
+EasyRdf_Format::registerSerialiser('dot', 'EasyRdf_Serialiser_GraphViz');
+EasyRdf_Format::registerSerialiser('gif', 'EasyRdf_Serialiser_GraphViz');
+EasyRdf_Format::registerSerialiser('png', 'EasyRdf_Serialiser_GraphViz');
+EasyRdf_Format::registerSerialiser('svg', 'EasyRdf_Serialiser_GraphViz');

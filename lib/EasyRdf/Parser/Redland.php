@@ -5,7 +5,7 @@
  *
  * LICENSE
  *
- * Copyright (c) 2009-2011 Nicholas J Humfrey.  All rights reserved.
+ * Copyright (c) 2009-2012 Nicholas J Humfrey.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2011 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  * @version    $Id$
  */
@@ -40,7 +40,7 @@
  * Class to parse RDF using Redland (librdf) C library.
  *
  * @package    EasyRdf
- * @copyright  Copyright (c) 2009-2011 Nicholas J Humfrey
+ * @copyright  Copyright (c) 2009-2012 Nicholas J Humfrey
  * @license    http://www.opensource.org/licenses/bsd-license.php
  */
 class EasyRdf_Parser_Redland extends EasyRdf_Parser
@@ -71,7 +71,7 @@ class EasyRdf_Parser_Redland extends EasyRdf_Parser
      * Convert a librdf node type into a string
      * @ignore
      */
-    protected static function nodeTypeString($node)
+    protected function nodeTypeString($node)
     {
         switch(librdf_node_get_type($node))
         {
@@ -94,7 +94,7 @@ class EasyRdf_Parser_Redland extends EasyRdf_Parser
      * Convert the URI for a node into a string
      * @ignore
      */
-    protected static function nodeUriString($node)
+    protected function nodeUriString($node)
     {
         $type = EasyRdf_Parser_Redland::nodeTypeString($node);
         if ($type == 'uri') {
@@ -110,9 +110,11 @@ class EasyRdf_Parser_Redland extends EasyRdf_Parser
             }
             return $str;
         } else if ($type == 'bnode') {
-            return '_:'.librdf_node_get_blank_identifier($node);
+            return $this->remapBnode(
+                librdf_node_get_blank_identifier($node)
+            );
         } else {
-            throw new EasyRdf_Exception("Unsupported type: ".$object['type']);
+            throw new EasyRdf_Exception("Unsupported type: ".$type);
         }
     }
 
@@ -120,7 +122,7 @@ class EasyRdf_Parser_Redland extends EasyRdf_Parser
      * Convert a node into an associate array
      * @ignore
      */
-    protected static function nodeToArray($node)
+    protected function nodeToArray($node)
     {
         $object = array();
         $object['type'] = EasyRdf_Parser_Redland::nodeTypeString($node);
@@ -187,7 +189,7 @@ class EasyRdf_Parser_Redland extends EasyRdf_Parser
       * @param string               $data    the RDF document data
       * @param string               $format  the format of the input data
       * @param string               $baseUri the base URI of the data being parsed
-      * @return boolean             true if parsing was successful
+      * @return integer             The number of triples added to the graph
       */
     public function parse($graph, $data, $format, $baseUri)
     {
@@ -229,7 +231,7 @@ class EasyRdf_Parser_Redland extends EasyRdf_Parser
                     librdf_statement_get_object($statement)
                 );
 
-                $graph->add($subject, $predicate, $object);
+                $this->addTriple($subject, $predicate, $object);
             }
         } while (!librdf_stream_next($stream));
 
@@ -242,13 +244,6 @@ class EasyRdf_Parser_Redland extends EasyRdf_Parser
         librdf_free_stream($stream);
         librdf_free_parser($parser);
 
-        // Success
-        return true;
+        return $this->_tripleCount;
     }
 }
-
-## FIXME: do this automatically
-EasyRdf_Format::registerParser('rdfxml', 'EasyRdf_Parser_Redland');
-EasyRdf_Format::registerParser('turtle', 'EasyRdf_Parser_Redland');
-EasyRdf_Format::registerParser('ntriples', 'EasyRdf_Parser_Redland');
-EasyRdf_Format::registerParser('rdfa', 'EasyRdf_Parser_Redland');

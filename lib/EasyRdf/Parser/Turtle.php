@@ -49,7 +49,7 @@
  *             Copyright (c) 1997-2006 Aduna (http://www.aduna-software.com/)
  * @license    http://www.opensource.org/licenses/bsd-license.php
  */
-class EasyRdf_Parser_Turtle extends EasyRdf_Parser
+class EasyRdf_Parser_Turtle extends EasyRdf_Parser_Ntriples
 {
     /**
      * Constructor
@@ -61,14 +61,14 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
     }
 
     /**
-      * Parse Turtle into an EasyRdf_Graph
-      *
-      * @param object EasyRdf_Graph $graph   the graph to load the data into
-      * @param string               $data    the RDF document data
-      * @param string               $format  the format of the input data
-      * @param string               $baseUri the base URI of the data being parsed
-      * @return boolean             true if parsing was successful
-      */
+     * Parse Turtle into an EasyRdf_Graph
+     *
+     * @param object EasyRdf_Graph $graph   the graph to load the data into
+     * @param string               $data    the RDF document data
+     * @param string               $format  the format of the input data
+     * @param string               $baseUri the base URI of the data being parsed
+     * @return integer             The number of triples added to the graph
+     */
     public function parse($graph, $data, $format, $baseUri)
     {
         parent::checkParseParams($graph, $data, $format, $baseUri);
@@ -79,9 +79,7 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             );
         }
 
-        $this->_graph = $graph;
         $this->_data = $data;
-        $this->_baseUri = $baseUri;
         $this->_len = strlen($data);
         $this->_pos = 0;
 
@@ -94,16 +92,18 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
 
         $c = $this->skipWSC();
         while ($c != -1) {
-          $this->parseStatement();
-
-          $c = $this->skipWSC();
+            $this->parseStatement();
+            $c = $this->skipWSC();
         }
 
-        // Success
-        return true;
+        return $this->_tripleCount;
     }
 
 
+    /**
+     * Parse a statement [2]
+     * @ignore
+     */
     protected function parseStatement()
     {
         $c = $this->peek();
@@ -118,6 +118,10 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         }
     }
 
+    /**
+     * Parse a directive [3]
+     * @ignore
+     */
     protected function parseDirective()
     {
         // Verify that the first characters form the string "prefix"
@@ -132,19 +136,24 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         }
 
         if ($directive == "prefix") {
-          $this->parsePrefixID();
-        }
-        else if ($directive == "base") {
+            $this->parsePrefixID();
+        } else if ($directive == "base") {
             $this->parseBase();
-        }
-        else if (strlen($directive) == 0) {
-          $this->reportFatalError("Directive name is missing, expected @prefix or @base");
-        }
-        else {
-          $this->reportFatalError("Unknown directive \"@" . $directive . "\"");
+        } else if (strlen($directive) == 0) {
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: directive name is missing, expected @prefix or @base"
+            );
+        } else {
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: unknown directive \"@$directive\""
+            );
         }
     }
 
+    /**
+     * Parse a prefixID [4]
+     * @ignore
+     */
     protected function parsePrefixID()
     {
         $this->skipWSC();
@@ -160,7 +169,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             } else if (self::isWhitespace($c)) {
                 break;
             } else if ($c == -1) {
-                $this->throwEOFException();
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: unexpected end of file while reading prefix id"
+                );
             }
 
             $prefixID .= $c;
@@ -177,14 +188,22 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         $this->_namespaces[$prefixID] = $namespace['value'];
     }
 
+    /**
+     * Parse base [5]
+     * @ignore
+     */
     protected function parseBase()
     {
         $this->skipWSC();
 
         $baseUri = $this->parseURI();
-        $this->_baseUri = $baseUri['value'];
+        $this->_baseUri = new EasyRdf_ParsedUri($baseUri['value']);
     }
 
+    /**
+     * Parse triples [6]
+     * @ignore
+     */
     protected function parseTriples()
     {
         $this->parseSubject();
@@ -196,6 +215,10 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         $this->_object = NULL;
     }
 
+    /**
+     * Parse a predicateObjectList [7]
+     * @ignore
+     */
     protected function parsePredicateObjectList()
     {
         $this->_predicate = $this->parsePredicate();
@@ -208,9 +231,7 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
 
             $c = $this->skipWSC();
 
-            if ($c == '.' || // end of triple
-                $c == ']') // end of predicateObjectList inside blank node
-            {
+            if ($c == '.' || $c == ']') {
                 break;
             }
 
@@ -222,6 +243,10 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         }
     }
 
+    /**
+     * Parse a objectList [8]
+     * @ignore
+     */
     protected function parseObjectList()
     {
         $this->parseObject();
@@ -233,6 +258,10 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         }
     }
 
+    /**
+     * Parse a subject [10]
+     * @ignore
+     */
     protected function parseSubject()
     {
         $c = $this->peek();
@@ -246,11 +275,17 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             if ($value['type'] == 'uri' or $value['type'] == 'bnode') {
                 $this->_subject = $value;
             } else {
-                $this->reportFatalError("Illegal subject type: ".$value['type']);
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: illegal subject type: ".$value['type']
+                );
             }
         }
     }
 
+    /**
+     * Parse a predicate [11]
+     * @ignore
+     */
     protected function parsePredicate()
     {
         // Check if the short-cut 'a' is used
@@ -277,11 +312,16 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         if ($predicate['type'] == 'uri') {
             return $predicate;
         } else {
-            $this->reportFatalError("Illegal predicate value: " . $predicate);
-            return NULL;
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: Illegal predicate value: " . $predicate
+            );
         }
     }
 
+    /**
+     * Parse a object [12]
+     * @ignore
+     */
     protected function parseObject()
     {
         $c = $this->peek();
@@ -294,7 +334,7 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             $this->_object = $this->parseValue();
         }
 
-        $this->_graph->add(
+        $this->addTriple(
             $this->_subject['value'],
             $this->_predicate['value'],
             $this->_object
@@ -302,83 +342,12 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
     }
 
     /**
-    * Parses a collection, e.g. <tt>( item1 item2 item3 )</tt>.
-    */
-    protected function parseCollection()
-    {
-        $this->verifyCharacter($this->read(), "(");
-
-        $c = $this->skipWSC();
-        if ($c == ')') {
-            // Empty list
-            $this->read();
-            return array(
-                'type' => 'uri',
-                'value' => EasyRdf_Namespace::get('rdf') . 'nil'
-            );
-        } else {
-            $listRoot = array(
-                'type' => 'bnode',
-                'value' => $this->_graph->newBNodeId()
-            );
-
-            // Remember current subject and predicate
-            $oldSubject = $this->_subject;
-            $oldPredicate = $this->_predicate;
-
-            // generated bNode becomes subject, predicate becomes rdf:first
-            $this->_subject = $listRoot;
-            $this->_predicate = array(
-                'type' => 'uri',
-                'value' => EasyRdf_Namespace::get('rdf') . 'first'
-            );
-
-            $this->parseObject();
-            $bNode = $listRoot;
-
-            while ($this->skipWSC() != ')') {
-                // Create another list node and link it to the previous
-                $newNode = array(
-                    'type' => 'bnode',
-                    'value' => $this->_graph->newBNodeId()
-                );
-
-                $this->_graph->add(
-                    $bNode['value'],
-                    EasyRdf_Namespace::get('rdf') . 'rest',
-                    $newNode
-                );
-
-                // New node becomes the current
-                $this->_subject = $bNode = $newNode;
-
-                $this->parseObject();
-            }
-
-            // Skip ')'
-            $this->read();
-
-            // Close the list
-            $this->_graph->add(
-                $bNode['value'],
-                EasyRdf_Namespace::get('rdf') . 'rest',
-                array(
-                    'type' => 'uri',
-                    'value' => EasyRdf_Namespace::get('rdf') . 'nil'
-                )
-            );
-
-            // Restore previous subject and predicate
-            $this->_subject = $oldSubject;
-            $this->_predicate = $oldPredicate;
-
-            return $listRoot;
-        }
-    }
-
-    /**
-     * Parses an implicit blank node. This method parses the token <tt>[]</tt>
+     * Parses a blankNodePropertyList [15]
+     *
+     * This method parses the token []
      * and predicateObjectLists that are surrounded by square brackets.
+     *
+     * @ignore
      */
     protected function parseImplicitBlank()
     {
@@ -419,9 +388,86 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
     }
 
     /**
-    * Parses an RDF value. This method parses uriref, qname, node ID, quoted
-    * literal, integer, double and boolean.
-    */
+     * Parses a collection [16], e.g: ( item1 item2 item3 )
+     * @ignore
+     */
+    protected function parseCollection()
+    {
+        $this->verifyCharacter($this->read(), "(");
+
+        $c = $this->skipWSC();
+        if ($c == ')') {
+            // Empty list
+            $this->read();
+            return array(
+                'type' => 'uri',
+                'value' => EasyRdf_Namespace::get('rdf') . 'nil'
+            );
+        } else {
+            $listRoot = array(
+                'type' => 'bnode',
+                'value' => $this->_graph->newBNodeId()
+            );
+
+            // Remember current subject and predicate
+            $oldSubject = $this->_subject;
+            $oldPredicate = $this->_predicate;
+
+            // generated bNode becomes subject, predicate becomes rdf:first
+            $this->_subject = $listRoot;
+            $this->_predicate = array(
+                'type' => 'uri',
+                'value' => EasyRdf_Namespace::get('rdf') . 'first'
+            );
+
+            $this->parseObject();
+            $bNode = $listRoot;
+
+            while ($this->skipWSC() != ')') {
+                // Create another list node and link it to the previous
+                $newNode = array(
+                    'type' => 'bnode',
+                    'value' => $this->_graph->newBNodeId()
+                );
+
+                $this->addTriple(
+                    $bNode['value'],
+                    EasyRdf_Namespace::get('rdf') . 'rest',
+                    $newNode
+                );
+
+                // New node becomes the current
+                $this->_subject = $bNode = $newNode;
+
+                $this->parseObject();
+            }
+
+            // Skip ')'
+            $this->read();
+
+            // Close the list
+            $this->addTriple(
+                $bNode['value'],
+                EasyRdf_Namespace::get('rdf') . 'rest',
+                array(
+                    'type' => 'uri',
+                    'value' => EasyRdf_Namespace::get('rdf') . 'nil'
+                )
+            );
+
+            // Restore previous subject and predicate
+            $this->_subject = $oldSubject;
+            $this->_predicate = $oldPredicate;
+
+            return $listRoot;
+        }
+    }
+
+    /**
+     * Parses an RDF value. This method parses uriref, qname, node ID, quoted
+     * literal, integer, double and boolean.
+     * @ignore
+     */
     protected function parseValue()
     {
         $c = $this->peek();
@@ -442,16 +488,19 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             // integer or double, e.g. 123 or 1.2e3
             return $this->parseNumber();
         } else if ($c == -1) {
-            $this->throwEOFException();
-            return null;
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: unexpected end of file while reading value"
+            );
         } else {
-            $this->reportFatalError("Expected an RDF value here, found '$c'");
-            return null;
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: expected an RDF value here, found '$c'"
+            );
         }
     }
 
     /**
      * Parses a quoted string, optionally followed by a language tag or datatype.
+     * @ignore
      */
     protected function parseQuotedLiteral()
     {
@@ -467,10 +516,13 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             $lang = '';
             $c = $this->read();
             if ($c == -1) {
-                $this->throwEOFException();
-            }
-            if (!self::isLanguageStartChar($c)) {
-                $this->reportError("Expected a letter, found '$c'");
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: unexpected end of file while reading language"
+                );
+            } elseif (!self::isLanguageStartChar($c)) {
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: expected a letter, found '$c'"
+                );
             }
 
             $lang .= $c;
@@ -503,8 +555,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
                     'datatype' => $datatype['value']
                 );
             } else {
-                $this->reportFatalError("Illegal datatype value: $datatype");
-                return NULL;
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: illegal datatype value: $datatype"
+                );
             }
         } else {
             return array(
@@ -515,9 +568,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
     }
 
     /**
-    * Parses a quoted string, which is either a "normal string" or a """long
-    * string""".
-    */
+     * Parses a quoted string, which is either a "normal string" or a """long string""".
+     * @ignore
+     */
     protected function parseQuotedString()
     {
         $result = NULL;
@@ -540,21 +593,15 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             $result = $this->parseString();
         }
 
-        // FIXME: Unescape any escape sequences
-        //     try {
-        //       result = TurtleUtil.decodeString(result);
-        //     }
-        //     catch (IllegalArgumentException e) {
-        //       reportError(e.getMessage());
-        //     }
-
-        return $result;
+        // Unescape any escape sequences
+        return $this->unescapeString($result);
     }
 
     /**
-    * Parses a "normal string". This method assumes that the first double quote
-    * has already been parsed.
-    */
+     * Parses a "normal string". This method assumes that the first double quote
+     * has already been parsed.
+     * @ignore
+     */
     protected function parseString()
     {
         $str = '';
@@ -565,7 +612,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             if ($c == '"') {
                 break;
             } else if ($c == -1) {
-                $this->throwEOFException();
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: unexpected end of file while reading string"
+                );
             }
 
             $str .= $c;
@@ -574,7 +623,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
                 // This escapes the next character, which might be a '"'
                 $c = $this->read();
                 if ($c == -1) {
-                    $this->throwEOFException();
+                    throw new EasyRdf_Exception(
+                        "Turtle Parse Error: unexpected end of file while reading string"
+                    );
                 }
                 $str .= $c;
             }
@@ -586,6 +637,7 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
     /**
      * Parses a """long string""". This method assumes that the first three
      * double quotes have already been parsed.
+     * @ignore
      */
     protected function parseLongString()
     {
@@ -596,7 +648,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             $c = $this->read();
 
             if ($c == -1) {
-                $this->throwEOFException();
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: unexpected end of file while reading long string"
+                );
             } else if ($c == '"') {
                 $doubleQuoteCount++;
             } else {
@@ -609,7 +663,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
                 // This escapes the next character, which might be a '"'
                 $c = $this->read();
                 if ($c == -1) {
-                    $this->throwEOFException();
+                    throw new EasyRdf_Exception(
+                        "Turtle Parse Error: unexpected end of file while reading long string"
+                    );
                 }
                 $str .= $c;
             }
@@ -618,6 +674,10 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         return substr($str, 0, -3);
     }
 
+    /**
+     * Parses a numeric value, either of type integer, decimal or double
+     * @ignore
+     */
     protected function parseNumber()
     {
         $value = '';
@@ -627,7 +687,6 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
 
         // read optional sign character
         if ($c == '+' || $c == '-') {
-            $value .= $c;
             $value .= $c;
             $c = $this->read();
         }
@@ -652,12 +711,16 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
 
                 if (strlen($value) == 1) {
                     // We've only parsed a '.'
-                    $this->reportFatalError("Object for statement missing");
+                    throw new EasyRdf_Exception(
+                        "Turtle Parse Error: object for statement missing"
+                    );
                 }
             } else {
                 if (strlen($value) == 0) {
                     // We've only parsed an 'e' or 'E'
-                    $this->reportFatalError("Object for statement missing");
+                    throw new EasyRdf_Exception(
+                        "Turtle Parse Error: object for statement missing"
+                    );
                 }
             }
 
@@ -673,7 +736,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
                 }
 
                 if (!ctype_digit($c)) {
-                    $this->reportError("Exponent value missing");
+                    throw new EasyRdf_Exception(
+                        "Turtle Parse Error: Exponent value missing"
+                    );
                 }
 
                 $value .= $c;
@@ -695,8 +760,12 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             'value' => $value,
             'datatype' => $datatype
         );
-     }
+    }
 
+    /**
+     * Parses a URI / IRI
+     * @ignore
+     */
     protected function parseURI()
     {
         $uri = '';
@@ -711,7 +780,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             if ($c == '>') {
                 break;
             } else if ($c == -1) {
-                $this->throwEOFException();
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: unexpected end of file while reading URI"
+                );
             }
 
             $uri .= $c;
@@ -720,39 +791,41 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
                 // This escapes the next character, which might be a '>'
                 $c = $this->read();
                 if ($c == -1) {
-                    $this->throwEOFException();
+                    throw new EasyRdf_Exception(
+                        "Turtle Parse Error: unexpected end of file while reading URI"
+                    );
                 }
                 $uri .= $c;
             }
         }
 
-        // FIXME: Unescape any escape sequences
-        //try {
-        //  $uri = self::decodeString($uri);
-        //}
-        //catch (IllegalArgumentException e) {
-        //  $this->reportError(e.getMessage());
-        //}
+        // Unescape any escape sequences
+        $uri = $this->unescapeString($uri);
 
         return array(
             'type' => 'uri',
-            'value' => EasyRdf_Utils::resolveUriReference($this->_baseUri, $uri)
+            'value' => $this->resolve($uri)
         );
     }
 
     /**
-    * Parses qnames and boolean values, which have equivalent starting
-    * characters.
-    */
+     * Parses qnames and boolean values, which have equivalent starting
+     * characters.
+     * @ignore
+     */
     protected function parseQNameOrBoolean()
     {
         // First character should be a ':' or a letter
         $c = $this->read();
         if ($c == -1) {
-            $this->throwEOFException();
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: unexpected end of file while readying value"
+            );
         }
         if ($c != ':' && !self::isPrefixStartChar($c)) {
-            $this->reportError("Expected a ':' or a letter, found '$c'");
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: expected a ':' or a letter, found '$c'"
+            );
         }
 
         $namespace = NULL;
@@ -761,7 +834,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             // qname using default namespace
             $namespace = $this->_namespaces[""];
             if ($namespace == NULL) {
-                $this->reportError("Default namespace used but not defined");
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: default namespace used but not defined"
+                );
             }
         } else {
             // $c is the first letter of the prefix
@@ -791,7 +866,9 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             if (isset($this->_namespaces[$prefix])) {
                 $namespace = $this->_namespaces[$prefix];
             } else {
-                $this->reportError("Namespace prefix '$prefix' used but not defined");
+                throw new EasyRdf_Exception(
+                    "Turtle Parse Error: namespace prefix '$prefix' used but not defined"
+                );
             }
         }
 
@@ -819,7 +896,8 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
     }
 
     /**
-     * Parses a blank node ID, e.g. <tt>_:node1</tt>.
+     * Parses a blank node ID, e.g: _:node1
+     * @ignore
      */
     protected function parseNodeID()
     {
@@ -830,9 +908,13 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         // Read the node ID
         $c = $this->read();
         if ($c == -1) {
-            $this->throwEOFException();
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: unexpected end of file while reading node id"
+            );
         } else if (!self::isNameStartChar($c)) {
-            $this->reportError("Expected a letter, found '$c'");
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: expected a letter, found '$c'"
+            );
         }
 
         // Read all following letter and numbers, they are part of the name
@@ -847,22 +929,33 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
 
         return array(
             'type' => 'bnode',
-            'value' => $this->remapBnode($this->_graph, $name)
+            'value' => $this->remapBnode($name)
         );
     }
 
+    protected function resolve($uri)
+    {
+        if ($this->_baseUri) {
+            return $this->_baseUri->resolve($uri)->toString();
+        } else {
+            return $uri;
+        }
+    }
 
     /**
-     * Verifies that the supplied character <tt>c</tt> is one of the expected
-     * characters specified in <tt>expected</tt>. This method will throw a
-     * <tt>ParseException</tt> if this is not the case.
+     * Verifies that the supplied character $c is one of the expected
+     * characters specified in $expected. This method will throw a
+     * exception if this is not the case.
+     * @ignore
      */
     protected function verifyCharacter($c, $expected)
     {
         if ($c == -1) {
-            $this->throwEOFException();
+            throw new EasyRdf_Exception(
+                "Turtle Parse Error: unexpected end of file"
+            );
         } else if (strpbrk($c, $expected) === FALSE) {
-            $msg = 'Expected ';
+            $msg = 'expected ';
             for ($i = 0; $i < strlen($expected); $i++) {
                 if ($i > 0) {
                     $msg .= " or ";
@@ -871,10 +964,14 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             }
             $msg .= ", found '$c'";
 
-            $this->reportError($msg);
+            throw new EasyRdf_Exception("Turtle Parse Error: $msg");
         }
     }
 
+    /**
+     * Skip through whitespace and comments
+     * @ignore
+     */
     protected function skipWSC()
     {
         $c = $this->read();
@@ -892,6 +989,7 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
 
     /**
      * Consumes characters from reader until the first EOL has been read.
+     * @ignore
      */
     protected function skipLine()
     {
@@ -908,10 +1006,13 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
                 $this->unread($c);
             }
         }
-        // FIXME: reportLocation();
     }
 
-
+    /**
+     * Read a single character from the input buffer.
+     * Returns -1 when the end of the file is reached.
+     * @ignore
+     */
     protected function read()
     {
         if ($this->_pos < $this->_len) {
@@ -923,6 +1024,11 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         }
     }
 
+    /**
+     * Gets the next character to be returned by read()
+     * without removing it from the input buffer.
+     * @ignore
+     */
     protected function peek()
     {
         if ($this->_pos < $this->_len) {
@@ -932,44 +1038,37 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
         }
     }
 
+
+    /**
+     * Steps back, restoring the previous character read() to the input buffer
+     * @ignore
+     */
     protected function unread()
     {
-        // FIXME: check for negative position
-        $this->_pos--;
+        if ($this->_pos > 0) {
+            $this->_pos--;
+        } else {
+            throw new EasyRdf_Exception("Turtle Parse Error: unread error");
+        }
     }
 
-    protected function reportError($str)
-    {
-        // FIXME: throw an exception instead
-        error_log("Error! $str\n");
-        exit(-1);
-    }
-
-    protected function reportFatalError($str)
-    {
-        // FIXME: throw an exception instead
-        error_log("Error! $str\n");
-        exit(-1);
-    }
-
-    protected function throwEOFException()
-    {
-        // FIXME: throw an exception instead
-        error_log("Unexpected end of file.\n");
-        exit(-1);
-    }
-
+    /**
+     * Returns true if $c is a whitespace character
+     * @ignore
+     */
     public static function isWhitespace($c)
     {
         // Whitespace character are space, tab, newline and carriage return:
         return $c == " " || $c == "\t" || $c == "\r" || $c == "\n";
     }
 
-    public static function isPrefixStartChar($c) {
+    /** @ignore */
+    public static function isPrefixStartChar($c)
+    {
         $o = ord($c);
         return
-            $o >= 0x41   && $o <= 0x5a ||
-            $o >= 0x61   && $o <= 0x7a ||
+            $o >= 0x41   && $o <= 0x5a ||     # A-Z
+            $o >= 0x61   && $o <= 0x7a ||     # a-z
             $o >= 0x00C0 && $o <= 0x00D6 ||
             $o >= 0x00D8 && $o <= 0x00F6 ||
             $o >= 0x00F8 && $o <= 0x02FF ||
@@ -984,11 +1083,15 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             $o >= 0x10000 && $o <= 0xEFFFF;
     }
 
-    public static function isNameStartChar($c) {
+    /** @ignore */
+    public static function isNameStartChar($c)
+    {
         return $c == '_' || self::isPrefixStartChar($c);
     }
 
-    public static function isNameChar($c) {
+    /** @ignore */
+    public static function isNameChar($c)
+    {
         $o = ord($c);
         return
             self::isNameStartChar($c) ||
@@ -999,18 +1102,24 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             $o >= 0x203F && $o <= 0x2040;
     }
 
-    public static function isPrefixChar($c) {
+    /** @ignore */
+    public static function isPrefixChar($c)
+    {
         return self::isNameChar($c);
     }
 
-    public static function isLanguageStartChar($c) {
+    /** @ignore */
+    public static function isLanguageStartChar($c)
+    {
         $o = ord($c);
         return
             $o >= 0x41   && $o <= 0x5a ||
             $o >= 0x61   && $o <= 0x7a;
     }
 
-    public static function isLanguageChar($c) {
+    /** @ignore */
+    public static function isLanguageChar($c)
+    {
         $o = ord($c);
         return
             $o >= 0x41   && $o <= 0x5a ||   # A-Z
@@ -1019,5 +1128,3 @@ class EasyRdf_Parser_Turtle extends EasyRdf_Parser
             $c == '-';
     }
 }
-
-EasyRdf_Format::registerParser('turtle', 'EasyRdf_Parser_Turtle');

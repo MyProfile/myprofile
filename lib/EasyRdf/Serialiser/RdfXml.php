@@ -45,40 +45,10 @@
  */
 class EasyRdf_Serialiser_RdfXml extends EasyRdf_Serialiser
 {
-    private $_prefixes = array();
     private $_outputtedResources = array();
 
     /** A constant for the RDF Type property URI */
     const RDF_XML_LITERAL = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral';
-
-    /**
-     * Keep track of the prefixes that we have used in the serialisation
-     * @ignore
-     */
-    protected function addPrefix($qname)
-    {
-        list ($prefix) = explode(':', $qname);
-        $this->_prefixes[$prefix] = true;
-    }
-
-    /**
-     * Protected method to get the number of reverse properties for a resource
-     * If a resource only has a single property, the number of values for that
-     * property is returned instead.
-     * @ignore
-     */
-    protected function reversePropertyCount($resource)
-    {
-        $properties = $resource->reversePropertyUris();
-        $count = count($properties);
-        if ($count == 1) {
-            $property = $properties[0];
-            $values = $resource->all("^$property");
-            return count($values);
-        } else {
-            return $count;
-        }
-    }
 
     /**
      * Protected method to serialise an object node into an XML object
@@ -183,7 +153,7 @@ class EasyRdf_Serialiser_RdfXml extends EasyRdf_Serialiser
             $short = EasyRdf_Namespace::shorten($property, true);
             if ($short) {
                 $this->addPrefix($short);
-                $objects = $res->all($property);
+                $objects = $res->all("<$property>");
                 if ($short == 'rdf:type')
                     array_shift($objects);
                 foreach ($objects as $object) {
@@ -245,5 +215,3 @@ class EasyRdf_Serialiser_RdfXml extends EasyRdf_Serialiser
     }
 
 }
-
-EasyRdf_Format::registerSerialiser('rdfxml', 'EasyRdf_Serialiser_RdfXml');

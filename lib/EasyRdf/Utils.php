@@ -57,7 +57,7 @@ class EasyRdf_Utils
      * 'FOO//BAR' becomes FooBar
      *
      * @param string The input string
-     * @return string The input string coverteted to CamelCase
+     * @return string The input string converted to CamelCase
      */
     public static function camelise($str)
     {
@@ -91,61 +91,19 @@ class EasyRdf_Utils
     }
 
     /**
-     * Resolve a URI to a base URI.
+     * Remove the fragment from a URI (if it has one)
      *
-     * @param  string $baseUri      The base URI
-     * @param  string $referenceUri The URI to resolve
-     * @return string The newly resolved URI as a string.
+     * @param mixed $uri A URI
+     * @return string The same URI with the fragment removed
      */
-    public static function resolveUriReference($baseUri, $referenceUri)
+    public static function removeFragmentFromUri($uri)
     {
-        /* quick check */
-        if (preg_match("/^[a-z0-9\_]+\:/i", $referenceUri)) {/* abs path or bnode */
-            return $referenceUri;
+        $pos = strpos($uri, '#');
+        if ($pos === false) {
+            return $uri;
+        } else {
+            return substr($uri, 0, $pos);
         }
-        if (preg_match('/^\$\{.*\}/', $referenceUri)) {/* placeholder, assume abs URI */
-           return $referenceUri;
-        }
-        if (preg_match("/^\/\//", $referenceUri)) {/* net path, assume http */
-           return 'http:' . $referenceUri;
-        }
-
-        /* other URIs */
-        $baseUri = preg_replace('/\#.*$/', '', $baseUri);
-        if ($referenceUri === true) {/* empty (but valid) URIref via turtle parser: <> */
-            return $baseUri;
-        }
-        $referenceUri = preg_replace("/^\.\//", '', $referenceUri);
-
-        /* w/o trailing slash */
-        $root = preg_match('/(^[a-z0-9]+\:[\/]{1,3}[^\/]+)[\/|$]/i', $baseUri, $m) ? $m[1] : $baseUri;
-        $baseUri .= ($baseUri == $root) ? '/' : '';
-        if (preg_match('/^\//', $referenceUri)) {
-            /* leading slash */
-            return $root . $referenceUri;
-        }
-        if (!$referenceUri) {
-            return $baseUri;
-        }
-        if (preg_match('/^([\#\?])/', $referenceUri, $m)) {
-            return preg_replace('/\\' .$m[1]. '.*$/', '', $baseUri) . $referenceUri;
-        }
-        if (preg_match('/^(\&)(.*)$/', $referenceUri, $m)) {/* not perfect yet */
-            return preg_match('/\?/', $baseUri) ? $baseUri . $m[1] . $m[2] : $baseUri . '?' . $m[2];
-        }
-        if (preg_match("/^[a-z0-9]+\:/i", $referenceUri)) {/* abs path */
-            return $referenceUri;
-        }
-
-        /* rel path: remove stuff after last slash */
-        $baseUri = substr($baseUri, 0, strrpos($baseUri, '/')+1);
-
-        /* resolve ../ */
-        while (preg_match('/^(\.\.\/)(.*)$/', $referenceUri, $m)) {
-            $referenceUri = $m[2];
-            $baseUri = ($baseUri == $root.'/') ? $baseUri : preg_replace('/^(.*\/)[^\/]+\/$/', '\\1', $baseUri);
-        }
-        return $baseUri . $referenceUri;
     }
 
     /** Return pretty-print view of a resource URI
@@ -242,5 +200,77 @@ class EasyRdf_Utils
            }
         }
         return array($type, $params);
+    }
+
+    /** Execute a command as a pipe
+     *
+     * The proc_open() function is used to open a pipe to a
+     * a command line process, writing $input to STDIN, returning STDOUT
+     * and throwing an exception if anything is written to STDERR or the
+     * process returns non-zero.
+     *
+     * @param  string $command   The command to execute
+     * @param  array  $args      Optional list of arguments to pass to the command
+     * @param  string $input     Optional buffer to send to the command
+     * @param  string $dir       Path to directory to run command in (defaults to /tmp)
+     * @return string The result of the command, printed to STDOUT
+     */
+    public static function execCommandPipe($command, $args=null, $input=null, $dir=null)
+    {
+        $descriptorspec = array(
+            0 => array('pipe', 'r'),
+            1 => array('pipe', 'w'),
+            2 => array('pipe', 'w')
+        );
+
+        // Use the system tmp directory by default
+        if (!$dir) {
+            $dir = sys_get_temp_dir();
+        }
+
+        if (is_array($args)) {
+            $fullCommand = implode(
+                ' ', array_map('escapeshellcmd', array_merge(array($command), $args))
+            );
+        } else {
+            $fullCommand = escapeshellcmd($command);
+            if ($args)
+                $fullCommand .= ' '.escapeshellcmd($args);
+        }
+
+        $process = proc_open(
+            $fullCommand, $descriptorspec, $pipes, $dir
+        );
+
+        if (is_resource($process)) {
+            // $pipes now looks like this:
+            // 0 => writeable handle connected to child stdin
+            // 1 => readable handle connected to child stdout
+            // 2 => readable handle connected to child stderr
+
+            if ($input)
+                fwrite($pipes[0], $input);
+            fclose($pipes[0]);
+
+            $output = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+            $error = stream_get_contents($pipes[2]);
+            fclose($pipes[2]);
+
+            // It is important that you close any pipes before calling
+            // proc_close in order to avoid a deadlock
+            $returnValue = proc_close($process);
+            if ($returnValue) {
+                throw new EasyRdf_Exception(
+                    "Error while executing command $command: ".$error
+                );
+            }
+        } else {
+            throw new EasyRdf_Exception(
+                "Failed to execute command $command"
+            );
+        }
+
+        return $output;
     }
 }

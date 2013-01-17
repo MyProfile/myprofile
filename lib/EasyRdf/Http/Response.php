@@ -40,11 +40,6 @@
  */
 
 /**
- * @see EasyRdf_Exception
- */
-require_once "EasyRdf/Exception.php";
-
-/**
  * Class that represents an HTTP 1.0 / 1.1 response message.
  *
  * @package    EasyRdf
@@ -99,7 +94,7 @@ class EasyRdf_Http_Response
         $version = '1.1', $message = null
     )
     {
-        $this->_status = $status;
+        $this->_status = intval($status);
         $this->_body = $body;
         $this->_version = $version;
         $this->_message = $message;
@@ -239,17 +234,16 @@ class EasyRdf_Http_Response
      * @param string $br Line breaks (eg. "\n", "\r\n", "<br />")
      * @return string
      */
-    public function getHeadersAsString($status_line = true, $br = "\n")
+    public function getHeadersAsString($statusLine = true, $br = "\n")
     {
         $str = '';
 
-        if ($status_line) {
+        if ($statusLine) {
             $str = "HTTP/{$this->_version} {$this->_status} {$this->_message}{$br}";
         }
 
         // Iterate over the headers and stringify them
-        foreach ($this->_headers as $name => $value)
-        {
+        foreach ($this->_headers as $name => $value) {
             if (is_string($value))
                 $str .= "{$name}: {$value}{$br}";
 

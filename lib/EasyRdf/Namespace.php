@@ -45,28 +45,57 @@
  */
 class EasyRdf_Namespace
 {
-    /** Namespace registery */
+    /** Namespace registry
+     *
+     * List of default namespaces come from:
+     *  - http://www.w3.org/2011/rdfa-context/rdfa-1.1
+     *
+     * With a few extras added.
+     *
+     */
     private static $_namespaces = array(
       'bibo' => 'http://purl.org/ontology/bibo/',
       'cc' => 'http://creativecommons.org/ns#',
       'cert' => 'http://www.w3.org/ns/auth/cert#',
+      'ctag' => 'http://commontag.org/ns#',
       'dc' => 'http://purl.org/dc/terms/',
       'dc11' => 'http://purl.org/dc/elements/1.1/',
+      'dcterms' => 'http://purl.org/dc/terms/',
       'doap' => 'http://usefulinc.com/ns/doap#',
       'exif' => 'http://www.w3.org/2003/12/exif/ns#',
       'foaf' => 'http://xmlns.com/foaf/0.1/',
       'geo' => 'http://www.w3.org/2003/01/geo/wgs84_pos#',
+      'gr' => 'http://purl.org/goodrelations/v1#',
+      'grddl' => 'http://www.w3.org/2003/g/data-view#',
+      'ical' => 'http://www.w3.org/2002/12/cal/icaltzd#',
+      'ma' => 'http://www.w3.org/ns/ma-ont#',
+      'og' => 'http://ogp.me/ns#',
       'owl' => 'http://www.w3.org/2002/07/owl#',
       'rdf' => 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+      'rdfa' => 'http://www.w3.org/ns/rdfa#',
       'rdfs' => 'http://www.w3.org/2000/01/rdf-schema#',
+      'rev' => 'http://purl.org/stuff/rev#',
+      'rif' => 'http://www.w3.org/2007/rif#',
       'rss' => 'http://purl.org/rss/1.0/',
+      'schema' => 'http://schema.org/',
       'sioc' => 'http://rdfs.org/sioc/ns#',
       'skos' => 'http://www.w3.org/2004/02/skos/core#',
+      'skosxl' => 'http://www.w3.org/2008/05/skos-xl#',
       'synd' => 'http://purl.org/rss/1.0/modules/syndication/',
+      'v' => 'http://rdf.data-vocabulary.org/#',
+      'vcard' => 'http://www.w3.org/2006/vcard/ns#',
+      'void' => 'http://rdfs.org/ns/void#',
+      'wdr' => 'http://www.w3.org/2007/05/powder#',
+      'wdrs' => 'http://www.w3.org/2007/05/powder-s#',
       'wot' => 'http://xmlns.com/wot/0.1/',
-      'xhtml' => 'http://www.w3.org/1999/xhtml/vocab#',
-      'xsd' => 'http://www.w3.org/2001/XMLSchema#'
+      'xhv' => 'http://www.w3.org/1999/xhtml/vocab#',
+      'xml' => 'http://www.w3.org/XML/1998/namespace',
+      'xsd' => 'http://www.w3.org/2001/XMLSchema#',
+      'socweb' => 'http://my-profile.eu/ns/socweb#',
+      'pingback' => 'http://purl.org/net/pingback/'
     );
+
+    private static $_default = NULL;
 
     /** Counter for numbering anonymous namespaces */
     private static $_anonymousNamespaceCount = 0;
@@ -140,6 +169,47 @@ class EasyRdf_Namespace
     }
 
     /**
+      * Get the default namespace
+      *
+      * Returns the URI of the default namespace or NULL
+      * if no default namespace is defined.
+      *
+      * @return string The URI of the default namespace
+      */
+    public static function getDefault()
+    {
+        return self::$_default;
+    }
+
+    /**
+      * Set the default namespace
+      *
+      * Set the default namespace to either a URI or the prefix of
+      * an already defined namespace.
+      *
+      * Example:
+      *   EasyRdf_Namespace::setDefault('http://schema.org/');
+      *
+      * @param string $namespace The URI or prefix of a namespace (eg 'og')
+      */
+    public static function setDefault($namespace)
+    {
+        if (empty($namespace)) {
+            self::$_default = NULL;
+        } elseif (preg_match("/^\w+$/", $namespace)) {
+            if (isset(self::$_namespaces[$namespace])) {
+                self::$_default = self::$_namespaces[$namespace];
+            } else {
+                throw new InvalidArgumentException(
+                    "Unable to set default namespace to unknown prefix: $namespace"
+                );
+            }
+        } else {
+            self::$_default = $namespace;
+        }
+    }
+
+    /**
       * Delete an existing namespace.
       *
       * @param string $prefix The namespace prefix (eg 'foaf')
@@ -170,51 +240,19 @@ class EasyRdf_Namespace
     }
 
     /**
-      * Return the prefix namespace that a URI belongs to.
-      *
-      * @param string $uri A full URI (eg 'http://xmlns.com/foaf/0.1/name')
-      * @return string The prefix namespace that it is a part of(eg 'foaf')
-      */
-    public static function prefixOfUri($uri)
-    {
-        # FIXME: sort out code duplication with shorten()
-        if ($uri === null or $uri === '') {
-            throw new InvalidArgumentException(
-                "\$uri cannot be null or empty"
-            );
-        }
-
-        if (is_object($uri) and ($uri instanceof EasyRdf_Resource)) {
-            $uri = $uri->getUri();
-        } else if (!is_string($uri)) {
-            throw new InvalidArgumentException(
-                "\$uri should be a string or EasyRdf_Resource"
-            );
-        }
-
-
-        foreach (self::$_namespaces as $prefix => $long) {
-            if (substr($uri, 0, strlen($long)) == $long)
-                return $prefix;
-        }
-
-        return null;
-    }
-
-    /**
-      * Shorten a URI by substituting in the namespace prefix.
+      * Try and breakup a URI into a prefix and local part
       *
       * If $createNamespace is true, and the URI isn't part of an existing
       * namespace, then EasyRdf will attempt to create a new namespace and
-      * use that namespace to shorten the URI (for example ns0:term).
+      * return the name of the new prefix (for example 'ns0', 'term').
       *
-      * If it isn't possible to shorten the URI, then null will be returned.
+      * If it isn't possible to split the URI, then null will be returned.
       *
       * @param string  $uri The full URI (eg 'http://xmlns.com/foaf/0.1/name')
       * @param bool    $createNamespace If true, a new namespace will be created
-      * @return string The shortened URI (eg 'foaf:name') or null
+      * @return array  The split URI (eg 'foaf', 'name') or null
       */
-    public static function shorten($uri, $createNamespace=false)
+    public static function splitUri($uri, $createNamespace=false)
     {
         if ($uri === null or $uri === '') {
             throw new InvalidArgumentException(
@@ -232,7 +270,7 @@ class EasyRdf_Namespace
 
         foreach (self::$_namespaces as $prefix => $long) {
             if (substr($uri, 0, strlen($long)) == $long) {
-                return $prefix . ':' . substr($uri, strlen($long));
+                return array($prefix, substr($uri, strlen($long)));
             }
         }
 
@@ -242,11 +280,44 @@ class EasyRdf_Namespace
             if (preg_match("/^(.+?)([\w\-]+)$/", $uri, $matches)) {
                 $prefix = "ns".(self::$_anonymousNamespaceCount++);
                 self::set($prefix, $matches[1]);
-                return $prefix . ':' . $matches[2];
+                return array($prefix, $matches[2]);
             }
         }
 
         return null;
+    }
+
+    /**
+      * Return the prefix namespace that a URI belongs to.
+      *
+      * @param string $uri A full URI (eg 'http://xmlns.com/foaf/0.1/name')
+      * @return string The prefix namespace that it is a part of(eg 'foaf')
+      */
+    public static function prefixOfUri($uri)
+    {
+        if ($parts = self::splitUri($uri)) {
+            return $parts[0];
+        }
+    }
+
+    /**
+      * Shorten a URI by substituting in the namespace prefix.
+      *
+      * If $createNamespace is true, and the URI isn't part of an existing
+      * namespace, then EasyRdf will attempt to create a new namespace and
+      * use that namespace to shorten the URI (for example ns0:term).
+      *
+      * If it isn't possible to shorten the URI, then null will be returned.
+      *
+      * @param string  $uri The full URI (eg 'http://xmlns.com/foaf/0.1/name')
+      * @param bool    $createNamespace If true, a new namespace will be created
+      * @return string The shortened URI (eg 'foaf:name') or null
+      */
+    public static function shorten($uri, $createNamespace=false)
+    {
+        if ($parts = self::splitUri($uri, $createNamespace)) {
+            return implode(':', $parts);
+        }
     }
 
     /**
@@ -260,7 +331,7 @@ class EasyRdf_Namespace
       */
     public static function expand($shortUri)
     {
-        if (!is_string($shortUri) or $shortUri === null or $shortUri === '') {
+        if (!is_string($shortUri) or empty($shortUri)) {
             throw new InvalidArgumentException(
                 "\$shortUri should be a string and cannot be null or empty"
             );
@@ -271,7 +342,10 @@ class EasyRdf_Namespace
             if ($long) {
                 return $long . $matches[2];
             }
+        } elseif (preg_match("/^(\w+)$/", $shortUri) and isset(self::$_default)) {
+            return self::$_default . $shortUri;
         }
+
         return $shortUri;
     }
 }
