@@ -538,7 +538,7 @@ $ret .= "</tr>\n";
 if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
     $ret .= "<tr hidden>\n";
     $ret .= "<td hidden>KEYGEN Key Length</td>\n";
-    $ret .= "<td hidden><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\"  style=\"border-color: red;\" hidden></td>\n";
+    $ret .= "<td hidden><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\" keytype=\"rsa\" style=\"border-color: red;\" hidden></td>\n";
     $ret .= "</tr>\n";
 }
 

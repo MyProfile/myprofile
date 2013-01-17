@@ -46,7 +46,7 @@ $form .= "	<tr><td><h3>FOAF address 2</h3></td><td><input type=\"text\" name=\"f
 $form .= "	<tr><td><h3>FOAF address 3</h3></td><td><input type=\"text\" name=\"foaf[]\" size=\"40\"></td></tr>\n";
 $form .= "	<tr><td><h3>Full name</h3></td><td><input type=\"text\" id=\"commonName\" name=\"commonName\" onKeyup=\"validateCert('foaf1', 'commonName', 'submit', 2)\"></font> (min 2 characters)</td></tr>\n";
 $form .= "	<tr><td><h3>Email address</h3></td><td><input type=\"text\" name=\"emailAddress\"></td></tr>\n";
-$form .= "	<tr><td><h3>KEYGEN Key Length</h3></td><td><keygen name=\"pubkey\" challenge=\"randomchars\"></td></tr>\n";
+$form .= "	<tr><td><h3>KEYGEN Key Length</h3></td><td><keygen name=\"pubkey\" keytype=\"rsa\" challenge=\"randomchars\"></td></tr>\n";
 $form .= "	<tr><td colspan=\"3\">&nbsp;</td></tr>\n";
 $form .= "	<tr><td></td><td><input type=\"submit\" class=\"btn btn-primary\" id=\"submit\" value=\"Install certificate\" disabled></td></tr>\n";
 $form .= "</table>\n";
