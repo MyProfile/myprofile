@@ -29,7 +29,7 @@ include 'header.php';
 $ret .= "<div class=\"content relative shadow clearfix main\">\n";
 
 $ret .= "<div><form action=\"lookup\" method=\"get\">\n";
-$ret .= "Look for someone else? <input type=\"text\" name=\"search\" placeholder=\"name, nickname or WebID\" value=\"\" style=\"width: 400px;\" />\n";
+$ret .= "<input type=\"search\" name=\"search\" onfocus=\"this.value=(this.value=='name, nickname or WebID') ? '' : this.value;\" onblur=\"this.value=(this.value=='') ? 'name, nickname or WebID' : this.value;\" value=\"name, nickname or WebID\" onkeydown=\"if(event.keyCode == 13) fmsearch(this.value);\" />\n";
 $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Search \" />\n";
 $ret .= "</form></div>\n";
 

@@ -131,6 +131,20 @@ input[type="search"] {
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
   box-sizing: content-box;
+  font-size: 13px;
+  color: #555555;
+  border: 1px solid #cccccc;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  cursor: auto;
+  padding: 4px 7px 4px 31px !important;
+  margin-bottom: 10px;
+  height: 20px !important;
+  width: 400px !important;
+  background-image: url('../img/search.png') !important;
+  background-position: 7px center !important;
+  background-repeat: no-repeat !important;
 }
 input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button {
