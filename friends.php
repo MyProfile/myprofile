@@ -41,8 +41,8 @@ $search = (isset($_REQUEST['search'])) ? $_REQUEST['search'] : '';
     
 $form = "<div id=\"friends\" class=\"content relative shadow clearfix main\">";
 $form .= "<div>\n";
-$form .= "<form action=\"lookup.php\" method=\"GET\">\n";
-$form .= "Looking for someone? <input type=\"text\" name=\"search\" placeholder=\"name, nickname or WebID\" value=\"" . $search . "\" style=\"width: 400px;\">\n";
+$form .= "<form action=\"lookup\" method=\"GET\">\n";
+$form .= "<input type=\"search\" name=\"search\" onfocus=\"this.value=(this.value=='name, nickname or WebID') ? '' : this.value;\" onblur=\"this.value=(this.value=='') ? 'name, nickname or WebID' : this.value;\" value=\"name, nickname or WebID\" onkeydown=\"if(event.keyCode == 13) fmsearch(this.value);\" />\n";
 $form .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Search \">\n";
 $form .= "</form></div>\n";
 
