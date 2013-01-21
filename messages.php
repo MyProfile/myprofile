@@ -89,6 +89,7 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
 $ret .= "<div class=\"wall-new r5\">\n";
 $ret .= "<form method=\"post\" action=\"messages\">\n";
 $ret .= "<input type=\"hidden\" name=\"doit\" value=\"1\" />\n";
+$ret .= "<input type=\"hidden\" name=\"to\" id=\"to\" value=\"\" />\n";
 $ret .= "<table border=\"0\">\n";
 $ret .= "<tr valign=\"top\">\n";
 $ret .= "   <td style=\"width: 80px\"><p><a href=\"view?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
@@ -96,7 +97,7 @@ $ret .= "       <img class=\"r5\" title=\"" . $_SESSION['usr'] . "\" alt=\"" . $
 $ret .= "   </a></p></td>\n";
 $ret .= "   <td>\n";
 $ret .= "       <table border=\"0\">\n"; 
-$ret .= "       <tr><td>To: <input size=\"30\" type=\"text\" id=\"to\" name=\"to\" placeholder=\"name, nick or WebID\"></td></tr>\n";
+$ret .= "       <tr><td>To: <input size=\"40\" type=\"text\" id=\"name\" name=\"name\" placeholder=\"name, nick or WebID\"></td></tr>\n";
 $ret .= "       <tr><td><textarea id=\"message\" name=\"message\" onfocus=\"textAreaResize(this)\" class=\"textarea-wall\"></textarea></td></tr>\n";
 $ret .= "       <tr><td><br/><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\"  Send message! \" /></td></tr>\n";
 $ret .= "       </table>\n";
@@ -178,5 +179,5 @@ echo $ret;
 include 'footer.php';
 ?>
 <script>
-$(document).ready(do_autocomplete("to"));
+$(document).ready(do_autocomplete_msg("name", "to"));
 </script> 

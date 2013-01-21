@@ -1,5 +1,7 @@
 $(document).ready(function() {
+    
     do_autocomplete('comment', '@');
+    
     // add variable nav bar buttons
     var messages = '<div><a href="messages" class="messages"><small>Messages</small></a></div>';
     var profile = '<div><a href="view" class="profile"><small>My Profile</small></a></div>';
@@ -17,7 +19,7 @@ $(document).ready(function() {
     window.onresize = function () {
         resizeNav();
     }
-    
+    // resive the navigation bar on the left
     function resizeNav () { 
        // need to clean up the menu
         $('#more-menu').hide();
