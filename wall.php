@@ -132,7 +132,7 @@ if (isset($_REQUEST['comment'])) {
                 $ping_msg .=' wall post. You can see it here: ' . $base_uri . '/wall';
                 if ($owner_webid != 'local')
                     $ping_msg .= '?user=' . $to_hash;
-                $ping_msg .= '#'.$post_id;
+                $ping_msg .= '#post_'.$post_id;
                 // send only if the source != target
                 if (($_SESSION['webid'] != $to) && (preg_match('/^http(s?):/', $to)))
                     sendPing($to, $ping_msg, $base_uri, false);
