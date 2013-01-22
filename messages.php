@@ -43,6 +43,8 @@ if (!is_subscribed($_SESSION['webid'])) {
 // manage received messages/pingbacks
 if (isset($_REQUEST['id'])) {
     $ok = true;
+    $_to = '';
+    $_name = '';
     $id = mysql_real_escape_string($_REQUEST['id']);
     $me = mysql_real_escape_string($_SESSION['webid']);
     // delete
@@ -73,7 +75,8 @@ if (isset($_REQUEST['id'])) {
             $ret .= 'Query: ' . $query;
         }
     } else if (isset($_REQUEST['reply'])) {
-        header("Location: messages?new=true&to=" . urlencode($_REQUEST['to']));
+        $_to = $_REQUEST['to'];
+        $_name = $_REQUEST['name'];
     }
     
     $messages = get_msg_count($_SESSION['webid']);
@@ -89,15 +92,15 @@ if ((isset($_REQUEST['doit'])) && (isset($_REQUEST['to']))) {
 $ret .= "<div class=\"wall-new r5\">\n";
 $ret .= "<form method=\"post\" action=\"messages\">\n";
 $ret .= "<input type=\"hidden\" name=\"doit\" value=\"1\" />\n";
-$ret .= "<input type=\"hidden\" name=\"to\" id=\"to\" value=\"\" />\n";
+$ret .= "<input type=\"hidden\" name=\"to\" id=\"to\" value=\"".$_to."\" />\n";
 $ret .= "<table border=\"0\">\n";
 $ret .= "<tr valign=\"top\">\n";
-$ret .= "   <td style=\"width: 80px\"><p><a href=\"view?webid=" . urlencode($_SESSION["webid"]) . "\" target=\"_blank\">\n";
-$ret .= "       <img class=\"r5\" title=\"" . $_SESSION['usr'] . "\" alt=\"" . $_SESSION['usr'] . "\" width=\"64\" src=\"" . $_SESSION['img'] . "\" />\n";
+$ret .= "   <td style=\"width: 80px\"><p><a href=\"view?webid=".urlencode($_SESSION["webid"])."\" target=\"_blank\">\n";
+$ret .= "       <img class=\"r5\" title=\"".$_SESSION['usr']."\" alt=\"".$_SESSION['usr']."\" width=\"64\" src=\"".$_SESSION['img']."\" />\n";
 $ret .= "   </a></p></td>\n";
 $ret .= "   <td>\n";
 $ret .= "       <table border=\"0\">\n"; 
-$ret .= "       <tr><td>To: <input size=\"40\" type=\"text\" id=\"name\" name=\"name\" placeholder=\"name, nick or WebID\"></td></tr>\n";
+$ret .= "       <tr><td>To: <input size=\"40\" type=\"text\" id=\"name\" name=\"name\" placeholder=\"name, nick or WebID\" value=\"".$_name."\" /></td></tr>\n";
 $ret .= "       <tr><td><textarea id=\"message\" name=\"message\" onfocus=\"textAreaResize(this)\" class=\"textarea-wall\"></textarea></td></tr>\n";
 $ret .= "       <tr><td><br/><input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\"  Send message! \" /></td></tr>\n";
 $ret .= "       </table>\n";
@@ -129,11 +132,12 @@ if (!$result) {
         $text = htmlspecialchars($row["msg"]);
         $text = put_links($text);
 
-        $ret .= "<form method=\"post\" action=\"messages\">\n";
+        $ret .= "<form method=\"post\">\n";
         $ret .= "<input type=\"hidden\" name=\"action\" value=\"1\">\n";
         $ret .= "<input type=\"hidden\" name=\"id\" value=\"" . $id . "\">\n";
         $ret .= "<input type=\"hidden\" name=\"to\" value=\"" . $row['from_uri'] . "\">\n";
-        $ret .= "<table border=\"0\">\n";
+        $ret .= "<input type=\"hidden\" name=\"name\" value=\"" . $name . "\">\n";
+        $ret .= "<table>\n";
 
         $ret .= "<tr valign=\"top\">\n";
         $ret .= "   <td width=\"80\" align=\"center\">\n";
@@ -145,7 +149,7 @@ if (!$result) {
         $ret .= "           <td><b><a href=\"view?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b> <small style=\"color: grey;\">" . date('Y-m-d H:i:s', $row['date']) . "</small></td>\n";
         $ret .= "       </tr>\n";
         $ret .= "       <tr>\n";
-        $ret .= "           <td><p>" . $text . "</p></td>\n";
+        $ret .= "           <td class=\"wall-message\"><p>" . $text . "</p></td>\n";
         $ret .= "       </tr>\n";
         $ret .= "       <tr><td><br/>\n";
         if (is_subscribed($row['from_uri']))
@@ -177,7 +181,13 @@ $ret .= "</div>\n";
 include 'header.php';
 echo $ret;
 include 'footer.php';
+
+if (isset($_REQUEST['reply'])) {
 ?>
-<script>
+<script type="text/javascript">
+$('#message').focus();
+</script>
+<?php } ?>
+<script type="text/javascript">
 $(document).ready(do_autocomplete_msg("name", "to"));
 </script> 
