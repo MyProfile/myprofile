@@ -106,7 +106,7 @@ else {
     $ret .= "<h2><strong>Manage notifications.</strong></h2>\n";
     $ret .= "<form method=\"post\">\n";
     $ret .= "<table>\n";
-    $ret .= "<tr><td><input type=\"checkbox\" name=\"subscription\" ".$check_subscription." /> Receive notifcations. (Note: Unsubscribing <strong>removes all</strong> exisiting messages and wall posts!)</td></tr>\n";
+    $ret .= "<tr><td><input type=\"checkbox\" name=\"subscription\" ".$check_subscription." /> Receive notifcations. (<strong>Warning!</strong> Unsubscribing removes all exisiting messages and wall posts!)</td></tr>\n";
     $ret .= "<tr><td><input type=\"checkbox\" name=\"email\" ".$check_email." /> Receive notifications through email.</td></tr>\n";
     $ret .= "<tr><td><br /><input class=\"btn margin-5\" type=\"submit\" name=\"submit\" value=\" Modify \"></td></tr>\n";
     $ret .= "</table>\n";
@@ -122,14 +122,14 @@ else {
 
         $ret .= "<table><tr>\n";
         $ret .= "<td>\n";
-        $ret .= "<form action=\"profile\" method=\"get\">\n";
+        $ret .= "<form method=\"get\">\n";
         $ret .= "<input type=\"hidden\" name=\"action\" value=\"edit\" />\n";
         $ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"submit\" value=\"Edit profile\">\n";
         $ret .= "</form> \n";
         $ret .= "</td><td>\n";
-        $ret .= "<form method=\"post\">\n";
+        $ret .= "<form name=\"deleteaccount\" method=\"post\">\n";
         $ret .= "<input type=\"hidden\" name=\"action\" value=\"deleteacc\" />\n";
-        $ret .= "<input class=\"btn btn-danger margin-5\" type=\"submit\" name=\"delete\" value=\"Delete profile\">\n";
+        $ret .= "<input class=\"btn btn-danger margin-5\" type=\"submit\" name=\"delete\" onclick=\"confirm('Are you sure you want to delete your account?')\" value=\"Delete profile\">\n";
         $ret .= "</form>\n";
         $ret .= "</td>\n";
         $ret .= "</tr></table>\n";
@@ -142,5 +142,5 @@ $ret .= "</div>\n";
 include 'header.php';
 echo $ret;
 include 'footer.php';
-
 ?>
+
