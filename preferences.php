@@ -116,7 +116,7 @@ else {
 // display options for local users only
 //if (webid_is_local($_SESSION['webid'])) {
     // 
-    if (!isset($_REQUEST['action'])) {
+    //if (!isset($_REQUEST['action'])) {
         $ret .= "<p></p>\n";
         $ret .= "<h2><strong>Manage profile.</strong></h2>\n";
 
@@ -127,14 +127,14 @@ else {
         $ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"submit\" value=\"Edit profile\">\n";
         $ret .= "</form> \n";
         $ret .= "</td><td>\n";
-        $ret .= "<form name=\"deleteaccount\" method=\"post\">\n";
+        $ret .= "<form method=\"post\" onsubmit=\"return confirm('Are you sure you want to delete your account?')\">\n";
         $ret .= "<input type=\"hidden\" name=\"action\" value=\"deleteacc\" />\n";
-        $ret .= "<input class=\"btn btn-danger margin-5\" type=\"submit\" name=\"delete\" onclick=\"confirm('Are you sure you want to delete your account?')\" value=\"Delete profile\">\n";
+        $ret .= "<input class=\"btn btn-danger margin-5\" type=\"submit\" name=\"delete\" value=\"Delete profile\">\n";
         $ret .= "</form>\n";
         $ret .= "</td>\n";
         $ret .= "</tr></table>\n";
         $ret .= "<strong>Warning!</strong> Deleting a profile cannot be undone. All your local data will be removed (profile, wall posts, messages, etc.)    .";
-    }
+    //}
 //}
 
 $ret .= "</div>\n";
