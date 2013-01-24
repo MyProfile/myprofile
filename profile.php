@@ -24,303 +24,303 @@ include_once 'include.php';
 
 
 if (isset($_REQUEST['doit']))  {
-        // store here visual alert messages: error() or success()
-        $alert = '';
+    // store here visual alert messages: error() or success()
+    $alert = '';
 
-        // Depending on action, we prepare the local path to the user's profile dir
-        if ($_REQUEST['action'] == 'edit') {
-            $user_dir = webid_get_local_path($_SESSION['webid']);
-            $webid_base = $base_uri . '/' . $user_dir . '/card';
-            $webid = $_SESSION['webid'];
-        } else {
-             // prepare the new WebID URI
-            $webid_base = $base_uri . '/people/' . $_REQUEST['uri'] . '/card';
-            $webid = $webid_base . "#me";
-            $user_dir = "people/" . $_REQUEST['uri'];
-        }    
-        
-        // Check if the user uploaded a new picture
-        if ((isset($_FILES['picture'])) && ($_FILES['picture']['error'] == 0)) {
-            // Allow only pictures with a size smaller than 100k
-            if ($_FILES['picture']['size'] <= 100000) {
-                // Using getimagesize() to avoid fake mime types 
-                $image_info = exif_imagetype($_FILES['picture']['tmp_name']);
-                $local_img = '';
-                switch ($image_info) {
-                    case IMAGETYPE_GIF:
-                            if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.gif'))
-                                $local_img = $base_uri . '/' . $user_dir . '/picture.gif';
-                            else
-                                $alert .= error('Could not copy the picture to the user\'s dir. Please check permissions.');
-                        break;
-                    case IMAGETYPE_JPEG:
-                            if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.jpg'))
-                                $local_img = $base_uri . '/' . $user_dir . '/picture.jpg';
-                            else
-                                $alert .= error('Could not copy the picture to the user\'s dir. Please check permissions.');
-                        break;
-                    case IMAGETYPE_PNG:
-                            if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.png'))
-                                $local_img = $base_uri . '/' . $user_dir . '/picture.png';
-                            else
-                                $alert .= error('Could not copy the picture to the user\'s dir. Please check permissions.');
-                        break;
-                    default:
-                        $alert .= error('The selected image format is not supported.');
-                        break;
-                }
-            } else {
-                $alert .= error('The image size is too large. The maximum allowed size is 100KB.');
+    // Depending on action, we prepare the local path to the user's profile dir
+    if ($_REQUEST['action'] == 'edit') {
+        $user_dir = webid_get_local_path($_SESSION['webid']);
+        $webid_base = $base_uri . '/' . $user_dir . '/card';
+        $webid = $_SESSION['webid'];
+    } else {
+         // prepare the new WebID URI
+        $webid_base = $base_uri . '/people/' . $_REQUEST['uri'] . '/card';
+        $webid = $webid_base . "#me";
+        $user_dir = "people/" . $_REQUEST['uri'];
+    }    
+    
+    // Check if the user uploaded a new picture
+    if ((isset($_FILES['picture'])) && ($_FILES['picture']['error'] == 0)) {
+        // Allow only pictures with a size smaller than 100k
+        if ($_FILES['picture']['size'] <= 100000) {
+            // Using getimagesize() to avoid fake mime types 
+            $image_info = exif_imagetype($_FILES['picture']['tmp_name']);
+            $local_img = '';
+            switch ($image_info) {
+                case IMAGETYPE_GIF:
+                        if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.gif'))
+                            $local_img = $base_uri . '/' . $user_dir . '/picture.gif';
+                        else
+                            $alert .= error('Could not copy the picture to the user\'s dir. Please check permissions.');
+                    break;
+                case IMAGETYPE_JPEG:
+                        if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.jpg'))
+                            $local_img = $base_uri . '/' . $user_dir . '/picture.jpg';
+                        else
+                            $alert .= error('Could not copy the picture to the user\'s dir. Please check permissions.');
+                    break;
+                case IMAGETYPE_PNG:
+                        if (move_uploaded_file($_FILES['picture']['tmp_name'], $user_dir . '/picture.png'))
+                            $local_img = $base_uri . '/' . $user_dir . '/picture.png';
+                        else
+                            $alert .= error('Could not copy the picture to the user\'s dir. Please check permissions.');
+                    break;
+                default:
+                    $alert .= error('The selected image format is not supported.');
+                    break;
             }
+        } else {
+            $alert .= error('The image size is too large. The maximum allowed size is 100KB.');
         }
-        
-        // Create the graph object in which we will store data
-        $graph = new EasyRdf_Graph();
+    }
+    
+    // Create the graph object in which we will store data
+    $graph = new EasyRdf_Graph();
 
-        // create primary topic
-        $pt = $graph->resource($webid_base, 'foaf:PersonalProfileDocument');
-        $graph->addResource($pt, 'foaf:maker', $webid);
-        $graph->addResource($pt, 'foaf:primaryTopic', $webid);
-        $pt->set('foaf:title', urldecode($_REQUEST['foaf:name']) . "'s profile.");
+    // create primary topic
+    $pt = $graph->resource($webid_base, 'foaf:PersonalProfileDocument');
+    $graph->addResource($pt, 'foaf:maker', $webid);
+    $graph->addResource($pt, 'foaf:primaryTopic', $webid);
+    $pt->set('foaf:title', urldecode($_REQUEST['foaf:name']) . "'s profile.");
 
 // ----- foaf:Person ----- //
-        // create the Person graph
-        $me = $graph->resource($webid, 'foaf:Person');
-        
-        // name
-        $me->set('foaf:name', $_REQUEST['foaf:name']);
-        
-        // first name
-        if ((isset($_REQUEST['foaf:givenName'])) && (strlen($_REQUEST['foaf:givenName']) > 0))
-            $me->set('foaf:givenName', trim($_REQUEST['foaf:givenName']));
-        // last name
-        if ((isset($_REQUEST['foaf:familyName'])) && (strlen($_REQUEST['foaf:familyName']) > 0))
-            $me->set('foaf:familyName', trim($_REQUEST['foaf:familyName']));
-        // title
-        if ((isset($_REQUEST['foaf:title'])) && (strlen($_REQUEST['foaf:title']) > 0))
-            $me->set('foaf:title', trim($_REQUEST['foaf:title']));
-        // picture (use the uploaded one if it exists)
-        if (isset($local_img))
-            $img = trim($local_img);
-        else if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0)) 
-            $img = trim($_REQUEST['foaf:img']);
-        else
-            $img = 'img/nouser.png';
-        $graph->addResource($me, 'foaf:img', $img);
-        // nickname
-        if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
-            $me->set('foaf:nick', trim($_REQUEST['foaf:nick']));
+    // create the Person graph
+    $me = $graph->resource($webid, 'foaf:Person');
+    
+    // name
+    $me->set('foaf:name', $_REQUEST['foaf:name']);
+    
+    // first name
+    if ((isset($_REQUEST['foaf:givenName'])) && (strlen($_REQUEST['foaf:givenName']) > 0))
+        $me->set('foaf:givenName', trim($_REQUEST['foaf:givenName']));
+    // last name
+    if ((isset($_REQUEST['foaf:familyName'])) && (strlen($_REQUEST['foaf:familyName']) > 0))
+        $me->set('foaf:familyName', trim($_REQUEST['foaf:familyName']));
+    // title
+    if ((isset($_REQUEST['foaf:title'])) && (strlen($_REQUEST['foaf:title']) > 0))
+        $me->set('foaf:title', trim($_REQUEST['foaf:title']));
+    // picture (use the uploaded one if it exists)
+    if (isset($local_img))
+        $img = trim($local_img);
+    else if ((isset($_REQUEST['foaf:img'])) && (strlen($_REQUEST['foaf:img']) > 0)) 
+        $img = trim($_REQUEST['foaf:img']);
+    else
+        $img = 'img/nouser.png';
+    $graph->addResource($me, 'foaf:img', $img);
+    // nickname
+    if ((isset($_REQUEST['foaf:nick'])) && (strlen($_REQUEST['foaf:nick']) > 0)) {
+        $me->set('foaf:nick', trim($_REQUEST['foaf:nick']));
+    }
+    // email
+    if (isset($_REQUEST['foaf:mbox'])) {
+        foreach ($_REQUEST['foaf:mbox'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:mbox', 'mailto:' . trim($val));
         }
-        // email
-        if (isset($_REQUEST['foaf:mbox'])) {
-            foreach ($_REQUEST['foaf:mbox'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:mbox', 'mailto:' . trim($val));
-            }
+    }
+    // email_sha1sum
+    if (isset($_REQUEST['foaf:mbox_sha1sum'])) {
+        foreach ($_REQUEST['foaf:mbox_sha1sum'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:mbox_sha1sum', trim($val));
         }
-        // email_sha1sum
-        if (isset($_REQUEST['foaf:mbox_sha1sum'])) {
-            foreach ($_REQUEST['foaf:mbox_sha1sum'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:mbox_sha1sum', trim($val));
-            }
+    }
+    // sameAs
+    if (isset($_REQUEST['owl:sameAs'])) {
+        foreach($_REQUEST['owl:sameAs'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'owl:sameAs', trim($val));
         }
-        // sameAs
-        if (isset($_REQUEST['owl:sameAs'])) {
-            foreach($_REQUEST['owl:sameAs'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'owl:sameAs', trim($val));
-            }
+    }
+    // homepage
+    if (isset($_REQUEST['foaf:homepage'])) {
+        foreach($_REQUEST['foaf:homepage'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:homepage', trim($val));
         }
-        // homepage
-        if (isset($_REQUEST['foaf:homepage'])) {
-            foreach($_REQUEST['foaf:homepage'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:homepage', trim($val));
-            }
+    }
+    // blogs
+    if (isset($_REQUEST['foaf:weblog'])) {
+        foreach($_REQUEST['foaf:weblog'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:weblog', trim($val));
         }
-        // blogs
-        if (isset($_REQUEST['foaf:weblog'])) {
-            foreach($_REQUEST['foaf:weblog'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:weblog', trim($val));
-            }
+    }
+    // work homepages
+    if (isset($_REQUEST['foaf:workplaceHomepage'])) {
+        foreach($_REQUEST['foaf:workplaceHomepage'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:workplaceHomepage', trim($val));
         }
-        // work homepages
-        if (isset($_REQUEST['foaf:workplaceHomepage'])) {
-            foreach($_REQUEST['foaf:workplaceHomepage'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:workplaceHomepage', trim($val));
-            }
+    }
+    // school homepages
+    if (isset($_REQUEST['foaf:schoolHomepage'])) {
+        foreach($_REQUEST['foaf:schoolHomepage'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:schoolHomepage', trim($val));
         }
-        // school homepages
-        if (isset($_REQUEST['foaf:schoolHomepage'])) {
-            foreach($_REQUEST['foaf:schoolHomepage'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:schoolHomepage', trim($val));
-            }
-        }     
-        // current projects
-        if (isset($_REQUEST['foaf:currentProject'])) {
-            foreach($_REQUEST['foaf:currentProject'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:currentProject', trim($val));
-            }
+    }     
+    // current projects
+    if (isset($_REQUEST['foaf:currentProject'])) {
+        foreach($_REQUEST['foaf:currentProject'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:currentProject', trim($val));
         }
-        // past projects
-        if (isset($_REQUEST['foaf:pastProject'])) {
-            foreach($_REQUEST['foaf:pastProject'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'foaf:pastProject', trim($val));
-            }
+    }
+    // past projects
+    if (isset($_REQUEST['foaf:pastProject'])) {
+        foreach($_REQUEST['foaf:pastProject'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'foaf:pastProject', trim($val));
         }
+    }
 
 // ----- socweb:webapp ----- //
-        // apps
-        if (isset($_REQUEST['socweb:webapp'])) {
-            foreach($_REQUEST['socweb:webapp'] as $key => $val) {
-                if (strlen($val) > 0)
-                    $graph->addResource($me, 'socweb:webapp', trim($val));
-            }
+    // apps
+    if (isset($_REQUEST['socweb:webapp'])) {
+        foreach($_REQUEST['socweb:webapp'] as $key => $val) {
+            if (strlen($val) > 0)
+                $graph->addResource($me, 'socweb:webapp', trim($val));
         }
+    }
 
 // ----- foaf:knows ----- //
-        if ((isset($_REQUEST['foaf:knows'])) && (strlen($_REQUEST['foaf:knows'][0]) > 0)) {
-            foreach($_REQUEST['foaf:knows'] as $key => $person_uri) {
-                if (strlen($person_uri) > 0) {
-                    $graph->addResource($me, 'foaf:knows', $person_uri);
-                }
+    if ((isset($_REQUEST['foaf:knows'])) && (strlen($_REQUEST['foaf:knows'][0]) > 0)) {
+        foreach($_REQUEST['foaf:knows'] as $key => $person_uri) {
+            if (strlen($person_uri) > 0) {
+                $graph->addResource($me, 'foaf:knows', $person_uri);
             }
         }
-   
+    }
+
 // ----- pingback:to relation ----- //
-        $graph->addResource($me, 'pingback:to', $base_uri . '/pingback.php');
+    $graph->addResource($me, 'pingback:to', $base_uri . '/pingback.php');
 
-        // certificates
-        // write certificates' public keys (if we have more than one)
-        foreach($_REQUEST['modulus'] as $key => $val) {
-            if (strlen($val) > 0) {
-                $modulus = preg_replace('/\s+/', '', $val);
-                $exponent = (strlen($_REQUEST['exponent'][$key]) > 0) ? trim($_REQUEST['exponent'][$key]) : '65537';
-                $cert = $graph->newBNode('cert:RSAPublicKey');
-                $cert->add('cert:modulus', array(
-                        'type' => 'literal',
-                        'datatype' => 'http://www.w3.org/2001/XMLSchema#hexBinary',
-                        'value' => $modulus)
-                      );
-                $cert->add('cert:exponent', array(
-                        'type' => 'literal',
-                        'datatype' => 'http://www.w3.org/2001/XMLSchema#int',
-                        'value' => $exponent)
-                        );
-                $me->add('cert:key', $cert);
-            }
-        }
-        
-// ----- GENERATE CERTIFICATE ----- //
-        // Do not generate a certificate if we're just editing the profile
-        if (($_REQUEST["action"] == 'new') || ($_REQUEST["action"] == 'import')) {
-            // append other webids after the local one
- 	       	$foafLocation = array();
-        	$foafLocation[] = $webid;
-          	foreach ($_REQUEST['webid_uri'] as $val) {
-        	    if (strlen($val) > 0) 
-        	        $foafLocation[] = $val;
-        	}
-        	
-        	if (strlen($_REQUEST['countryName']) < 1)
-    	    	$countryName = 'EU';
-            
-    	    // Get the rest of the script parameters
-    	    // Not useful for now, might use them later in an advanced config
-    	    $countryName		    = $_REQUEST['countryName'];
-    	    $stateOrProvinceName	= $_REQUEST['stateOrProvinceName'];
-       	    $localityName		    = $_REQUEST['localityName'];
-    	    $organizationName	    = $_REQUEST['organizationName'];
-    	    $organizationalUnitName = $_REQUEST['organizationalUnitName'];
-            $emailAddress           = $_REQUEST['emailAddress'];
-    	    $pubkey			        = $_REQUEST["pubkey"];
-
-    	    // Create a x509 SSL certificate in DER format
-        	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, SSL_CONF, CA_PASS);
-            $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
-          	$output = explode('=', shell_exec($command));
-            
-            // add public key elements to our new webid profile
-            $modulus = preg_replace('/\s+/', '', strtolower($output[1]));
+    // certificates
+    // write certificates' public keys (if we have more than one)
+    foreach($_REQUEST['modulus'] as $key => $val) {
+        if (strlen($val) > 0) {
+            $modulus = preg_replace('/\s+/', '', $val);
+            $exponent = (strlen($_REQUEST['exponent'][$key]) > 0) ? trim($_REQUEST['exponent'][$key]) : '65537';
             $cert = $graph->newBNode('cert:RSAPublicKey');
             $cert->add('cert:modulus', array(
-                        'type' => 'literal',
-                        'datatype' => 'http://www.w3.org/2001/XMLSchema#hexBinary',
-                        'value' => $modulus)
-                      );
+                    'type' => 'literal',
+                    'datatype' => 'http://www.w3.org/2001/XMLSchema#hexBinary',
+                    'value' => $modulus)
+                  );
             $cert->add('cert:exponent', array(
-                        'type' => 'literal',
-                        'datatype' => 'http://www.w3.org/2001/XMLSchema#int',
-                        'value' => '65537')
-                        );
+                    'type' => 'literal',
+                    'datatype' => 'http://www.w3.org/2001/XMLSchema#int',
+                    'value' => $exponent)
+                    );
             $me->add('cert:key', $cert);
-            
-            // autmatically subscribe to local services
-            $tiny = substr(md5(uniqid(microtime(true),true)),0,8);
-            $user_hash  = substr(md5($webid), 0, 8);
-		    $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
-            $result = mysql_query($query);
-            if (!$result) {
-                $alert .= error('Unable to write to the database!');
-            } else {
-                mysql_free_result($result);
-            }
-         
-            // create dirs
-            if (!mkdir($user_dir, 0775))
-                $alert .= ('Failed to create user profile directory! Check permissions.');
-    
-            // write Rewrite .htaccess file
-            $htaccess = fopen($user_dir . '/.htaccess', 'w') or die('Cannot create .htaccess file!');
-            // .htaccess content
-            $rw = "Options -MultiViews\n";
-            $rw .= "AddType \"application/rdf+xml\" .rdf\n";
-            $rw .= "RewriteEngine On\n";
-            $rw .= "RewriteBase /" . $user_dir . "/\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml\n";
-            $rw .= "RewriteRule ^card$ " . BASE_URI . "/view?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
-            $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
-            $rw .= "RewriteRule ^card$ foaf.rdf [L]\n";
-            // finally write content to file
-            fwrite($htaccess, $rw);
-            fclose($htaccess);
         }
-
-        // write profile to file
-        $data = $graph->serialise('rdfxml');
-        if (!is_scalar($data)) 
-            $data = var_export($data, true);
-
-        $pf = fopen($user_dir . '/foaf.rdf', 'w') or die('Cannot create profile RDF file in ' . $user_dir . '!');
-        fwrite($pf, $data);
-        fclose($pf);    
+    }
+    
+// ----- GENERATE CERTIFICATE ----- //
+    // Do not generate a certificate if we're just editing the profile
+    if (($_REQUEST["action"] == 'new') || ($_REQUEST["action"] == 'import')) {
+        // append other webids after the local one
+       	$foafLocation = array();
+    	$foafLocation[] = $webid;
+      	foreach ($_REQUEST['webid_uri'] as $val) {
+    	    if (strlen($val) > 0) 
+    	        $foafLocation[] = $val;
+    	}
+    	
+    	if (strlen($_REQUEST['countryName']) < 1)
+	    	$countryName = 'EU';
         
-        $pf = fopen($user_dir . '/foaf.txt', 'w') or die('Cannot create profile PHP file!');
-        fwrite($pf, $data);
-        fclose($pf);
-      
-        // everything is fine
-        $ok = true;
+	    // Get the rest of the script parameters
+	    // Not useful for now, might use them later in an advanced config
+	    $countryName		    = $_REQUEST['countryName'];
+	    $stateOrProvinceName	= $_REQUEST['stateOrProvinceName'];
+   	    $localityName		    = $_REQUEST['localityName'];
+	    $organizationName	    = $_REQUEST['organizationName'];
+	    $organizationalUnitName = $_REQUEST['organizationalUnitName'];
+        $emailAddress           = $_REQUEST['emailAddress'];
+	    $pubkey			        = $_REQUEST["pubkey"];
 
-        // Send the X.509 SSL certificate to the script caller (user) as a file transfer
-        if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
-            download_identity_x509($x509, $webid);
+	    // Create a x509 SSL certificate in DER format
+    	$x509 = create_identity_x509($countryName, $stateOrProvinceName, $localityName, $organizationName, $organizationalUnitName, $_REQUEST['foaf:name'], $emailAddress, $foafLocation, $pubkey, SSL_CONF, CA_PASS);
+        $command = "openssl x509 -inform der -in " . $x509 . " -modulus -noout";
+      	$output = explode('=', shell_exec($command));
+        
+        // add public key elements to our new webid profile
+        $modulus = preg_replace('/\s+/', '', strtolower($output[1]));
+        $cert = $graph->newBNode('cert:RSAPublicKey');
+        $cert->add('cert:modulus', array(
+                    'type' => 'literal',
+                    'datatype' => 'http://www.w3.org/2001/XMLSchema#hexBinary',
+                    'value' => $modulus)
+                  );
+        $cert->add('cert:exponent', array(
+                    'type' => 'literal',
+                    'datatype' => 'http://www.w3.org/2001/XMLSchema#int',
+                    'value' => '65537')
+                    );
+        $me->add('cert:key', $cert);
+        
+        // autmatically subscribe to local services
+        $tiny = substr(md5(uniqid(microtime(true),true)),0,8);
+        $user_hash  = substr(md5($webid), 0, 8);
+	    $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
+        $result = mysql_query($query);
+        if (!$result) {
+            $alert .= error('Unable to write to the database!');
         } else {
-            if ($ok) {
-                $alert .= success('Your profile has been updated.');
-                // reload the profile information
-                $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
-                $_SESSION['myprofile']->load(true);
-            } else {
-                $alert .= error('Could not update your profile!');
-            }
-       }
+            mysql_free_result($result);
+        }
+     
+        // create dirs
+        if (!mkdir($user_dir, 0775))
+            $alert .= ('Failed to create user profile directory! Check permissions.');
+
+        // write Rewrite .htaccess file
+        $htaccess = fopen($user_dir . '/.htaccess', 'w') or die('Cannot create .htaccess file!');
+        // .htaccess content
+        $rw = "Options -MultiViews\n";
+        $rw .= "AddType \"application/rdf+xml\" .rdf\n";
+        $rw .= "RewriteEngine On\n";
+        $rw .= "RewriteBase /" . $user_dir . "/\n";
+        $rw .= "RewriteCond %{HTTP_ACCEPT} !application/rdf\+xml\n";
+        $rw .= "RewriteRule ^card$ " . BASE_URI . "/view?webid=" . str_replace('%', '\%', urlencode($webid)) . " [R=303]\n";
+        $rw .= "RewriteCond %{HTTP_ACCEPT} application/rdf\+xml\n";
+        $rw .= "RewriteRule ^card$ foaf.rdf [L]\n";
+        // finally write content to file
+        fwrite($htaccess, $rw);
+        fclose($htaccess);
+    }
+
+    // write profile to file
+    $data = $graph->serialise('rdfxml');
+    if (!is_scalar($data)) 
+        $data = var_export($data, true);
+
+    $pf = fopen($user_dir . '/foaf.rdf', 'w') or die('Cannot create profile RDF file in ' . $user_dir . '!');
+    fwrite($pf, $data);
+    fclose($pf);    
+    
+    $pf = fopen($user_dir . '/foaf.txt', 'w') or die('Cannot create profile PHP file!');
+    fwrite($pf, $data);
+    fclose($pf);
+  
+    // everything is fine
+    $ok = true;
+
+    // Send the X.509 SSL certificate to the script caller (user) as a file transfer
+    if (($_REQUEST['action'] == 'new') || ($_REQUEST['action'] == 'import')) {
+        download_identity_x509($x509, $webid);
+    } else {
+        if ($ok) {
+            $alert .= success('Your profile has been updated.');
+            // reload the profile information
+            $_SESSION['myprofile'] = new MyProfile($webid, $base_uri, SPARQL_ENDPOINT);
+            $_SESSION['myprofile']->load(true);
+        } else {
+            $alert .= error('Could not update your profile!');
+        }
+    }
 }
 
 // Display form
@@ -544,6 +544,9 @@ $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $name
 $ret .= "</tr>\n";
 /* ----- KEYGEN ------ */
 if ($_REQUEST['action'] == 'new') {
+    $ret .= "<tr><td colspan=\"2\"><br/><strong>Optional:</strong></td></tr>\n";
+    $ret .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"\" name=\"foaf:mbox[]\"></td></tr>\n";
+    $ret .= "<tr><td colspan=\"2\"><small>The email is useful for recovering your account. (<strong>Note</strong>: this information is public!)</small></td></tr>\n";
     $ret .= "<tr hidden>\n";
     $ret .= "<td hidden>KEYGEN Key Length</td>\n";
     $ret .= "<td hidden><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\" keytype=\"rsa\" hidden></td>\n";
