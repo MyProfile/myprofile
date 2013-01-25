@@ -143,6 +143,7 @@ if (strlen($auth->webid) > 0) {
 // Get the number of messages
 if (isset($_SESSION['webid']) && $_SESSION['webid']) {
     $messages = get_msg_count($_SESSION['webid']);
+    $wall_msg = get_msg_count($_SESSION['webid'], True, True);
 }
 
 
