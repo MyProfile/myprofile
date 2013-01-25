@@ -102,6 +102,7 @@ a:hover, .fakeLink:hover {
     font-weight: bold;
 }
 input[type="text"],
+input[type="password"],
 textarea,
 select,
 .uneditable-input {
