@@ -245,7 +245,7 @@ if ((isset($_SESSION['webid'])) && (isset($_REQUEST['activity']))) {
         else
             $rows = mysql_num_rows($result);
     }
-    $title = 'News Feed';
+    $title = 'Activity';
 } else {
     // get the last 50 wall messages for a user
     $query = 'SELECT * FROM pingback_messages WHERE ' . 
