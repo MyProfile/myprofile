@@ -260,6 +260,8 @@ function get_msg_count ($webid, $new=1, $wall=null) {
     $sql .= "AND new='" . mysql_real_escape_string($new) . "' ";
     if ($wall !== null)
         $sql .= "AND wall='" . mysql_real_escape_string($wall) . "' ";
+    else
+        $sql .= "AND wall='0' ";
 
     $result = mysql_query($sql);
     if (!$result) {

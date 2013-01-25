@@ -31,13 +31,20 @@
                 if (isset($_SESSION['webid'])) {
                     // Messages (wall & private)
                     $bg = ($messages > 0) ? 'notification-active' : 'notification-inactive';
+                    $wm_bg = ($wall_msg > 0) ? 'notification-active' : 'notification-inactive';
                     $wrapper = 'wrapper'
                     ?>
-
+                    
+                    <!-- Notifications -->
                     <span class="r5 <?= $bg ?>">
                         <a href="messages"><strong><?= $messages ?></strong> Notification<?php echo ($messages != 1) ? 's': ''; ?></a>
                     </span>
-
+                    <?php if ($wall_msg > 0) { ?>
+                        <span class="r5 <?= $wm_bg ?>">
+                            <a href="<?= 'wall?user='.$_SESSION['user_hash'] ?>"><strong><?= $wall_msg ?></strong> Post<?php echo ($wall_msg != 1) ? 's': ''; ?> on your wall</a>
+                        </span>
+                    <?php } ?>
+                    
                     <!-- user info -->
                     <div class="pull-left">
                         <a href="view?webid=<?= urlencode($_SESSION['webid']) ?>">
@@ -50,8 +57,8 @@
                     </a></div>
 
                 <?php } else { ?>
-                    <span class="login-webid r5"><a href="<?= IDP.$page_uri ?>"><img src="img/webid.png" alt="Login" title="WebID Login" /></a></span>
-                    <span class="get-webid r5"><a href="profile"><img src="img/getwebid.png" alt="Get a WebID" title="Get a WebID" /></a></span>
+                    <span class="login-webid r5"><a href="<?= IDP.$page_uri ?>">WebID Login</a></span>
+                    <span class="login-webid r5"><a href="profile">Get a WebID</a></span>
                 <?php $wrapper = 'wrapper-max'; } ?>
             </div>
         </div>
@@ -61,7 +68,7 @@
             <ul id="left-nav">
                 <li><a href="wall" class="home margin-top-30 <?= $home_on ?>"><small>Home</small></a></li>
                 <li><a href="<?= 'wall?user='.$_SESSION['user_hash'] ?>" class="wall margin-top-30 <?= $wall_on ?>"><small>My Wall</small></a></li>
-                <li><a href="wall?activity=1" class="news margin-top-30 <?= $news_on ?>"><small>News</small></a></li>
+                <li><a href="wall?activity=1" class="news margin-top-30 <?= $news_on ?>"><small>Activity</small></a></li>
                 <li><a href="friends" class="friends margin-top-30 <?= $friends_on ?>"><small>Friends</small></a></li>
                 <li id="messages"><a href="messages" class="messages margin-top-30 <?= $messages_on ?>"><small>Messages</small></a></li>
                 <li id="profile"><a href="view" class="profile margin-top-30 <?= $profile_on ?>"><small>My Profile</small></a></li>
