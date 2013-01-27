@@ -141,12 +141,12 @@ if (!$result) {
 
         $ret .= "<tr valign=\"top\">\n";
         $ret .= "   <td width=\"80\" align=\"center\">\n";
-        $ret .= "       <a href=\"view?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
+        $ret .= "       <a href=\"view?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
         $ret .= "   </td>\n";
         $ret .= "   <td>";
         $ret .= "       <table border=\"0\">\n";
         $ret .= "       <tr valign=\"top\">\n";
-        $ret .= "           <td><b><a href=\"view?uri=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b> <small style=\"color: grey;\">" . date('Y-m-d H:i:s', $row['date']) . "</small></td>\n";
+        $ret .= "           <td><b><a href=\"view?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b> <small style=\"color: grey;\">" . date('Y-m-d H:i:s', $row['date']) . "</small></td>\n";
         $ret .= "       </tr>\n";
         $ret .= "       <tr>\n";
         $ret .= "           <td class=\"wall-message\"><p>" . $text . "</p></td>\n";
