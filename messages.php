@@ -129,6 +129,9 @@ if (!$result) {
         $pic = $row['pic'];
         $new = $row['new'];
 
+        $bg_style = ($new == 1) ? 'newmsg' : '';
+        
+
         $text = htmlspecialchars($row["msg"]);
         $text = put_links($text);
 
@@ -139,12 +142,13 @@ if (!$result) {
         $ret .= "<input type=\"hidden\" name=\"name\" value=\"" . $name . "\">\n";
         $ret .= "<table>\n";
 
-        $ret .= "<tr valign=\"top\">\n";
+        $ret .= "<tr class=\"".$bg_style."\"><td colspan=\"2\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/><br/></td></tr>\n";
+        $ret .= "<tr valign=\"top\" class=\"".$bg_style."\">\n";
         $ret .= "   <td width=\"80\" align=\"center\">\n";
         $ret .= "       <a href=\"view?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\"><img title=\"" . $name . "\" alt=\"" . $name . "\" width=\"48\" src=\"" . $pic . "\" style=\"padding: 0px 0px 10px;\" /></a>\n";
         $ret .= "   </td>\n";
         $ret .= "   <td>";
-        $ret .= "       <table border=\"0\">\n";
+        $ret .= "       <table>\n";
         $ret .= "       <tr valign=\"top\">\n";
         $ret .= "           <td><b><a href=\"view?webid=" . urlencode($row['from_uri']) . "\" target=\"_blank\" style=\"font-color: black;\">" . $name . "</a></b> <small style=\"color: grey;\">" . date('Y-m-d H:i:s', $row['date']) . "</small></td>\n";
         $ret .= "       </tr>\n";
@@ -166,7 +170,6 @@ if (!$result) {
         $ret .= "   </td>\n";
         $ret .= "</tr>\n";
              
-        $ret .= "<tr><td colspan=\"2\"><hr style=\"border: none; height: 1px; color: #cccccc; background: #cccccc;\"/><br/></td></tr>\n";
         $ret .= "</table>\n";
         $ret .= "</form>\n";
         $i++;

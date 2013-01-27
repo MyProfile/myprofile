@@ -102,7 +102,6 @@ a:hover, .fakeLink:hover {
     font-weight: bold;
 }
 input[type="text"],
-input[type="password"],
 textarea,
 select,
 .uneditable-input {
@@ -947,6 +946,11 @@ ul.disc {
     padding-bottom: 10px;
     margin-bottom: 10px;
 }
+
+.newmsg {
+    background: #BDD8DA !important;
+}
+
 .options {
     size: 10px;
 	padding-top: 5px;
