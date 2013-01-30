@@ -127,6 +127,7 @@ textarea {
 }
 
 input[type="search"] {
+  display: inline-block;
   -webkit-appearance: textfield;
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
@@ -138,7 +139,7 @@ input[type="search"] {
   -moz-border-radius: 3px;
   border-radius: 3px;
   cursor: auto;
-  padding: 4px 7px 4px 31px !important;
+  padding: 2px 7px 4px 31px !important;
   margin-bottom: 10px;
   height: 20px !important;
   width: 400px !important;
@@ -872,6 +873,19 @@ ul.disc {
   height: 40px;
 }
 
+.textarea-msg {
+  width: 580px;
+  height: 51px;
+  margin-left: 5px;
+}
+
+.hr-msg {
+  border: none;
+  height: 1px;
+  color: #cccccc;
+  background: #cccccc;
+}
+
 .reverse .speaker {
 	float: right!important; }
 
@@ -949,6 +963,14 @@ ul.disc {
 
 .newmsg {
     background: #BDD8DA !important;
+}
+
+.message {
+    width: 620px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display: inline-block;
+    font-family: Futura, Verdana, sans-serif;
 }
 
 .options {
