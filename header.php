@@ -48,7 +48,7 @@
                     <!-- user info -->
                     <div class="pull-left">
                         <a href="view?webid=<?= urlencode($_SESSION['webid']) ?>">
-                        <img class="r3 login-img" width="32" alt="<?= $_SESSION['usr']?>" src="<?= $_SESSION['img'] ?>" />
+                        <img class="r3 login-img" height="38" alt="<?= $_SESSION['usr']?>" src="<?= $_SESSION['img'] ?>" />
                         <span class="login-user"><?= (strlen($_SESSION['usr']) > 20) ? substr($_SESSION['usr'], 0, 20) . '...' : $_SESSION['usr'] ?></span>
                         </a>
                     </div>

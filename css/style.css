@@ -599,8 +599,6 @@ ul.disc {
     padding: 5px;
 }
 .login-img {
-    height: 38px;
-    width: 38px;
     margin-top: 10px;
     float:left;
     display:inline;
@@ -916,7 +914,7 @@ ul.disc {
 	border: #d7d7d7 solid 1px;
 	width: 600px;
 	float: left; }
-	
+
 .wall-box .statement .gray {
     color: gray;
 }
@@ -971,6 +969,10 @@ ul.disc {
     padding-bottom: 5px;
     display: inline-block;
     font-family: Futura, Verdana, sans-serif;
+}
+
+.mywac {
+    margin-left: 5px;
 }
 
 .options {
