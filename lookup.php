@@ -25,13 +25,12 @@ $friends_on = 'friends-on';
 $title = "Lookup someone";
 include 'header.php';
 
-if (isset($_REQUEST['search']))
-    $search = $_REQUEST['search'];
+$search = (isset($_REQUEST['search'])) ? $_REQUEST['search'] : 'name, nickname or WebID';
 
 $ret = "<div class=\"content relative shadow clearfix main\">";
 $ret .= "<div>";
 $ret .= "<form method=\"get\">\n";
-$ret .= "<input type=\"search\" name=\"search\" onfocus=\"this.value=(this.value=='name, nickname or WebID') ? '' : this.value;\" onblur=\"this.value=(this.value=='') ? 'name, nickname or WebID' : this.value;\" value=\"".$search."\" onkeydown=\"if(event.keyCode == 13) fmsearch(this.value);\">\n";
+$ret .= "<input type=\"search\" name=\"search\" onfocus=\"this.value=(this.value=='name, nickname or WebID') ? '' : this.value;\" onblur=\"this.value=(this.value=='') ? 'name, nickname or WebID' : this.value;\" value=\"".$search."\" />\n";
 $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Search \">\n";
 $ret .= "</form></div>\n";
 
