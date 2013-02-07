@@ -58,7 +58,8 @@
 
                 <?php } else { ?>
                     <span class="login-webid r5"><a href="<?= IDP.$page_uri ?>">WebID Login</a></span>
-                    <span class="login-webid r5"><a href="profile">Get a WebID</a></span>
+                    <span class="login-webid r5"><a href="profile">Get a WebID account</a></span>
+                    <span class="login-webid r5"><a href="recovery">Account recovery</a></span>
                 <?php $wrapper = 'wrapper-max'; } ?>
             </div>
         </div>
