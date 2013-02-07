@@ -113,7 +113,7 @@ if(isset($_REQUEST['logout'])) {
 }
 
 // Authenticate using WebID
-if ((strlen($auth->webid) > 0) || (isset($_REQUEST["recovery_code"]))) {
+if ((strlen($auth->webid) > 0) || (isset($_REQUEST["recovery_code"])) || (isset($_REQUEST["pairing_pin"]))) {
     $ok = False;
 
     // Authenticated through WebID-TLS
@@ -124,15 +124,26 @@ if ((strlen($auth->webid) > 0) || (isset($_REQUEST["recovery_code"]))) {
     
     // Authenticate through recovery hash
     if (strlen($_REQUEST["recovery_code"]) > 0) {
-
         $recovery = new Recovery();
-        $status = $recovery->isAuthenticated($_REQUEST["recovery_code"]);
+        $status = $recovery->hash_authenticated($_REQUEST["recovery_code"]);
         if ($status == True) {
             $webid = $recovery->get_webid();
             $_SESSION['recovery_status'] = null;
             $ok = True;
         } else {
             $_SESSION['recovery_status'] = error('Your recovery code does not match any records in our database.');
+        }
+    }
+    
+    if (strlen($_REQUEST["pairing_pin"]) > 0) {
+        $recovery = new Recovery();
+        $status = $recovery->pin_authenticated($_REQUEST["pairing_pin"]);
+        if ($status == True) {
+            $webid = $recovery->get_webid();
+            $_SESSION['recovery_status'] = null;
+            $ok = True;
+        } else {
+            $_SESSION['recovery_status'] = error('Your recovery PIN does not match any records in our database.');
         }
     }
     

@@ -8,7 +8,8 @@ class Recovery {
         // empty
     }
     
-    function isAuthenticated($hash) {
+    // Try to match the given hash to the one in the database in order to authenticate users
+    function hash_authenticated($hash) {
         $query = "SELECT webid FROM recovery WHERE recovery_hash='".mysql_real_escape_string(trim($hash))."'";
         $result = mysql_query($query);
         if (!$result) {
@@ -36,6 +37,77 @@ class Recovery {
         return True;
     }
     
+    // Try to match the given PIN to the one in the database in order to authenticate users
+    function pin_authenticated($pin) {
+        $query = "SELECT webid FROM recovery WHERE ".
+                "pair_hash = '".mysql_real_escape_string(trim($pin))."' ".
+                "AND expire >= '".time()."'";
+        $result = mysql_query($query);
+        if (!$result) {
+            die('Unable to connect to the database!');
+        } else if (mysql_num_rows($result) > 0) {
+            $row = mysql_fetch_assoc($result);
+            $this->webid = $row['webid'];
+            mysql_free_result($result);
+
+            // remove the hash to disable it
+            $query = "UPDATE recovery SET ".
+                "pair_hash=NULL ".
+                "WHERE webid='".mysql_real_escape_string($this->webid)."'";
+            $result = mysql_query($query);
+            if (!$result) {
+                die('Unable to connect to the database!');
+            } else {
+                mysql_free_result($result);
+            }
+
+        } else {
+            $this->reason = 'Your pairing PIN does not match any records in our database.';
+            return False;
+        }
+        return True;
+    }
+    
+    // Generate a PIN number
+    function set_pin($webid) {
+        $time = time() + 60; // one minute from now
+        $webid = trim($webid);
+        $pin = substr('000000' . rand(1, 999999), -6); // can also start with 0
+        
+        // find if an entry exists or not for the given WebID
+        $query = "SELECT webid FROM recovery WHERE webid='".mysql_real_escape_string($webid)."'";
+        $result = mysql_query($query);
+                
+        if (!$result) {
+            die('Unable to connect to the database!');
+        } else if (mysql_num_rows($result) > 0) {
+            $row = mysql_fetch_assoc($result);
+            $email = $row['webid'];
+            mysql_free_result($result);
+            
+            // set the PIN
+            $query = "UPDATE recovery SET ".
+                    "pair_hash='".$pin."', ".
+                    "expire='".$time."' ".
+                    "WHERE webid='".mysql_real_escape_string($webid)."'";
+            $result = mysql_query($query);
+        } else {
+            // insert new record for this WebID and set the PIN
+            $query = "INSERT INTO recovery SET ".
+                    "webid='".mysql_real_escape_string($webid)."', ".
+                    "pair_hash='".$pin."', ".
+                    "expire='".$time."'";
+            $result = mysql_query($query);
+        }
+        
+        if (!$result) {
+            die('Unable to connect to the database!');
+        } else {
+            return $pin;
+        }
+    }
+    
+    // Generate a recovery code and send email
     function recover($webid) {
         // hexa string of 20 chars
         $hash = sha1(trim($webid) . uniqid(microtime(true), true));
@@ -106,7 +178,7 @@ class Recovery {
                 if (PEAR::isError($mail)) {
                     $ret .= error('Sendmail: ' . $mail->getMessage());
                 }
-
+                
                 return success('An email has been sent to the recovery address you have specified.');
             }
         } else {

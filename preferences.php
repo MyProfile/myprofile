@@ -65,6 +65,12 @@ if (webid_is_local($_SESSION['webid'])) {
     }
 }
 
+// generate PIN for browser pairing
+if (isset($_REQUEST['generate_pin'])) {
+    $recovery = new Recovery();
+    $pin = $recovery->set_pin($_SESSION['webid']);
+}
+
 // subscribe or unsubscribe
 if (isset($_REQUEST['subscribe'])) {
     $ret .= $_SESSION['myprofile']->subscribe();
@@ -115,25 +121,47 @@ else {
     $ret .= "</form>\n";
 }
 
-// display options for local users only
-if (webid_is_local($_SESSION['webid'])) {
-        if (isset($_REQUEST['recovery_email']))
-            $email = $_REQUEST['recovery_email'];
-        else
-            $email = $_SESSION['myprofile']->get_recovery_email();
-        $ret .= "<p></p>\n";
-        $ret .= "<h2><strong>Recovery Email</strong></h2>\n";
+if (isset($_REQUEST['recovery_email']))
+    $email = $_REQUEST['recovery_email'];
+else
+    $email = $_SESSION['myprofile']->get_recovery_email();
+$ret .= "<p></p>\n";
+$ret .= "<h2><strong>Pairing with a different browser</strong></h2>\n";
+$ret .= "<p>This feature allows you to reuse your current WebID in order to login using a different browser!</p>";
 
-        $ret .= "<table><tr>\n";
-        $ret .= "<td>\n";
-        $ret .= "<form method=\"post\">\n";
-        $ret .= "<input type=\"text\" class=\"recovery\" name=\"recovery_email\" value=\"".$email."\" />\n";
-        $ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"update_recovery\" value=\"Update\">\n";
-        $ret .= "</form> \n";
-        $ret .= "</td>\n";
-        $ret .= "</tr></table>\n";
-        $ret .= "<strong>Note!</strong> This email address is private and will not be displayed on your profile.";
-        
+$ret .= "<table>\n";
+if (isset($pin)) {
+    $ret .= "<tr><td>\n";
+    $ret .= "<pre class=\"pin\">".$pin."</pre>\n";
+    $ret .= "</td></tr>\n";
+}
+$ret .= "<tr><td>\n";
+$ret .= "<form method=\"post\">\n";
+$ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"generate_pin\" value=\"Generate new PIN\">\n";
+$ret .= "</form> \n";
+$ret .= "</td></tr>\n";
+$ret .= "</table>\n";
+$ret .= "<p><strong>Note!</strong> This pin number will only be valid for 1 minute!</p>";
+
+// display options for local users only
+if (webid_is_local($_SESSION['webid'])) {   
+    if (isset($_REQUEST['recovery_email']))
+        $email = $_REQUEST['recovery_email'];
+    else
+        $email = $_SESSION['myprofile']->get_recovery_email();
+    $ret .= "<p></p>\n";
+    $ret .= "<h2><strong>Recovery Email</strong></h2>\n";
+
+    $ret .= "<table><tr>\n";
+    $ret .= "<td>\n";
+    $ret .= "<form method=\"post\">\n";
+    $ret .= "<input type=\"text\" class=\"recovery\" name=\"recovery_email\" value=\"".$email."\" />\n";
+    $ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"update_recovery\" value=\"Update\">\n";
+    $ret .= "</form> \n";
+    $ret .= "</td>\n";
+    $ret .= "</tr></table>\n";
+    $ret .= "<strong>Note!</strong> This email address is private and will not be share with anyone else!";
+
     if (!isset($_REQUEST['action'])) {
         $ret .= "<p></p>\n";
         $ret .= "<h2><strong>Manage profile</strong></h2>\n";

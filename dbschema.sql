@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `pingback` (
   `user_hash` varchar(20) DEFAULT NULL,
   `email` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -56,7 +56,22 @@ CREATE TABLE IF NOT EXISTS `pingback_messages` (
   `wall` tinyint(1) NOT NULL DEFAULT '0',
   `new` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `recovery`
+--
+
+CREATE TABLE IF NOT EXISTS `recovery` (
+  `webid` varchar(512) NOT NULL,
+  `email` varchar(512) DEFAULT NULL,
+  `recovery_hash` varchar(40) DEFAULT NULL,
+  `pair_hash` varchar(6) DEFAULT NULL,
+  `expire` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`webid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -71,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `votes` (
   `message_id` int(11) NOT NULL COMMENT 'Message ID.',
   `vote` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 COMMENT='Stores the votes for each message.';
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Stores the votes for each message.';
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

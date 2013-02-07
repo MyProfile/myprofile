@@ -73,6 +73,25 @@ $ret .= "<td>\n";
 $ret .= "<input type=\"text\" class=\"recovery\" name=\"recovery_code\" />\n";
 $ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"recover\" value=\"Login\">\n";
 $ret .= "</td>\n";
+$ret .= "</tr>\n";
+$ret .= "<tr><td colspan=\"2\">\n";
+$ret .= "<p><hr class=\"hr-msg\"></p>\n";
+$ret .= "</td></tr>\n";
+$ret .= "</table>\n";
+$ret .= "</form> \n";
+
+// pairing
+$ret .= "<p></p>\n";
+$ret .= "<h2><strong>Authenticate with your pairing PIN</strong></h2>\n";
+$ret .= "<form method=\"post\">\n";
+$ret .= "<table><tr>\n";
+$ret .= "<td>\n";
+$ret .= "Please provide your pairing PIN here:";
+$ret .= "</td>\n";
+$ret .= "<td>\n";
+$ret .= "<input type=\"text\" name=\"pairing_pin\" />\n";
+$ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"recover\" value=\"Pair\">\n";
+$ret .= "</td>\n";
 $ret .= "</tr></table>\n";
 $ret .= "</form> \n";
 
