@@ -219,7 +219,7 @@ if (isset($_REQUEST['doit']))  {
     
 // ----- GENERATE CERTIFICATE ----- //
     // Do not generate a certificate if we're just editing the profile
-    if (($_REQUEST["action"] == 'new') || ($_REQUEST["action"] == 'import')) {
+    if ($_REQUEST["action"] == 'new') {
         // append other webids after the local one
        	$foafLocation = array();
     	$foafLocation[] = $webid;
@@ -260,17 +260,6 @@ if (isset($_REQUEST['doit']))  {
                     'value' => '65537')
                     );
         $me->add('cert:key', $cert);
-        
-        // autmatically subscribe to local services
-        $tiny = substr(md5(uniqid(microtime(true),true)),0,8);
-        $user_hash  = substr(md5($webid), 0, 8);
-	    $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
-        $result = mysql_query($query);
-        if (!$result) {
-            $alert .= error('Unable to write to the database!');
-        } else {
-            mysql_free_result($result);
-        }
      
         // create dirs
         if (!mkdir($user_dir, 0775))
@@ -290,6 +279,28 @@ if (isset($_REQUEST['doit']))  {
         // finally write content to file
         fwrite($htaccess, $rw);
         fclose($htaccess);
+        
+        // add the user info (useful for recovery)
+	    $query = "INSERT INTO recovery SET webid='" . $webid . "'";
+        if (isset($_REQUEST['email']))
+            $query .= ", email='" . mysql_real_escape_string() . "'";
+        $result = mysql_query($query);
+        if (!$result) {
+            $alert .= error('Unable to write to the database!');
+        } else {
+            mysql_free_result($result);
+        }
+        
+        // autmatically subscribe to local services
+        $tiny = substr(md5(uniqid(microtime(true),true)),0,8);
+        $user_hash  = substr(sha1($webid), 0, 20);
+	    $query = "INSERT INTO pingback SET webid='" . $webid . "', feed_hash='" . $tiny . "', user_hash='" . $user_hash . "'";
+        $result = mysql_query($query);
+        if (!$result) {
+            $alert .= error('Unable to write to the database!');
+        } else {
+            mysql_free_result($result);
+        }
     }
 
     // write profile to file
@@ -374,7 +385,7 @@ if ($_REQUEST['action'] == 'edit') {
     $emails = '';
     if ($profile->get('foaf:mbox') != null) {
         foreach ($profile->all('foaf:mbox') as $email) {
-            $emails .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . clean_mail($email) . "\" name=\"foaf:mbox[]\"></td></tr>\n";
+            $emails .= "<tr><td>Email: </td><td id=\"mbox\"><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . clean_mail($email) . "\" name=\"foaf:mbox[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
         }
     } else {
         // Should still display the email field by default
@@ -385,70 +396,73 @@ if ($_REQUEST['action'] == 'edit') {
     $sha1sums = '';
     if ($profile->get('foaf:mbox_sha1sum') != null) {
         foreach ($profile->all('foaf:mbox_sha1sum') as $sha1)
-            $sha1sums .= "<tr><td>Email SHA1SUM: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $sha1 . "\" name=\"foaf:mbox_sha1sum[]\"></td></tr>\n";
+            $sha1sums .= "<tr><td>Email SHA1SUM: </td><td id=\"mbox_sha1sum\"><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $sha1 . "\" name=\"foaf:mbox_sha1sum[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     } 
     
     // sameAs
     $sameAs = '';
     if ($profile->get('owl:sameAs') != null) {
          foreach ($profile->all('owl:sameAs') as $same)
-            $sameAs .= "<tr><td>Additional profile: </td><td><input type=\"text\" size=\"50\" value=\"" . $same . "\" name=\"owl:sameAs[]\"></td></tr>\n";
+            $sameAs .= "<tr><td>Additional profile: </td><td id=\"sameAs\"><input type=\"text\" size=\"50\" value=\"" . $same . "\" name=\"owl:sameAs[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     } 
     
     // Homepages
     $homepages = '';
     if ($profile->get('foaf:homepage') != null) {
          foreach ($profile->all('foaf:homepage') as $homepage)
-            $homepages .= "<tr><td>Homepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $homepage . "\" name=\"foaf:homepage[]\"></td></tr>\n";
+            $homepages .= "<tr><td>Homepage: </td><td id=\"homepage\"><input type=\"text\" size=\"50\" value=\"" . $homepage . "\" name=\"foaf:homepage[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     } 
     
     // Blogs
     $blogs = '';
     if ($profile->get('foaf:weblog') != null) {
          foreach ($profile->all('foaf:weblog') as $blog)
-            $blogs .= "<tr><td>Blog: </td><td><input type=\"text\" size=\"50\" value=\"" . $blog . "\" name=\"foaf:weblog[]\"></td></tr>\n";
+            $blogs .= "<tr><td>Blog: </td><td  id=\"weblog\"><input type=\"text\" size=\"50\" value=\"" . $blog . "\" name=\"foaf:weblog[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     } 
     
     // Work Homepages
     $workHPS = '';
     if ($profile->get('foaf:workplaceHomepage') != null) {
          foreach ($profile->all('foaf:workplaceHomepage') as $workHP)
-            $workHPS .= "<tr><td>WorkplaceHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $workHP . "\" name=\"foaf:workplaceHomepage[]\"></td></tr>\n";
+            $workHPS .= "<tr><td>WorkplaceHomepage: </td><td id=\"workplaceHomepage\"><input type=\"text\" size=\"50\" value=\"" . $workHP . "\" name=\"foaf:workplaceHomepage[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     } 
     
     // School Homepages
     $schoolHPS = '';
     if ($profile->get('foaf:schoolHomepage') != null) {
          foreach ($profile->all('foaf:schoolHomepage') as $schoolHP)
-            $schoolHPS .= "<tr><td>SchoolHomepage: </td><td><input type=\"text\" size=\"50\" value=\"" . $schoolHP . "\" name=\"foaf:schoolHomepage[]\"></td></tr>\n";
+            $schoolHPS .= "<tr><td>SchoolHomepage: </td><td id=\"schoolHomepage\"><input type=\"text\" size=\"50\" value=\"" . $schoolHP . "\" name=\"foaf:schoolHomepage[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     } 
     
     // Current Projects
     $curprojs = '';
     if ($profile->get('foaf:currentProject') != null) {
          foreach ($profile->all('foaf:currentProject') as $curproj)
-            $curprojs .= "<tr><td>CurrentProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $curproj . "\" name=\"foaf:currentProject[]\"></td></tr>\n";
+            $curprojs .= "<tr>\n";
+            $curprojs .= "<td>CurrentProject: </td><td id=\"currentProject\"><input type=\"text\" size=\"50\" value=\"" . $curproj . "\" name=\"foaf:currentProject[]\">\n";
+            $curprojs .= "<a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td>\n";
+            $curprojs .= "</tr>\n";
     } 
     
     // Past Projects
     $pastprojs = '';
     if ($profile->get('foaf:pastProject') != null) {
          foreach ($profile->all('foaf:pastProject') as $pastproj)
-            $pastprojs .= "<tr><td>PastProject: </td><td><input type=\"text\" size=\"50\" value=\"" . $pastproj . "\" name=\"foaf:pastProject[]\"></td></tr>\n";
+            $pastprojs .= "<tr><td>PastProject: </td><td id=\"pastProject\"><input type=\"text\" size=\"50\" value=\"" . $pastproj . "\" name=\"foaf:pastProject[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     } 
 
     // Web apps
     $webapps = '';
     if ($profile->get('socweb:webapp') != null) {
          foreach ($profile->all('socweb:webapp') as $webapp)
-            $webapps .= "<tr><td>Web app: </td><td><input type=\"text\" size=\"50\" value=\"" . $webapp . "\" name=\"socweb:webapp[]\"></td></tr>\n";
+            $webapps .= "<tr><td>Web app: </td><td id=\"webapp\"><input type=\"text\" size=\"50\" value=\"" . $webapp . "\" name=\"socweb:webapp[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td></tr>\n";
     }
  
     // Friends
     $knows = '';
     if ($profile->get('foaf:knows') != null) {
          foreach ($profile->all('foaf:knows') as $friend)
-            $knows .= "<tr><td>Person: </td><td><input type=\"text\" size=\"70\" value=\"" . $friend . "\" name=\"foaf:knows[]\"></td></tr>\n";
+            $knows .= "<tr><td>Person: </td><td id=\"knows\"><input type=\"text\" size=\"70\" value=\"" . $friend . "\" name=\"foaf:knows[]\"><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" alt=\"Tag resource\" title=\"Tag resource\" /></a><a href=\"#\"><img height=\"16\" src=\"img/actions/friends.png\" class=\"mywac\" alt=\"Tag user\" title=\"Tag user\" /></a></td></tr>\n";
     } else {
         $knows .= "<tr><td>Person: </td><td><input type=\"text\" size=\"70\" placeholder=\"https://my-profile.eu/people/deiu/card#me\" name=\"foaf:knows[]\"></td></tr>\n";
     }
@@ -534,19 +548,22 @@ $ret .= "<table id=\"info\">\n";
 if ($_REQUEST['action'] == 'new') {
     $ret .= "<tr valign=\"middle\">\n";
     $ret .= "<td>Local username: </td>\n";
-    $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" value=\"\" id=\"uri\" name=\"uri\" maxlength=\"32\" onkeypress=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\">";
+    $ret .= "<td valign=\"top\"><input type=\"text\" size=\"50\" value=\"\" id=\"uri\" name=\"uri\" maxlength=\"32\" onkeydown=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\">";
     $ret .= " <font color=\"" . $color . "\"> </font></td>\n";
     $ret .= "</tr>\n";
 }
 /* ----- Full name ------ */
 $ret .= "<tr><td>Full name: </td>\n";
-$ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $name . "\" id=\"fullname\" name=\"foaf:name\" onkeypress=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\"></td>\n";
+$ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $name . "\" id=\"fullname\" name=\"foaf:name\" onkeydown=\"validateReq('" . $base_uri . "/people/', 'uri', 'fullname', 'submit')\">";
+if ($_REQUEST['action'] != 'new')
+    $ret .= "<a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a>\n";
+$ret .= "</td>\n";
 $ret .= "</tr>\n";
 /* ----- KEYGEN ------ */
 if ($_REQUEST['action'] == 'new') {
     $ret .= "<tr><td colspan=\"2\"><br/><strong>Optional:</strong></td></tr>\n";
-    $ret .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"\" name=\"foaf:mbox[]\"></td></tr>\n";
-    $ret .= "<tr><td colspan=\"2\"><small>The email is useful for recovering your account. (<strong>Note</strong>: this information is public!)</small></td></tr>\n";
+    $ret .= "<tr><td>Email: </td><td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"\" name=\"email\"></td></tr>\n";
+    $ret .= "<tr><td colspan=\"2\"><small>The email is useful for recovering your account. (<strong>Note</strong>: this information is private!)</small></td></tr>\n";
     $ret .= "<tr hidden>\n";
     $ret .= "<td hidden>KEYGEN Key Length</td>\n";
     $ret .= "<td hidden><keygen id=\"pubkey\" name=\"pubkey\" challenge=\"randomchars\" keytype=\"rsa\" hidden></td>\n";
@@ -557,17 +574,20 @@ if ($_REQUEST['action'] != 'new') {
     /* ----- Firstname ------ */
     $ret .= "<tr id=\"firstname\">\n";
     $ret .= "<td>Firstname: </td>\n";
-    $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $firstname . "\" name=\"foaf:givenName\"></td>\n";
+    $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $firstname . "\" name=\"foaf:givenName\">\n";
+    $ret .= "<a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td>\n";
     $ret .= "</tr>\n";
     /* ----- Lastname ------ */
     $ret .= "<tr id=\"lastname\">\n";
     $ret .= "<td>Lastname: </td>\n";
-    $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $familyname . "\" name=\"foaf:familyName\"></td>\n";
+    $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $familyname . "\" name=\"foaf:familyName\">\n";
+    $ret .= "<a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td>\n";
     $ret .= "</tr>\n";
     /* ----- Nickname ------ */
     $ret .= "<tr id=\"nickname\">\n";
     $ret .= "<td>Nickname: </td>\n";
-    $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $nick . "\" name=\"foaf:nick\"></td>\n";
+    $ret .= "<td><input type=\"text\" size=\"50\" maxlength=\"64\" value=\"" . $nick . "\" name=\"foaf:nick\">\n";
+    $ret .= "<a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></td>\n";
     $ret .= "</tr>\n";
 }
 /* ----- PERSONAL ------ */
@@ -593,6 +613,8 @@ $ret .= "<td width=\"100\"></td>\n";
 $ret .= "<td valign=\"top\">\n";
 $ret .= "<img width=\"150\" src=\"" . $picture . "\"/>\n";
 $ret .= "<br/><input name=\"picture\" type=\"file\" size=\"10\">\n";
+if ($_REQUEST['action'] != 'new')
+    $ret .= "<br/><p><a href=\"#\"><img src=\"img/wac.png\" class=\"mywac\" /></a></p>\n";
 $ret .= "</td>\n";
 
 $ret .= "</tr>\n";    
