@@ -19,14 +19,12 @@
  *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-require_once 'include.php'; 
+require_once 'include.php';
 $title = "Preferences";
 $pref_on = 'settings-on';
 
-
 // verify if we're logged in or not
 check_auth(IDP, $page_uri);
-
 
 $ret = '';
 $ret .= "<div class=\"content relative shadow clearfix main\">\n";
@@ -61,6 +59,10 @@ if (webid_is_local($_SESSION['webid'])) {
         include 'footer.php';
         exit;
     }
+    
+    if (isset($_REQUEST['recovery_email'])) {
+        $ret .= $_SESSION['myprofile']->set_recovery_email($_REQUEST['recovery_email']);
+    }
 }
 
 // subscribe or unsubscribe
@@ -85,7 +87,7 @@ if (isset($_REQUEST['subscribe'])) {
 
 // display form if we are not registered
 if (!is_subscribed($_SESSION['webid'])) {
-    $ret .= "<h2><strong>Manage notifications.</strong></h2>\n";
+    $ret .= "<h2><strong>Manage notifications</strong></h2>\n";
     $ret .= "<form name=\"manage\" method=\"post\">\n";
     $ret .= "<input type=\"hidden\" name=\"subscribe\" value=\"1\">\n";
     $ret .= "<table border=\"0\">\n";
@@ -103,7 +105,7 @@ else {
         $check_email = 'checked';
     $check_subscription = 'checked';
         
-    $ret .= "<h2><strong>Manage notifications.</strong></h2>\n";
+    $ret .= "<h2><strong>Manage notifications</strong></h2>\n";
     $ret .= "<form method=\"post\">\n";
     $ret .= "<table>\n";
     $ret .= "<tr><td><input type=\"checkbox\" name=\"subscription\" ".$check_subscription." /> Receive notifcations. (<strong>Warning!</strong> Unsubscribing removes all exisiting messages and wall posts!)</td></tr>\n";
@@ -114,11 +116,27 @@ else {
 }
 
 // display options for local users only
-//if (webid_is_local($_SESSION['webid'])) {
-    // 
-    //if (!isset($_REQUEST['action'])) {
+if (webid_is_local($_SESSION['webid'])) {
+        if (isset($_REQUEST['recovery_email']))
+            $email = $_REQUEST['recovery_email'];
+        else
+            $email = $_SESSION['myprofile']->get_recovery_email();
         $ret .= "<p></p>\n";
-        $ret .= "<h2><strong>Manage profile.</strong></h2>\n";
+        $ret .= "<h2><strong>Recovery Email</strong></h2>\n";
+
+        $ret .= "<table><tr>\n";
+        $ret .= "<td>\n";
+        $ret .= "<form method=\"post\">\n";
+        $ret .= "<input type=\"text\" class=\"recovery\" name=\"recovery_email\" value=\"".$email."\" />\n";
+        $ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"update_recovery\" value=\"Update\">\n";
+        $ret .= "</form> \n";
+        $ret .= "</td>\n";
+        $ret .= "</tr></table>\n";
+        $ret .= "<strong>Note!</strong> This email address is private and will not be displayed on your profile.";
+        
+    if (!isset($_REQUEST['action'])) {
+        $ret .= "<p></p>\n";
+        $ret .= "<h2><strong>Manage profile</strong></h2>\n";
 
         $ret .= "<table><tr>\n";
         $ret .= "<td>\n";
@@ -133,9 +151,9 @@ else {
         $ret .= "</form>\n";
         $ret .= "</td>\n";
         $ret .= "</tr></table>\n";
-        $ret .= "<strong>Warning!</strong> Deleting a profile cannot be undone. All your local data will be removed (profile, wall posts, messages, etc.)    .";
-    //}
-//}
+        $ret .= "<strong>Warning!</strong> Deleting a profile cannot be undone. All your local data will be removed (profile, wall posts, messages, etc.).";
+    }
+}
 
 $ret .= "</div>\n";
 
