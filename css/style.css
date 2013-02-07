@@ -577,7 +577,6 @@ ul.disc {
 /* Login */
 .login {
     position: absolute;
-    top: 5px;
     right: 5px;
     float: left;
     background: #eee;
@@ -652,7 +651,10 @@ ul.disc {
 	position: absolute;
 	top: 38px;
 	left: 450px; }
-
+		
+.recovery {
+    width: 300px;
+}
 
 /* Main view */
 .main {
@@ -960,7 +962,7 @@ ul.disc {
 }
 
 .newmsg {
-    background: #BDD8DA !important;
+    background: #f4f8fa !important;
 }
 
 .message {
