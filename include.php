@@ -43,6 +43,7 @@ require_once 'config.php';
 require_once 'lib/functions.php';
 require_once 'lib/Messages.php';
 require_once 'lib/MyProfile.class.php';
+require_once 'lib/Recovery.class.php';
 // Email libs
 require_once 'lib/Mail.php';
 require_once 'lib/Mail/mime.php';
@@ -112,11 +113,33 @@ if(isset($_REQUEST['logout'])) {
 }
 
 // Authenticate using WebID
-if (strlen($auth->webid) > 0) {
-    $webid = $auth->webid;
+if ((strlen($auth->webid) > 0) || (isset($_REQUEST["recovery_code"]))) {
+    $ok = False;
 
-    // do stuff only if authenticated
-    if ($auth->isAuthenticated()) {
+    // Authenticated through WebID-TLS
+    if ((strlen($auth->webid) > 0) && ($auth->isAuthenticated() == True)) {  
+        $webid = $auth->webid;
+        $ok = True;
+    } 
+    
+    // Authenticate through recovery hash
+    if (strlen($_REQUEST["recovery_code"]) > 0) {
+
+        $recovery = new Recovery();
+        $status = $recovery->isAuthenticated($_REQUEST["recovery_code"]);
+        if ($status == True) {
+            $webid = $recovery->get_webid();
+            $_SESSION['recovery_status'] = null;
+            $ok = True;
+        } else {
+            $_SESSION['recovery_status'] = error('Your recovery code does not match any records in our database.');
+        }
+    }
+    
+    // DEBUG
+    //echo "\n<!-- WEBID=".$webid."\nSESSION=\n".print_r($_SESSION, true)."-->\n";
+    
+    if ($ok == True) {
         if (!isset($_SESSION['myprofile'])) {
             $_SESSION['webid'] = $webid;
 
