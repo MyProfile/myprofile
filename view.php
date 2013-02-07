@@ -29,7 +29,7 @@ include 'header.php';
 $ret .= "<div class=\"content relative shadow clearfix main\">\n";
 
 $ret .= "<div><form action=\"lookup\" method=\"get\">\n";
-$ret .= "<input type=\"search\" name=\"search\" onfocus=\"this.value=(this.value=='name, nickname or WebID') ? '' : this.value;\" onblur=\"this.value=(this.value=='') ? 'name, nickname or WebID' : this.value;\" value=\"name, nickname or WebID\" onkeydown=\"if(event.keyCode == 13) fmsearch(this.value);\" />\n";
+$ret .= "<input type=\"search\" name=\"search\" onfocus=\"this.value=(this.value=='name, nickname or WebID') ? '' : this.value;\" onblur=\"this.value=(this.value=='') ? 'name, nickname or WebID' : this.value;\" value=\"name, nickname or WebID\" />\n";
 $ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"submit\" value=\" Search \" />\n";
 $ret .= "</form></div>\n";
 
@@ -66,21 +66,21 @@ if (isset($_REQUEST['webid'])) {
     if ((isset($_SESSION['webid'])) && (webid_is_local($_SESSION['webid']))) {
         // edit profile
         if ((!isset($_REQUEST['webid'])) || ($_REQUEST['webid'] == $_SESSION['webid'])) {
-            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"profile\" method=\"get\">\n";
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"profile\" method=\"post\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"edit\" />\n";
             $ret .= "<input src=\"img/actions/edit.png\" type=\"image\" title=\"Edit profile\" name=\"submit\" value=\" Edit profile \" />\n";
             $ret .= "</form></td>\n";
         }
         if ($_SESSION['myprofile']->is_friend($_REQUEST['webid'])) {
         // remove friend
-            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends\" method=\"POST\">\n";
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends\" method=\"post\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"delfriend\" />\n";
             $ret .= "<input type=\"hidden\" name=\"del_webid\" value=\"" . $_REQUEST['webid'] . "\" />\n";
             $ret .= "<input src=\"img/actions/remove.png\" type=\"image\" title=\"Remove friend\" name=\"submit\" value=\" Remove \" />\n";
             $ret .= "</form></td>\n";
         } else {
         // add friend
-            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends\" method=\"POST\">\n";
+            $ret .= "<td style=\"padding-right: 10px; float: left;\"><form action=\"friends\" method=\"post\">\n";
             $ret .= "<input type=\"hidden\" name=\"action\" value=\"addfriend\" />\n";
             $ret .= "<input type=\"hidden\" name=\"add_webid\" value=\"" . $_REQUEST['webid'] . "\" />\n";
             $ret .= "<input src=\"img/actions/add.png\" type=\"image\" title=\"Add friend\" name=\"submit\" value=\" Add \" />\n";
