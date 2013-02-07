@@ -26,16 +26,15 @@ $ret = '';
 $ret .= "<div class=\"content relative shadow clearfix main\">\n";
 
 // Recover account
-//if (webid_is_local($_REQUEST['webid'])) {
-
+if (webid_is_local($_REQUEST['webid'])) {
     
     if (isset($_REQUEST['recovery_webid'])) {
           $recovery = new Recovery();
           $ret .= $recovery->recover($_REQUEST['recovery_webid']);
     }
-//} else {
-//    $ret .= "The account recovery is only available for local users.";
-//}
+} else {
+    $ret .= "The account recovery is only available for local users.";
+}
 
 if (isset($_REQUEST['recovery_code']) && isset($_SESSION['recovery_status']))
     $ret .=$_SESSION['recovery_status'];
