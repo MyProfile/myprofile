@@ -460,6 +460,55 @@ class MyProfile {
             }
         }
     }
+    
+    // set recovery email address
+    function set_recovery_email($email) {
+        // find if the user exists already
+        $exists = False;
+        $query = "SELECT webid FROM recovery WHERE webid='".mysql_real_escape_string($this->webid)."'";
+        $result = mysql_query($query);
+        if (!$result) {
+            die('Unable to connect to the database [SELECT]!');
+        } else if (mysql_num_rows($result) > 0) {
+            $exists = True;
+        }
+        
+        if ($exists == True) {
+            if (strlen($email) > 0) {
+                $query = "UPDATE recovery SET ".
+                        "email='".mysql_real_escape_string($email)."' ".
+                        "WHERE webid='".mysql_real_escape_string($this->webid)."'";
+            } else {
+                // empty email means we delete the record
+                $query = "DELETE FROM recovery WHERE webid='".mysql_real_escape_string($this->webid)."'";
+            }
+        } else {
+            $query = "INSERT INTO recovery SET ".
+                    "webid='".mysql_real_escape_string($this->webid)."', ".
+                    "email='".mysql_real_escape_string($email)."'";
+        }
+        
+        $result = mysql_query($query);
+        if (!$result) {
+            return error('Unable to connect to the database!');
+        } else {
+            mysql_free_result($result);
+            return success('You have successfully updated your recovery email address.');
+        }
+    }
+    
+    function get_recovery_email() {
+        $query = "SELECT email FROM recovery WHERE webid='".mysql_real_escape_string($this->webid)."'";
+        $result = mysql_query($query);
+        if (!$result) {
+            die('Unable to connect to the database!');
+        } else if (mysql_num_rows($result) > 0) {
+            $row = mysql_fetch_assoc($result);
+            $email = $row['email'];
+            mysql_free_result($result);
+        }
+        return $email;
+    }
 }
  
 ?>
