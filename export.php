@@ -20,51 +20,6 @@
  *  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
  
-require_once 'include.php';
-
-// Offer to download the profile data
-if ((isset($_REQUEST['download'])) && (isset($_REQUEST['uri']))) {
-    $graph = new EasyRdf_Graph($_REQUEST['uri']);
-    $graph->load();
-    $data = $graph->serialise($_REQUEST['format']);
-    if (!is_scalar($data)) {
-        $data = var_export($data, true);
-    } else {
-        $data = print_r($data, true);
-    }
-    
-    $format = $_REQUEST['format'];
-
-    $content_type = '';
-    $extension = '';
-	if ($format == 'rdfxml') {
-		$content_type = 'application/rdf+xml';
-		$extension = 'rdf';
-	} else if ($format == 'turtle') {
-		$content_type = 'application/x-turtle';
-		$extension = 'ttl';
-	} else if ($format == 'ntriples') {
-		$content_type = 'application/ntriples';
-		$extension = 'nt';
-	} else if ($format == 'n3') {
-	    $content_type = 'application/n3';
-	    $extension = 'n3';
-	} else if ($format == 'json') {
-	    $content_type = 'application/json';
-	    $extension = 'json';
-	} else {
-		$content_type = 'text/plain';
-		$extension = 'txt';
-	}
-
-    header('Content-disposition: attachment; filename="profile.' . $extension . '"');
-    header('Content-type: ' . $content_type);
-    echo $data;
-    exit();
-}
-
-$ret = '';
-
 $format_options = array();
 foreach (EasyRdf_Format::getFormats() as $format) {
     if ($format->getSerialiserClass()) {
@@ -79,32 +34,28 @@ else if (isset($_SESSION['webid']))
 else
     $uri = '';
 
-$ret .= "<div class=\"container\">\n";
-$ret .= "<p><font style=\"font-size: 2em; text-shadow: 0 1px 1px #cccccc;\">Convert/Export Profile</font></p><br/>\n";
-$ret .= "<div class=\"clear\"></div>\n";
-$ret .= "</div>\n";
+$ret .= "<p></p>\n";
+$ret .= "<h2><strong>Export Profile</strong></h2>\n";
 
-$ret .= "      <form name=\"convert\" action=\"\" method=\"GET\">\n";
-$ret .= "       <input type=\"hidden\" name=\"doit\" value=\"1\">\n";
+$ret .= "<form name=\"convert\" action=\"\" method=\"post\">\n";
+$ret .= "<input type=\"hidden\" name=\"doit\" value=\"1\">\n";
 if (isset($_REQUEST['format']))
-    $ret .= "       <input type=\"hidden\" name=\"format\" value=\"" . $_REQUEST['format'] . "\">\n";
-$ret .= "       <p>WebID URI: <input type=\"text\" name=\"uri\" size=\"50\" placeholder=\"http://fcns.eu/people/andrei/card#me\" value=\"" . $uri . "\" /></p><br/>\n";
-$ret .= "       <p>Serialization: <select name=\"format\">\n";
+    $ret .= "<input type=\"hidden\" name=\"format\" value=\"" . $_REQUEST['format'] . "\">\n";
+$ret .= "<p>Serialization: <select name=\"format\">\n";
 
 foreach (EasyRdf_Format::getFormats() as $format) {
     if ($format->getSerialiserClass()) {
         $ret .= "<option value=\"" . $format->getName() . "\""; $ret .= $format->getName() == 'rdfxml'?" selected":""; $ret .= ">" . $format->getLabel() . "</option>\n";
     }
 }
-$ret .= "      </select>\n";
-$ret .= "      <input class=\"btn btn-primary\" type=\"submit\" name=\"convert\" value=\" Convert \"></p>\n";
-$ret .= "       </form>\n";
-$ret .= "     <div class=\"clear\"></div>\n";
+$ret .= "</select>\n";
+$ret .= "<input class=\"btn btn-primary\" type=\"submit\" name=\"export\" value=\" Export \"></p>\n";
+$ret .= "</form>\n";
 
 
 // Display the converted profile
-if ((isset($_REQUEST['uri'])) && (isset($_REQUEST['doit']))) {
-    $graph = new EasyRdf_Graph($_REQUEST['uri']);
+if (isset($_REQUEST['doit'])) {
+    $graph = new EasyRdf_Graph($_SESSION['webid']);
     $graph->load();
     $data = $graph->serialise($_REQUEST['format']);
     if (!is_scalar($data)) {
@@ -112,19 +63,7 @@ if ((isset($_REQUEST['uri'])) && (isset($_REQUEST['doit']))) {
     } else {
         $data = print_r($data, true);
     }
-    $ret .= "     <div class=\"container\">\n";
-    $ret .= "       <p><textarea name=\"data\" style=\"width: 810px; height: 500px;\">" . htmlspecialchars($data) . "</textarea></p>\n";
-    $ret .= "      <form name=\"convert\" action=\"\" method=\"GET\">\n";
-    $ret .= "       <input type=\"hidden\" name=\"uri\" value=\"" . $_REQUEST['uri'] . "\">\n";
-    $ret .= "       <input type=\"hidden\" name=\"format\" value=\"" . $_REQUEST['format'] . "\">\n";
-    $ret .= "       <input class=\"btn btn-primary\" type=\"submit\" name=\"download\" value=\" Download \">";
-    $ret .= "       </form>\n";
-    $ret .= "      <div class=\"clear\"></div>\n";
-    $ret .= "     </div>\n";
+    $ret .= "<p><textarea name=\"data\" style=\"width: 810px; height: 500px;\">" . htmlspecialchars($data) . "</textarea></p>\n";
 }
 
-include 'header.php';
-echo $ret;
-include 'footer.php';
-?>
 

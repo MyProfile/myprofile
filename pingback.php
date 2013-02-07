@@ -75,7 +75,7 @@ if (isset($_POST['source'])) {
             
             // Send a mail too if the receiving user allows it
             if (is_subscribed_email($to)) {
-                $person = new MyProfile(trim($_POST['target']), $base_uri, SPARQL_ENDPOINT);
+                $person = new MyProfile(trim($_POST['target']), BASE_URI, SPARQL_ENDPOINT);
                 $person->load();
                 $to_name = $person->get_name();
                 $to_email = $person->get_email();
@@ -96,11 +96,11 @@ if (isset($_POST['source'])) {
                 $message = '<html><body>';
                 $message .= '<p>Hello ' . $to_name . ',</p>';
                 $message .= '<p>You have just received a new message from ' . $name . '! ';
-                $message .= '<a href="' . $base_uri . '/messages">Click here</a> to see it.</p>'; 
+                $message .= '<a href="' . BASE_URI . '/messages">Click here</a> to see it.</p>'; 
                 $message .= '<br/><p><small>You are receiving this email because you enabled Semantic Pingback notification ';
-                $message .= '(with email as notification mechanism) for your Personal Profile on <a href="' . $base_uri . '">' . $base_uri . '</a>. ';
+                $message .= '(with email as notification mechanism) for your Personal Profile on <a href="' . BASE_URI . '">' . BASE_URI . '</a>. ';
                 $message .= 'If you would like to stop receiving email notifications, please check your ';
-                $message .= '   <a href="' . $base_uri . '/subscription.php">subscription settings</a>.</small></p>';
+                $message .= '   <a href="' . BASE_URI . '/subscription.php">subscription settings</a>.</small></p>';
                 $message .= '<p><small>You do not need to respond to this automated email.</small></p>';
                 $message .= '</body></html>';
                 $crlf = "\n";
