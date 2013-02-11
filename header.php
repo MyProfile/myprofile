@@ -12,6 +12,7 @@
     <script src="js/moment.min.js" type="text/javascript"></script>
     <script src="js/prettify.js" type="text/javascript"></script>
     <script src="js/common.js" type="text/javascript"></script>
+    <script src="js/wall.js" type="text/javascript"></script>
     <script src="js/autocomplete.js" type="text/javascript"></script>
     <script src="js/doc-ready.js" type="text/javascript"></script>
     <!-- Title -->

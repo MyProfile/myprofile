@@ -25,8 +25,10 @@
 date_default_timezone_set('UTC');
 
 define('INCLUDE_CHECK',true);
-set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__).'/');
+set_include_path(get_include_path() . PATH_SEPARATOR . '../');
+set_include_path(get_include_path() . PATH_SEPARATOR . '../lib/');
 
+/*
 // check if it's a first install
 if (!file_exists('config.php')) {
     include 'header.php';
@@ -37,32 +39,31 @@ if (!file_exists('config.php')) {
     
     include 'footer.php';    
 }
+*/
 
 // Local includes
-require_once 'config.php';
-require_once 'lib/functions.php';
-require_once 'lib/Messages.php';
-require_once 'lib/MyProfile.class.php';
-require_once 'lib/Recovery.class.php';
-require_once 'lib/Wall.class.php';
+require_once '../config.php';
+require_once '../lib/functions.php';
+require_once '../lib/Messages.php';
+require_once '../lib/MyProfile.class.php';
 // Email libs
-require_once 'lib/Mail.php';
-require_once 'lib/Mail/mime.php';
+require_once '../lib/Mail.php';
+require_once '../lib/Mail/mime.php';
 
 // Logging
-require_once 'lib/logger.php';
+require_once '../lib/logger.php';
 
 // WebID auth
-require_once 'lib/WebIDDelegatedAuth/lib/Authentication.php';
+require_once '../lib/WebIDDelegatedAuth/lib/Authentication.php';
 
 // Feed stuff
-require_once 'lib/feeds/FeedItem.php';
-require_once 'lib/feeds/FeedWriter.php';
+require_once '../lib/feeds/FeedItem.php';
+require_once '../lib/feeds/FeedWriter.php';
 
 // RDF stuff
-require_once 'lib/arc/ARC2.php';
-require_once 'lib/EasyRdf.php';
-require_once 'lib/sparqllib.php';
+require_once '../lib/arc/ARC2.php';
+require_once '../lib/EasyRdf.php';
+require_once '../lib/sparqllib.php';
 
 // Get the current document URI
 $page_uri = 'http';
@@ -100,7 +101,7 @@ if((isset($_SESSION['id'])) && (!isset($_COOKIE['tzRemember']))) {
 }
 
 // Logout
-if(isset($_REQUEST['logout'])) {
+if(isset($_REQUEST['logoff'])) {
     # clear WebID session	
     if ($_SESSION['webid'])
         $auth->logout;	
@@ -109,49 +110,16 @@ if(isset($_REQUEST['logout'])) {
     $_SESSION = array();
     session_destroy();
 
-    header("Location: /");
+    header("Location: index.php");
     exit;
 }
 
 // Authenticate using WebID
-if ((strlen($auth->webid) > 0) || (isset($_REQUEST["recovery_code"])) || (isset($_REQUEST["pairing_pin"]))) {
-    $ok = False;
+if (strlen($auth->webid) > 0) {
+    $webid = $auth->webid;
 
-    // Authenticated through WebID-TLS
-    if ((strlen($auth->webid) > 0) && ($auth->isAuthenticated() == True)) {  
-        $webid = $auth->webid;
-        $ok = True;
-    } 
-    
-    // Authenticate through recovery hash
-    if (strlen($_REQUEST["recovery_code"]) > 0) {
-        $recovery = new Recovery();
-        $status = $recovery->hash_authenticated($_REQUEST["recovery_code"]);
-        if ($status == True) {
-            $webid = $recovery->get_webid();
-            $_SESSION['recovery_status'] = null;
-            $ok = True;
-        } else {
-            $_SESSION['recovery_status'] = error('Your recovery code does not match any records in our database.');
-        }
-    }
-    
-    if (strlen($_REQUEST["pairing_pin"]) > 0) {
-        $recovery = new Recovery();
-        $status = $recovery->pin_authenticated($_REQUEST["pairing_pin"]);
-        if ($status == True) {
-            $webid = $recovery->get_webid();
-            $_SESSION['recovery_status'] = null;
-            $ok = True;
-        } else {
-            $_SESSION['recovery_status'] = error('Your recovery PIN does not match any records in our database.');
-        }
-    }
-    
-    // DEBUG
-    //echo "\n<!-- WEBID=".$webid."\nSESSION=\n".print_r($_SESSION, true)."-->\n";
-    
-    if ($ok == True) {
+    // do stuff only if authenticated
+    if ($auth->isAuthenticated()) {
         if (!isset($_SESSION['myprofile'])) {
             $_SESSION['webid'] = $webid;
 
@@ -178,9 +146,9 @@ if ((strlen($auth->webid) > 0) || (isset($_REQUEST["recovery_code"])) || (isset(
 // Get the number of messages
 if (isset($_SESSION['webid']) && $_SESSION['webid']) {
     $messages = get_msg_count($_SESSION['webid']);
-    $wall_msg = get_msg_count($_SESSION['webid'], True, True);
+    $private_msg = get_msg_count($_SESSION['webid'], 1, 0);
+    $wall_msg = get_msg_count($_SESSION['webid'], 1, 1);
 }
-
 
 // Bad place to add logic for adding/removing friends.
 // add a specific person as friend

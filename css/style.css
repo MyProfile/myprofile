@@ -664,6 +664,15 @@ ul.disc {
     margin-left: 5px;
     font-size: 2.5em;
     line-height: 1em;
+    text-align: center;
+}
+
+.actions {
+    border: 1px solid #cddadd;
+    background-color: #f4f8fa;
+    padding: 9px;
+    margin-bottom: 15px;
+    width: 700px;
 }
 
 /* Main view */
@@ -893,6 +902,24 @@ ul.disc {
   height: 1px;
   color: #cccccc;
   background: #cccccc;
+}
+
+.hr-recovery {
+  border: none;
+  height: 1px; 
+  color: #cccccc;
+  background: #cccccc;
+  width: 700px;
+}
+
+.loadmore {
+    margin-bottom: 15px;
+    width: 698px;
+}
+
+.loading {
+    margin-bottom: 10px;
+    padding-left: 320px;
 }
 
 .reverse .speaker {
