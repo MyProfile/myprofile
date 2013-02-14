@@ -139,7 +139,7 @@ class Recovery {
                 $person->load();
                 $to_name = $person->get_name();
                 
-                $from = 'MyProfile Notification System <' . SMTP_USERNAME . '>';
+                $from = 'MyProfile Recovery System <' . SMTP_USERNAME . '>';
                 $to = '"' . $to_name . '" <' . clean_mail($email) . '>';
                 $subject = 'Instructions to recover your account on '.BASE_URI.'.';
 
@@ -155,12 +155,14 @@ class Recovery {
                 $message = '<html><body>';
                 $message .= '<p>Hello ' . $to_name . ',</p>';
                 $message .= '<p>You have requested to recover your personal account on '.BASE_URI.'. ';
-                $message .= 'Please click <a href="' . BASE_URI . '/recovery?recovery_code='.$hash.'">this link</a> to proceed.</p>';
-                $message .= '<p>Alternatively, you can manually use the recovery code at this page: ';
-                $message .= '<a href="'.BASE_URI.'/recovery">'.BASE_URI.'/recovery</a>.</p>';
-                $message .= '<p>Your code is: <strong>'.$hash.'</strong></p>';
+                $message .= 'Please click <a href="' . BASE_URI . '/recovery?recovery_code='.$hash.'">' . BASE_URI . '/recovery?recovery_code='.$hash.'</a> to proceed.</p>';
+                $message .= '<p>Alternatively, you can recover your account by visiting this page: <a href="'.BASE_URI.'/recovery">'.BASE_URI.'/recovery</a> and typing or pasting the following recovery code:</p>';
+                $message .= '<p>';
+                $message .= '<strong>'.$hash.'</strong> ';
+                $message .= '</p>';
+                $message .= '<p>Important! Do not forget that once you are logged in, you can obtain a new certificate by going to your <a href="https://my-profile.eu/view">profile page</a> and then clicking on the "Certificate" icon under "Actions for this profile".</p>';
                 $message .= '<br /><p><hr /></p>';
-                $message .= '<p><small>You do not need to respond to this automated email.</small></p>';
+                $message .= '<p><small>This is an automated email generate by <a href="https://my-profile.eu/">MyProfile</a> and you do not need to respond to it.</small></p>';
                 $message .= '</body></html>';
                 $crlf = "\n";
                 $mime = new Mail_Mime(array('eol' => $crlf));
