@@ -137,7 +137,7 @@ if (isset($pin)) {
 }
 $ret .= "<tr><td>\n";
 $ret .= "<form method=\"post\">\n";
-$ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"generate_pin\" value=\"Generate new PIN\">\n";
+$ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"generate_pin\" value=\"Generate a new PIN\">\n";
 $ret .= "</form> \n";
 $ret .= "</td></tr>\n";
 $ret .= "</table>\n";
@@ -168,7 +168,7 @@ if (webid_is_local($_SESSION['webid'])) {
 
         $ret .= "<table><tr>\n";
         $ret .= "<td>\n";
-        $ret .= "<form method=\"get\">\n";
+        $ret .= "<form action=\"profile.php\" method=\"get\">\n";
         $ret .= "<input type=\"hidden\" name=\"action\" value=\"edit\" />\n";
         $ret .= "<input class=\"btn margin-5\" type=\"submit\" name=\"submit\" value=\"Edit profile\">\n";
         $ret .= "</form> \n";
@@ -180,6 +180,7 @@ if (webid_is_local($_SESSION['webid'])) {
         $ret .= "</td>\n";
         $ret .= "</tr></table>\n";
         $ret .= "<strong>Warning!</strong> Deleting a profile cannot be undone. All your local data will be removed (profile, wall posts, messages, etc.).";
+        $ret .= "<p></p>\n";
     }
 }
 
